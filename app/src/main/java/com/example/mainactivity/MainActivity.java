@@ -1,0 +1,352 @@
+package com.example.mainactivity;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
+
+import android.animation.ObjectAnimator;
+import android.content.Intent;
+import android.graphics.Paint;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.Collections;
+
+public class MainActivity extends AppCompatActivity {
+
+    private static final int ADD_TASK_REQUEST = 1;
+
+    private Button editButton;
+    private ImageButton addButton;
+    private LinearLayout morningTasksContainer;
+    private LinearLayout afternoonTasksContainer;
+    private LinearLayout nightTasksContainer;
+    private TextView emptyTasksText;
+    private TextView morningTasksHeader;
+    private TextView afternoonTasksHeader;
+    private TextView nightTasksHeader;
+    private TextView taskCountText;
+    private ProgressBar progressBar;
+    private TextView completionText;
+
+    private TaskRepository taskRepository;
+    private boolean isEditMode = false;
+    private View currentlyOpenTaskView = null;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        editButton = findViewById(R.id.editButton);
+        addButton = findViewById(R.id.addButton);
+        morningTasksContainer = findViewById(R.id.morningTasksContainer);
+        afternoonTasksContainer = findViewById(R.id.afternoonTasksContainer);
+        nightTasksContainer = findViewById(R.id.nightTasksContainer);
+        emptyTasksText = findViewById(R.id.emptyTasksText);
+        morningTasksHeader = findViewById(R.id.morningTasksHeader);
+        afternoonTasksHeader = findViewById(R.id.afternoonTasksHeader);
+        nightTasksHeader = findViewById(R.id.nightTasksHeader);
+        taskCountText = findViewById(R.id.taskCountText);
+        progressBar = findViewById(R.id.progressBar);
+        completionText = findViewById(R.id.completionText);
+
+        taskRepository = TaskRepository.getInstance();
+
+        editButton.setOnClickListener(v -> toggleEditMode());
+        addButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, AddTaskActivity.class);
+            startActivityForResult(intent, ADD_TASK_REQUEST);
+        });
+
+        updateTaskLists();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == ADD_TASK_REQUEST && resultCode == RESULT_OK) {
+            updateTaskLists();
+        }
+    }
+
+    private void toggleEditMode() {
+        isEditMode = !isEditMode;
+        editButton.setText(isEditMode ? "Done" : "Edit");
+
+        if (!isEditMode && currentlyOpenTaskView != null) {
+            closeDeleteButton(currentlyOpenTaskView, false);
+        }
+        
+        animateAllTasks(true);
+    }
+
+    private void animateAllTasks(boolean animate) {
+        long duration = animate ? 300 : 0;
+
+        for (int i = 0; i < morningTasksContainer.getChildCount(); i++) {
+            animateTaskView(morningTasksContainer.getChildAt(i), duration);
+        }
+        for (int i = 0; i < afternoonTasksContainer.getChildCount(); i++) {
+            animateTaskView(afternoonTasksContainer.getChildAt(i), duration);
+        }
+        for (int i = 0; i < nightTasksContainer.getChildCount(); i++) {
+            animateTaskView(nightTasksContainer.getChildAt(i), duration);
+        }
+    }
+
+    private void animateTaskView(View taskView, long duration) {
+        ImageButton removeTaskButton = taskView.findViewById(R.id.removeTaskButton);
+        ImageButton editTaskButton = taskView.findViewById(R.id.editTaskButton);
+        View timeLayout = taskView.findViewById(R.id.timeLayout);
+
+        if (isEditMode) {
+            timeLayout.animate().alpha(0f).setDuration(duration).withEndAction(() -> timeLayout.setVisibility(View.GONE));
+
+            removeTaskButton.setVisibility(View.VISIBLE);
+            removeTaskButton.setAlpha(0f);
+            removeTaskButton.animate().alpha(1f).setDuration(duration).start();
+
+            editTaskButton.setVisibility(View.VISIBLE);
+            editTaskButton.setAlpha(0f);
+            editTaskButton.animate().alpha(1f).setDuration(duration).start();
+
+        } else {
+            timeLayout.setVisibility(View.VISIBLE);
+            timeLayout.setAlpha(0f);
+            timeLayout.animate().alpha(1f).setDuration(duration).start();
+
+            removeTaskButton.animate().alpha(0f).setDuration(duration).withEndAction(() -> removeTaskButton.setVisibility(View.GONE));
+            editTaskButton.animate().alpha(0f).setDuration(duration).withEndAction(() -> editTaskButton.setVisibility(View.GONE));
+        }
+    }
+
+    private void updateTaskLists() {
+        ArrayList<Task> morningTasks = taskRepository.morningTasks;
+        ArrayList<Task> afternoonTasks = taskRepository.afternoonTasks;
+        ArrayList<Task> nightTasks = taskRepository.nightTasks;
+
+        sortTasks(morningTasks);
+        sortTasks(afternoonTasks);
+        sortTasks(nightTasks);
+
+        morningTasksContainer.removeAllViews();
+        afternoonTasksContainer.removeAllViews();
+        nightTasksContainer.removeAllViews();
+
+        int totalTasks = morningTasks.size() + afternoonTasks.size() + nightTasks.size();
+        int completedTasks = 0;
+
+        for (Task task : morningTasks) {
+            morningTasksContainer.addView(createTaskView(task));
+            if(task.isComplete) completedTasks++;
+        }
+        for (Task task : afternoonTasks) {
+            afternoonTasksContainer.addView(createTaskView(task));
+            if(task.isComplete) completedTasks++;
+        }
+        for (Task task : nightTasks) {
+            nightTasksContainer.addView(createTaskView(task));
+            if(task.isComplete) completedTasks++;
+        }
+        
+        taskCountText.setText("Task " + completedTasks + "/" + totalTasks);
+        if(totalTasks > 0) {
+            int progress = (completedTasks * 100) / totalTasks;
+            progressBar.setProgress(progress);
+            completionText.setText(progress + "% completed");
+        } else {
+            progressBar.setProgress(0);
+            completionText.setText("0% completed");
+        }
+
+
+        if (totalTasks == 0) {
+            emptyTasksText.setVisibility(View.VISIBLE);
+            morningTasksHeader.setVisibility(View.GONE);
+            afternoonTasksHeader.setVisibility(View.GONE);
+            nightTasksHeader.setVisibility(View.GONE);
+            editButton.setVisibility(View.GONE);
+            if (isEditMode) {
+                isEditMode = false;
+                editButton.setText("Edit");
+            }
+        } else {
+            emptyTasksText.setVisibility(View.GONE);
+            morningTasksHeader.setVisibility(morningTasks.isEmpty() ? View.GONE : View.VISIBLE);
+            afternoonTasksHeader.setVisibility(afternoonTasks.isEmpty() ? View.GONE : View.VISIBLE);
+            nightTasksHeader.setVisibility(nightTasks.isEmpty() ? View.GONE : View.VISIBLE);
+            editButton.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private View createTaskView(final Task task) {
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View taskView = inflater.inflate(R.layout.task_item, null, false);
+
+        TextView taskNameTextView = taskView.findViewById(R.id.taskName);
+        TextView taskTimeTextView = taskView.findViewById(R.id.taskTime);
+        View taskCircle = taskView.findViewById(R.id.taskCircle);
+        TextView repeatDaysTextView = taskView.findViewById(R.id.repeatDays);
+        ImageButton removeTaskButton = taskView.findViewById(R.id.removeTaskButton);
+        ImageButton editTaskButton = taskView.findViewById(R.id.editTaskButton);
+        Button deleteButton = taskView.findViewById(R.id.deleteButton);
+        final View taskContent = taskView.findViewById(R.id.taskContent);
+        View timeLayout = taskView.findViewById(R.id.timeLayout);
+        SwitchCompat taskSwitch = taskView.findViewById(R.id.taskSwitch);
+
+        taskNameTextView.setText(task.name);
+        taskTimeTextView.setText(String.format("%d:%02d %s", task.hour, task.minute, task.amPm));
+        taskSwitch.setChecked(task.isAlarmOn);
+
+        if (task.isComplete) {
+            taskNameTextView.setPaintFlags(taskNameTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            taskView.setAlpha(0.6f);
+        } else {
+            taskNameTextView.setPaintFlags(taskNameTextView.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+            taskView.setAlpha(1.0f);
+        }
+
+        taskSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            task.isAlarmOn = isChecked;
+            Toast.makeText(MainActivity.this, "Alarm for " + task.name + " is " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
+        });
+
+        deleteButton.setVisibility(View.GONE);
+        animateTaskView(taskView, 0);
+
+        removeTaskButton.setOnClickListener(v -> {
+            if (currentlyOpenTaskView != null && currentlyOpenTaskView != taskView) {
+                closeDeleteButton(currentlyOpenTaskView, true);
+            }
+            
+            if (currentlyOpenTaskView == taskView) {
+                closeDeleteButton(taskView, true);
+            } else {
+                openDeleteButton(taskView, true);
+            }
+        });
+
+        deleteButton.setOnClickListener(v -> {
+            taskRepository.morningTasks.remove(task);
+            taskRepository.afternoonTasks.remove(task);
+            taskRepository.nightTasks.remove(task);
+            updateTaskLists();
+        });
+
+        taskContent.setOnClickListener(v -> {
+            if (isEditMode) {
+                if (currentlyOpenTaskView == taskView) {
+                    closeDeleteButton(taskView, true);
+                }
+            } else {
+                task.isComplete = !task.isComplete;
+                updateTaskLists();
+            }
+        });
+
+        switch (task.urgency) {
+            case "Low":
+                taskCircle.setBackgroundResource(R.drawable.green_circle);
+                break;
+            case "Medium":
+                taskCircle.setBackgroundResource(R.drawable.yellow_circle);
+                break;
+            case "High":
+                taskCircle.setBackgroundResource(R.drawable.red_circle);
+                break;
+            default:
+                taskCircle.setVisibility(View.INVISIBLE);
+                break;
+        }
+
+        ArrayList<String> selectedDayNames = new ArrayList<>();
+        String[] daysOfWeek = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+        for (int i = 0; i < task.selectedDays.length; i++) {
+            if (task.selectedDays[i]) {
+                selectedDayNames.add(daysOfWeek[i]);
+            }
+        }
+
+        if (selectedDayNames.size() == 7) {
+            repeatDaysTextView.setText("Every day");
+            repeatDaysTextView.setVisibility(View.VISIBLE);
+        } else if (!selectedDayNames.isEmpty()) {
+            repeatDaysTextView.setText(String.join(", ", selectedDayNames));
+            repeatDaysTextView.setVisibility(View.VISIBLE);
+        } else {
+            repeatDaysTextView.setVisibility(View.GONE);
+        }
+
+        return taskView;
+    }
+
+    private void openDeleteButton(View taskView, boolean animate) {
+        final View taskContent = taskView.findViewById(R.id.taskContent);
+        final Button deleteButton = taskView.findViewById(R.id.deleteButton);
+        deleteButton.setVisibility(View.VISIBLE);
+        
+        taskContent.post(() -> {
+            if (animate) {
+                ObjectAnimator animation = ObjectAnimator.ofFloat(taskContent, "translationX", -deleteButton.getWidth());
+                animation.setDuration(300);
+                animation.start();
+            } else {
+                taskContent.setTranslationX(-deleteButton.getWidth());
+            }
+        });
+
+        currentlyOpenTaskView = taskView;
+    }
+
+    private void closeDeleteButton(View taskView, boolean animate) {
+        final View taskContent = taskView.findViewById(R.id.taskContent);
+        final Button deleteButton = taskView.findViewById(R.id.deleteButton);
+        if (animate) {
+            ObjectAnimator animation = ObjectAnimator.ofFloat(taskContent, "translationX", 0f);
+            animation.setDuration(300);
+            animation.start();
+        } else {
+            taskContent.setTranslationX(0f);
+        }
+        deleteButton.setVisibility(View.GONE);
+        if(currentlyOpenTaskView == taskView){
+            currentlyOpenTaskView = null;
+        }
+    }
+
+    private int getUrgencyPriority(String urgency) {
+        if (urgency == null) return 0;
+        switch (urgency) {
+            case "High": return 3;
+            case "Medium": return 2;
+            case "Low": return 1;
+            default: return 0; // for "None"
+        }
+    }
+
+    private void sortTasks(ArrayList<Task> tasks) {
+        Collections.sort(tasks, (t1, t2) -> {
+            int priority1 = getUrgencyPriority(t1.urgency);
+            int priority2 = getUrgencyPriority(t2.urgency);
+
+            if (priority1 != priority2) {
+                return Integer.compare(priority2, priority1);
+            } else {
+                int time1 = t1.hour * 60 + t1.minute + (t1.amPm.equals("PM") && t1.hour != 12 ? 12 * 60 : 0);
+                int time2 = t2.hour * 60 + t2.minute + (t2.amPm.equals("PM") && t2.hour != 12 ? 12 * 60 : 0);
+                return Integer.compare(time1, time2);
+            }
+        });
+    }
+}

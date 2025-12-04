@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="12dp">
+
+    <Button
+        android:id="@+id/deleteButton"
+        android:layout_width="100dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@drawable/delete_button_background"
+        android:text="Delete"
+        android:textColor="@android:color/white"
+        android:visibility="gone"
+        app:backgroundTint="@null" />
+
+    <RelativeLayout
+        android:id="@+id/taskContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="72dp"
+        android:background="@drawable/task_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:paddingVertical="12dp"
+        android:paddingHorizontal="16dp">
+
+        <ImageButton
+            android:id="@+id/removeTaskButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_remove_circle"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:visibility="gone"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="8dp"/>
+
+        <View
+            android:id="@+id/taskCircle"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_toEndOf="@id/removeTaskButton"
+            android:layout_centerVertical="true"/>
+
+        <FrameLayout
+            android:id="@+id/right_side_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true">
+
+            <LinearLayout
+                android:id="@+id/timeLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="end">
+
+                <Button
+                    android:id="@+id/setTimerButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:text="SET TIMER"
+                    android:background="@drawable/timer_button_background"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    android:paddingHorizontal="12dp"/>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/taskSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:scaleX="1.2"
+                    android:scaleY="1.2"/>
+
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/editTaskButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_chevron_right"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:visibility="gone"/>
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/taskCircle"
+            android:layout_toStartOf="@id/right_side_container"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp">
+
+            <TextView
+                android:id="@+id/taskTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="25sp"/>
+
+            <TextView
+                android:id="@+id/taskName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:ellipsize="end"
+                android:maxLines="1" />
+
+            <TextView
+                android:id="@+id/repeatDays"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/darker_gray"
+                android:ellipsize="end"
+                android:maxLines="1"/>
+        </LinearLayout>
+
+    </RelativeLayout>
+</FrameLayout>
