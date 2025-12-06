@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button editButton;
     private ImageButton addButton;
+    private View historyButton;
     private LinearLayout morningTasksContainer;
     private LinearLayout afternoonTasksContainer;
     private LinearLayout nightTasksContainer;
@@ -42,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private View currentlyOpenTaskView = null;
 
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
         editButton = findViewById(R.id.editButton);
         addButton = findViewById(R.id.addButton);
+        historyButton = findViewById(R.id.historyButton);
         morningTasksContainer = findViewById(R.id.morningTasksContainer);
         afternoonTasksContainer = findViewById(R.id.afternoonTasksContainer);
         nightTasksContainer = findViewById(R.id.nightTasksContainer);
@@ -67,6 +71,13 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, AddTaskActivity.class);
             startActivityForResult(intent, ADD_TASK_REQUEST);
         });
+
+        if (historyButton != null) {
+            historyButton.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
+                startActivity(intent);
+            });
+        }
 
         updateTaskLists();
     }
@@ -87,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         if (!isEditMode && currentlyOpenTaskView != null) {
             closeDeleteButton(currentlyOpenTaskView, false);
         }
-        
+
         animateAllTasks(true);
     }
 
@@ -131,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // **** THIS IS THE UPDATED METHOD ****
     private void updateTaskLists() {
         ArrayList<Task> morningTasks = taskRepository.morningTasks;
         ArrayList<Task> afternoonTasks = taskRepository.afternoonTasks;
@@ -144,22 +156,43 @@ public class MainActivity extends AppCompatActivity {
         afternoonTasksContainer.removeAllViews();
         nightTasksContainer.removeAllViews();
 
-        int totalTasks = morningTasks.size() + afternoonTasks.size() + nightTasks.size();
-        int completedTasks = 0;
+        // Get Today's Date to filter
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+        String todayDate = sdf.format(new java.util.Date());
 
+        int totalTasks = 0;
+        int completedTasks = 0;
+        boolean hasTasksForToday = false;
+
+        // Check Morning
         for (Task task : morningTasks) {
-            morningTasksContainer.addView(createTaskView(task));
-            if(task.isComplete) completedTasks++;
+            // FILTER: ONLY SHOW IF DATE MATCHES TODAY
+            if (task.date != null && task.date.equals(todayDate)) {
+                morningTasksContainer.addView(createTaskView(task));
+                totalTasks++;
+                if (task.isComplete) completedTasks++;
+                hasTasksForToday = true;
+            }
         }
+        // Check Afternoon
         for (Task task : afternoonTasks) {
-            afternoonTasksContainer.addView(createTaskView(task));
-            if(task.isComplete) completedTasks++;
+            if (task.date != null && task.date.equals(todayDate)) {
+                afternoonTasksContainer.addView(createTaskView(task));
+                totalTasks++;
+                if (task.isComplete) completedTasks++;
+                hasTasksForToday = true;
+            }
         }
+        // Check Night
         for (Task task : nightTasks) {
-            nightTasksContainer.addView(createTaskView(task));
-            if(task.isComplete) completedTasks++;
+            if (task.date != null && task.date.equals(todayDate)) {
+                nightTasksContainer.addView(createTaskView(task));
+                totalTasks++;
+                if (task.isComplete) completedTasks++;
+                hasTasksForToday = true;
+            }
         }
-        
+
         taskCountText.setText("Task " + completedTasks + "/" + totalTasks);
         if(totalTasks > 0) {
             int progress = (completedTasks * 100) / totalTasks;
@@ -170,8 +203,7 @@ public class MainActivity extends AppCompatActivity {
             completionText.setText("0% completed");
         }
 
-
-        if (totalTasks == 0) {
+        if (!hasTasksForToday) {
             emptyTasksText.setVisibility(View.VISIBLE);
             morningTasksHeader.setVisibility(View.GONE);
             afternoonTasksHeader.setVisibility(View.GONE);
@@ -183,9 +215,9 @@ public class MainActivity extends AppCompatActivity {
             }
         } else {
             emptyTasksText.setVisibility(View.GONE);
-            morningTasksHeader.setVisibility(morningTasks.isEmpty() ? View.GONE : View.VISIBLE);
-            afternoonTasksHeader.setVisibility(afternoonTasks.isEmpty() ? View.GONE : View.VISIBLE);
-            nightTasksHeader.setVisibility(nightTasks.isEmpty() ? View.GONE : View.VISIBLE);
+            morningTasksHeader.setVisibility(morningTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
+            afternoonTasksHeader.setVisibility(afternoonTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
+            nightTasksHeader.setVisibility(nightTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
             editButton.setVisibility(View.VISIBLE);
         }
     }
@@ -229,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
             if (currentlyOpenTaskView != null && currentlyOpenTaskView != taskView) {
                 closeDeleteButton(currentlyOpenTaskView, true);
             }
-            
+
             if (currentlyOpenTaskView == taskView) {
                 closeDeleteButton(taskView, true);
             } else {
@@ -295,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
         final View taskContent = taskView.findViewById(R.id.taskContent);
         final Button deleteButton = taskView.findViewById(R.id.deleteButton);
         deleteButton.setVisibility(View.VISIBLE);
-        
+
         taskContent.post(() -> {
             if (animate) {
                 ObjectAnimator animation = ObjectAnimator.ofFloat(taskContent, "translationX", -deleteButton.getWidth());
@@ -312,40 +344,27 @@ public class MainActivity extends AppCompatActivity {
     private void closeDeleteButton(View taskView, boolean animate) {
         final View taskContent = taskView.findViewById(R.id.taskContent);
         final Button deleteButton = taskView.findViewById(R.id.deleteButton);
+
         if (animate) {
             ObjectAnimator animation = ObjectAnimator.ofFloat(taskContent, "translationX", 0f);
             animation.setDuration(300);
             animation.start();
+
+            taskContent.postDelayed(() -> deleteButton.setVisibility(View.GONE), 300);
         } else {
             taskContent.setTranslationX(0f);
+            deleteButton.setVisibility(View.GONE);
         }
-        deleteButton.setVisibility(View.GONE);
-        if(currentlyOpenTaskView == taskView){
-            currentlyOpenTaskView = null;
-        }
-    }
 
-    private int getUrgencyPriority(String urgency) {
-        if (urgency == null) return 0;
-        switch (urgency) {
-            case "High": return 3;
-            case "Medium": return 2;
-            case "Low": return 1;
-            default: return 0; // for "None"
-        }
+        currentlyOpenTaskView = null;
     }
 
     private void sortTasks(ArrayList<Task> tasks) {
         Collections.sort(tasks, (t1, t2) -> {
-            int priority1 = getUrgencyPriority(t1.urgency);
-            int priority2 = getUrgencyPriority(t2.urgency);
-
-            if (priority1 != priority2) {
-                return Integer.compare(priority2, priority1);
+            if (t1.hour != t2.hour) {
+                return Integer.compare(t1.hour, t2.hour);
             } else {
-                int time1 = t1.hour * 60 + t1.minute + (t1.amPm.equals("PM") && t1.hour != 12 ? 12 * 60 : 0);
-                int time2 = t2.hour * 60 + t2.minute + (t2.amPm.equals("PM") && t2.hour != 12 ? 12 * 60 : 0);
-                return Integer.compare(time1, time2);
+                return Integer.compare(t1.minute, t2.minute);
             }
         });
     }

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/rounded_corner_background"
+    android:gravity="center_vertical">
+
+    <!-- Urgency Dot (Like in your screenshot) -->
+    <View
+        android:id="@+id/viewUrgencyParams"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:background="@drawable/red_circle"
+        android:layout_marginEnd="16dp" />
+
+    <!-- Text Container -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- TIME: Neat, Grey, readable -->
+        <TextView
+            android:id="@+id/tvHistoryTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10:00 AM"
+            android:textSize="18sp"
+            android:textColor="#757575"
+            android:fontFamily="sans-serif-medium" />
+
+        <!-- NAME: Bold, Black, same size as time -->
+        <TextView
+            android:id="@+id/tvHistoryName"
+            android:layout_width="149dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Task Name Here"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Status (Optional, keeps it neat) -->
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Done"
+        android:textSize="12sp"
+        android:textColor="#4CAF50"
+        android:textStyle="bold" />
+
+</LinearLayout>

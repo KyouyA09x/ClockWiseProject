@@ -12,6 +12,7 @@ public class Task implements Parcelable {
     boolean[] selectedDays;
     boolean isComplete;
     boolean isAlarmOn;
+    String date; // Added date field
 
     public Task(String name, int hour, int minute, String amPm, String urgency, boolean[] selectedDays) {
         this.name = name;
@@ -21,7 +22,7 @@ public class Task implements Parcelable {
         this.urgency = urgency;
         this.selectedDays = selectedDays;
         this.isComplete = false;
-        this.isAlarmOn = true; // Alarm is ON by default for new tasks
+        this.isAlarmOn = true;
     }
 
     protected Task(Parcel in) {
@@ -33,6 +34,7 @@ public class Task implements Parcelable {
         selectedDays = in.createBooleanArray();
         isComplete = in.readByte() != 0;
         isAlarmOn = in.readByte() != 0;
+        date = in.readString(); // Read date
     }
 
     public static final Creator<Task> CREATOR = new Creator<Task>() {
@@ -62,5 +64,6 @@ public class Task implements Parcelable {
         dest.writeBooleanArray(selectedDays);
         dest.writeByte((byte) (isComplete ? 1 : 0));
         dest.writeByte((byte) (isAlarmOn ? 1 : 0));
+        dest.writeString(date); // Write date
     }
 }

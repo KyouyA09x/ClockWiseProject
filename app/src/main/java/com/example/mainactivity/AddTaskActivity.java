@@ -4,6 +4,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
+import android.app.DatePickerDialog; // <--- Added Import
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -24,7 +25,10 @@ import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat; // <--- Added Import
 import java.util.ArrayList;
+import java.util.Calendar; // <--- Added Import
+import java.util.Locale; // <--- Added Import
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -46,6 +50,11 @@ public class AddTaskActivity extends AppCompatActivity {
     private LinearLayout urgencyLayout;
     private TextView urgencyValueText;
     private TextView repeatInfoText;
+
+    // **** NEW DATE VARIABLES ****
+    private LinearLayout dateRow; // Changed to LinearLayout to match your style
+    private TextView dateValue;
+    private Calendar selectedDate = Calendar.getInstance();
 
     private boolean[] selectedDays = new boolean[7];
     private String[] daysOfWeek = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
@@ -76,7 +85,16 @@ public class AddTaskActivity extends AppCompatActivity {
         urgencyValueText = findViewById(R.id.urgencyValueText);
         repeatInfoText = findViewById(R.id.repeatInfoText);
 
+        // **** FIND VIEWS FOR DATE ****
+        dateRow = findViewById(R.id.dateRow);
+        dateValue = findViewById(R.id.dateValue);
+
+        // **** SET UP DATE CLICK LISTENER ****
+        updateDateLabel(); // Set initial text to Today
+        dateRow.setOnClickListener(v -> showDatePicker());
+
         cancelButton.setOnClickListener(v -> finish());
+
         saveButton.setOnClickListener(v -> {
             String taskName = labelEditText.getText().toString();
             int hour = hourPicker.getValue();
@@ -85,14 +103,18 @@ public class AddTaskActivity extends AppCompatActivity {
 
             Task newTask = new Task(taskName, hour, minute, amPm, selectedUrgency, selectedDays);
 
-            if (amPm.equals("AM")) { 
+            // **** SAVE THE DATE TO THE TASK ****
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            newTask.date = sdf.format(selectedDate.getTime());
+
+            if (amPm.equals("AM")) {
                 taskRepository.morningTasks.add(newTask);
-            } else if (hour == 12 || (hour >= 1 && hour < 6)) { 
+            } else if (hour == 12 || (hour >= 1 && hour < 6)) {
                 taskRepository.afternoonTasks.add(newTask);
-            } else { 
+            } else {
                 taskRepository.nightTasks.add(newTask);
             }
-            
+
             setResult(RESULT_OK);
             finish();
         });
@@ -141,6 +163,29 @@ public class AddTaskActivity extends AppCompatActivity {
         });
 
         clearLabelButton.setOnClickListener(v -> labelEditText.setText(""));
+    }
+
+    // **** NEW METHOD: SHOW DATE PICKER ****
+    private void showDatePicker() {
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    selectedDate.set(Calendar.YEAR, year);
+                    selectedDate.set(Calendar.MONTH, month);
+                    selectedDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                    updateDateLabel();
+                },
+                selectedDate.get(Calendar.YEAR),
+                selectedDate.get(Calendar.MONTH),
+                selectedDate.get(Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.show();
+    }
+
+    // **** NEW METHOD: UPDATE LABEL TEXT ****
+    private void updateDateLabel() {
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy", Locale.getDefault());
+        dateValue.setText(sdf.format(selectedDate.getTime()));
     }
 
     private void showRepeatDialog() {
@@ -210,7 +255,7 @@ public class AddTaskActivity extends AppCompatActivity {
         dialogTitle.setText("Sound");
         ImageButton dialogCancelButton = customTitleView.findViewById(R.id.dialogCancelButton);
         builder.setCustomTitle(customTitleView);
-        
+
         builder.setItems(ringtoneNames, (dialog, which) -> {
             String selectedRingtone = ringtoneNames[which];
             soundValueText.setText(selectedRingtone);

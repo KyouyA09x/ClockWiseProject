@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
@@ -77,6 +78,96 @@
         android:layout_margin="16dp"
         android:paddingHorizontal="16dp">
 
+        <!-- Task Name Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/task_name_label"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginBottom="8dp"
+                android:textColor="@color/black" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:id="@+id/labelEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:hint="@string/task_hint"
+                    android:background="@drawable/rounded_corner_background"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="40dp"
+                    android:textSize="16sp"
+                    android:singleLine="true"
+                    android:textColor="@color/black"
+                    android:inputType="textCapSentences"
+                    android:importantForAutofill="no" />
+
+                <ImageButton
+                    android:id="@+id/clearLabelButton"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="8dp"
+                    android:visibility="gone"
+                    app:tint="@android:color/darker_gray"
+                    android:contentDescription="@string/clear_label" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"/>
+
+        <!-- Date Row -->
+        <LinearLayout
+            android:id="@+id/dateRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingVertical="16dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Date"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:duplicateParentState="true"/>
+
+            <TextView
+                android:id="@+id/dateValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Today"
+                android:textSize="18sp"
+                android:textColor="@android:color/darker_gray"
+                android:duplicateParentState="true"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"/>
+
         <LinearLayout
             android:id="@+id/repeatLayout"
             android:layout_width="match_parent"
@@ -107,55 +198,6 @@
                 android:textColor="@android:color/darker_gray"
                 android:duplicateParentState="true"/>
         </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#E0E0E0"/>
-
-        <RelativeLayout
-            android:id="@+id/labelRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingVertical="16dp">
-
-            <TextView
-                android:id="@+id/labelText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Label"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_centerVertical="true"/>
-
-            <ImageButton
-                android:id="@+id/clearLabelButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@android:drawable/ic_menu_close_clear_cancel"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:visibility="gone"
-                android:tint="@android:color/darker_gray"/>
-
-            <EditText
-                android:id="@+id/labelEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_toEndOf="@id/labelText"
-                android:layout_toStartOf="@id/clearLabelButton"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="8dp"
-                android:layout_centerVertical="true"
-                android:background="@android:color/transparent"
-                android:text="Alarm"
-                android:inputType="text"
-                android:gravity="end"
-                android:textColor="@android:color/black"
-                android:textColorHint="@android:color/darker_gray" />
-        </RelativeLayout>
         
         <TextView
             android:id="@+id/repeatInfoText"

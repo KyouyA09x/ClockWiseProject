@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,10 +12,12 @@
         android:layout_height="wrap_content"
         android:paddingBottom="24dp">
 
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/topBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:layout_marginTop="16dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp">
@@ -24,30 +27,35 @@
                 style="?android:attr/borderlessButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Edit"
-                android:textColor="@android:color/black"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"/>
+                android:text="@string/edit_button"
+                android:textColor="@android:color/black"/>
+
+            <include
+                android:id="@+id/historyButton"
+                layout="@layout/history_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_centerInParent="true">
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Clock"
+                    android:text="@string/clock_text"
                     android:textSize="24sp"
                     android:textStyle="bold"
-                    android:textColor="#0D47A1"
+                    android:textColor="@color/clock_text_color"
                     android:fontFamily="serif" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Wise"
+                    android:text="@string/wise_text"
                     android:textSize="24sp"
                     android:textColor="@android:color/darker_gray"
                     android:fontFamily="serif" />
@@ -60,11 +68,9 @@
                 android:layout_height="wrap_content"
                 android:src="@android:drawable/ic_input_add"
                 android:background="?android:attr/selectableItemBackground"
-                android:tint="@android:color/black"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"/>
+                app:tint="@android:color/black"/>
 
-        </RelativeLayout>
+        </LinearLayout>
 
         <RelativeLayout
             android:id="@+id/progressTracker"
@@ -81,7 +87,7 @@
                 android:id="@+id/taskCountText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Task 0/0"
+                android:text="@string/task_progress"
                 android:textColor="@android:color/black"
                 android:textStyle="bold"
                 android:textSize="22sp"
@@ -102,7 +108,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/progressBar"
                 android:layout_centerHorizontal="true"
-                android:text="0% completed"/>
+                android:text="@string/progress_zero"/>
 
         </RelativeLayout>
 
@@ -110,7 +116,7 @@
             android:id="@+id/emptyTasksText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Add task"
+            android:text="@string/add_task_prompt"
             android:textSize="24sp"
             android:layout_centerInParent="true"
             android:visibility="gone"/>
@@ -127,7 +133,7 @@
                 android:id="@+id/morningTasksHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Morning Tasks"
+                android:text="@string/morning_tasks_header"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
@@ -146,7 +152,7 @@
                 android:id="@+id/afternoonTasksHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Afternoon Tasks"
+                android:text="@string/afternoon_tasks_header"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
@@ -166,7 +172,7 @@
                 android:id="@+id/nightTasksHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Night Tasks"
+                android:text="@string/night_tasks_header"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"

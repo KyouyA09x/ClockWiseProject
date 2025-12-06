@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">ClockWise</string>
+    <string name="edit_button">Edit</string>
+    <string name="history">History</string>
+    <string name="clock_text">Clock</string>
+    <string name="wise_text">Wise</string>
+    <string name="task_progress">Task 0/0</string>
+    <string name="progress_zero">0% completed</string>
+    <string name="add_task_prompt">Add task</string>
+    <string name="morning_tasks_header">Morning Tasks</string>
+    <string name="afternoon_tasks_header">Afternoon Tasks</string>
+    <string name="night_tasks_header">Night Tasks</string>
+    <string name="add_task_desc">Add new task</string>
+    <string name="task_name_label">Task Name</string>
+    <string name="task_hint">What are you going to do?</string>
+    <string name="clear_label">Clear text</string>
 </resources>
