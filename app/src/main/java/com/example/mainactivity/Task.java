@@ -23,6 +23,7 @@ public class Task implements Parcelable {
     boolean isAlarmOn;
     String date; // Added date field
     String timeCategory; // "morning", "afternoon", or "night"
+    boolean vibrationEnabled; // Added vibration field
 
     public Task(String name, int hour, int minute, String amPm, String urgency, boolean[] selectedDays) {
         this.name = name;
@@ -33,6 +34,7 @@ public class Task implements Parcelable {
         this.selectedDays = selectedDays;
         this.isComplete = false;
         this.isAlarmOn = true;
+        this.vibrationEnabled = false; // Default to false
     }
 
     protected Task(Parcel in) {
@@ -47,6 +49,7 @@ public class Task implements Parcelable {
         isAlarmOn = in.readByte() != 0;
         date = in.readString(); // Read date
         timeCategory = in.readString();
+        vibrationEnabled = in.readByte() != 0; // Read vibration
     }
 
     public static final Creator<Task> CREATOR = new Creator<Task>() {
@@ -79,5 +82,6 @@ public class Task implements Parcelable {
         dest.writeByte((byte) (isAlarmOn ? 1 : 0));
         dest.writeString(date); // Write date
         dest.writeString(timeCategory);
+        dest.writeByte((byte) (vibrationEnabled ? 1 : 0)); // Write vibration
     }
 }

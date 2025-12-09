@@ -50,6 +50,8 @@ public class AddTaskActivity extends AppCompatActivity {
     private LinearLayout urgencyLayout;
     private TextView urgencyValueText;
     private TextView repeatInfoText;
+    private LinearLayout vibrationLayout;
+    private SwitchCompat vibrationSwitch;
 
     // **** NEW DATE VARIABLES ****
     private LinearLayout dateRow; // Changed to LinearLayout to match your style
@@ -85,6 +87,8 @@ public class AddTaskActivity extends AppCompatActivity {
         urgencyLayout = findViewById(R.id.urgencyLayout);
         urgencyValueText = findViewById(R.id.urgencyValueText);
         repeatInfoText = findViewById(R.id.repeatInfoText);
+        vibrationLayout = findViewById(R.id.vibrationLayout);
+        vibrationSwitch = findViewById(R.id.vibrationSwitch);
 
         // **** FIND VIEWS FOR DATE ****
         dateRow = findViewById(R.id.dateRow);
@@ -116,6 +120,9 @@ public class AddTaskActivity extends AppCompatActivity {
             } else {
                 newTask.timeCategory = "night";
             }
+
+            // Save vibration setting
+            newTask.vibrationEnabled = vibrationSwitch.isChecked();
 
             // Save to database and get the ID
             long taskId = taskRepository.addTask(newTask);
@@ -151,6 +158,17 @@ public class AddTaskActivity extends AppCompatActivity {
                 Toast.makeText(this, "Snooze is ON", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "Snooze is OFF", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Vibration toggle setup
+        vibrationLayout.setOnClickListener(v -> vibrationSwitch.toggle());
+
+        vibrationSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                Toast.makeText(this, "Vibration is ON", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Vibration is OFF", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -292,6 +310,12 @@ public class AddTaskActivity extends AppCompatActivity {
         builder.setItems(urgencyLevels, (dialog, which) -> {
             selectedUrgency = urgencyLevels[which];
             urgencyValueText.setText(selectedUrgency);
+
+            // Auto-enable vibration for High priority tasks
+            if (selectedUrgency.equals("High")) {
+                vibrationSwitch.setChecked(true);
+                Toast.makeText(this, "Vibration enabled for high priority task", Toast.LENGTH_SHORT).show();
+            }
         });
 
         builder.setNegativeButton("Cancel", null);

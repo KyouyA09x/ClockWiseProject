@@ -284,6 +284,41 @@
             android:layout_height="1dp"
             android:background="#E0E0E0"/>
 
+        <!-- Vibration Toggle -->
+        <LinearLayout
+            android:id="@+id/vibrationLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingVertical="8dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Vibration"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:duplicateParentState="true"/>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/vibrationSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:duplicateParentState="true"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"/>
+
         <LinearLayout
             android:id="@+id/urgencyLayout"
             android:layout_width="match_parent"

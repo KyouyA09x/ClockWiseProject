@@ -29,6 +29,7 @@ public class AlarmHelper {
         intent.putExtra(AlarmReceiver.EXTRA_TASK_ID, task.id);
         intent.putExtra(AlarmReceiver.EXTRA_TASK_NAME, task.name);
         intent.putExtra(AlarmReceiver.EXTRA_TASK_TIME, String.format(Locale.getDefault(), "%d:%02d %s", task.hour, task.minute, task.amPm));
+        intent.putExtra(AlarmReceiver.EXTRA_VIBRATION_ENABLED, task.vibrationEnabled);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,

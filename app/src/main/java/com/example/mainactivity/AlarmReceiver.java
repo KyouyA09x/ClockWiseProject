@@ -27,6 +27,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     public static final String EXTRA_TASK_ID = "task_id";
     public static final String EXTRA_TASK_NAME = "task_name";
     public static final String EXTRA_TASK_TIME = "task_time";
+    public static final String EXTRA_VIBRATION_ENABLED = "vibration_enabled";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -48,6 +49,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         int taskId = intent.getIntExtra(EXTRA_TASK_ID, -1);
         String taskName = intent.getStringExtra(EXTRA_TASK_NAME);
         String taskTime = intent.getStringExtra(EXTRA_TASK_TIME);
+        boolean vibrationEnabled = intent.getBooleanExtra(EXTRA_VIBRATION_ENABLED, false);
 
         if (taskName == null) {
             taskName = "Task Reminder";
@@ -57,7 +59,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
 
         createNotificationChannel(context);
-        showNotification(context, taskId, taskName, taskTime);
+        showNotification(context, taskId, taskName, taskTime, vibrationEnabled);
     }
 
     private void handleIgnore(Context context, Intent intent) {
@@ -74,6 +76,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         int taskId = intent.getIntExtra(EXTRA_TASK_ID, -1);
         String taskName = intent.getStringExtra(EXTRA_TASK_NAME);
         String taskTime = intent.getStringExtra(EXTRA_TASK_TIME);
+        boolean vibrationEnabled = intent.getBooleanExtra(EXTRA_VIBRATION_ENABLED, false);
 
         // Dismiss current notification
         NotificationManager notificationManager =
@@ -89,6 +92,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             snoozeIntent.putExtra(EXTRA_TASK_ID, taskId);
             snoozeIntent.putExtra(EXTRA_TASK_NAME, taskName);
             snoozeIntent.putExtra(EXTRA_TASK_TIME, taskTime);
+            snoozeIntent.putExtra(EXTRA_VIBRATION_ENABLED, vibrationEnabled);
 
             PendingIntent snoozePendingIntent = PendingIntent.getBroadcast(
                     context,
@@ -152,7 +156,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    private void showNotificationInternal(Context context, int taskId, String taskName, String taskTime) {
+    private void showNotificationInternal(Context context, int taskId, String taskName, String taskTime, boolean vibrationEnabled) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(
@@ -179,6 +183,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         snoozeIntent.putExtra(EXTRA_TASK_ID, taskId);
         snoozeIntent.putExtra(EXTRA_TASK_NAME, taskName);
         snoozeIntent.putExtra(EXTRA_TASK_TIME, taskTime);
+        snoozeIntent.putExtra(EXTRA_VIBRATION_ENABLED, vibrationEnabled);
         PendingIntent snoozePendingIntent = PendingIntent.getBroadcast(
                 context,
                 taskId + 2000,
@@ -208,11 +213,17 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .setAutoCancel(false) // Make it persistent - won't dismiss on tap
                 .setOngoing(true) // Make it persistent - can't be swiped away
                 .setContentIntent(pendingIntent)
-                .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // Show on lockscreen
                 .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Ignore", ignorePendingIntent)
                 .addAction(android.R.drawable.ic_menu_recent_history, "Snooze 5min", snoozePendingIntent)
                 .addAction(android.R.drawable.ic_delete, "Cancel", cancelPendingIntent);
+
+        // Set defaults based on vibration setting
+        if (vibrationEnabled) {
+            builder.setDefaults(NotificationCompat.DEFAULT_ALL); // Sound + Vibration + Lights
+        } else {
+            builder.setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_LIGHTS); // Sound + Lights only
+        }
 
         NotificationManager notificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -222,7 +233,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
     }
 
-    private void showNotification(Context context, int taskId, String taskName, String taskTime) {
+    private void showNotification(Context context, int taskId, String taskName, String taskTime, boolean vibrationEnabled) {
         // Check notification permission for Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
@@ -230,7 +241,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                 return; // Permission not granted, cannot show notification
             }
         }
-        showNotificationInternal(context, taskId, taskName, taskTime);
+        showNotificationInternal(context, taskId, taskName, taskTime, vibrationEnabled);
     }
 }
 
