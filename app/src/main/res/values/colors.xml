@@ -8,4 +8,5 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="clock_text_color">#0D47A1</color>
+    <color name="light_blue_button">#81D4FA</color>
 </resources>

@@ -1,72 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
-
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:background="@drawable/background_gradient">
+    android:fillViewport="true"
+    android:background="@drawable/background_gradient">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="24dp">
 
-        <LinearLayout
+        <RelativeLayout
             android:id="@+id/topBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
             android:layout_marginTop="16dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp">
-
-            <ImageButton
-                android:id="@+id/menuButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_menu"
-                android:background="?android:attr/selectableItemBackgroundBorderless" />
 
             <Button
                 android:id="@+id/editButton"
                 style="?android:attr/borderlessButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/edit_button"
-                android:textColor="@android:color/black"/>
+                android:text="Edit"
+                android:textColor="@android:color/black"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"/>
+
+            <!-- **** START OF NEW BUTTON **** -->
+            <Button
+                android:id="@+id/historyButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="History"
+                android:textColor="@android:color/black" />
+            <!-- **** END OF NEW BUTTON **** -->
+
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:layout_centerInParent="true"
+                android:visibility="gone">  <!-- This is hidden to make space for the history button -->
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/clock_text"
+                    android:text="Clock"
                     android:textSize="24sp"
                     android:textStyle="bold"
-                    android:textColor="@color/clock_text_color"
+                    android:textColor="#0D47A1"
                     android:fontFamily="serif" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/wise_text"
+                    android:text="Wise"
                     android:textSize="24sp"
                     android:textColor="@android:color/darker_gray"
                     android:fontFamily="serif" />
@@ -79,9 +73,11 @@
                 android:layout_height="wrap_content"
                 android:src="@android:drawable/ic_input_add"
                 android:background="?android:attr/selectableItemBackground"
-                app:tint="@android:color/black"/>
+                android:tint="@android:color/black"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"/>
 
-        </LinearLayout>
+        </RelativeLayout>
 
         <RelativeLayout
             android:id="@+id/progressTracker"
@@ -98,7 +94,7 @@
                 android:id="@+id/taskCountText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/task_progress"
+                android:text="Task 0/0"
                 android:textColor="@android:color/black"
                 android:textStyle="bold"
                 android:textSize="22sp"
@@ -119,7 +115,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/progressBar"
                 android:layout_centerHorizontal="true"
-                android:text="@string/progress_zero"/>
+                android:text="0% completed"/>
 
         </RelativeLayout>
 
@@ -127,7 +123,7 @@
             android:id="@+id/emptyTasksText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/add_task_prompt"
+            android:text="Add task"
             android:textSize="24sp"
             android:layout_centerInParent="true"
             android:visibility="gone"/>
@@ -144,12 +140,12 @@
                 android:id="@+id/morningTasksHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/morning_tasks_header"
+                android:text="Morning Tasks"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
                 android:layout_marginStart="16dp"/>
-                
+
             <LinearLayout
                 android:id="@+id/morningTasksContainer"
                 android:layout_width="match_parent"
@@ -163,13 +159,13 @@
                 android:id="@+id/afternoonTasksHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/afternoon_tasks_header"
+                android:text="Afternoon Tasks"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="24dp"
                 android:layout_marginStart="16dp"/>
-                
+
             <LinearLayout
                 android:id="@+id/afternoonTasksContainer"
                 android:layout_width="match_parent"
@@ -183,7 +179,7 @@
                 android:id="@+id/nightTasksHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/night_tasks_header"
+                android:text="Night Tasks"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
@@ -200,16 +196,4 @@
                 android:showDividers="middle" />
         </LinearLayout>
     </RelativeLayout>
-    </ScrollView>
-
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        app:headerLayout="@layout/nav_drawer_layout" />
-
-</androidx.drawerlayout.widget.DrawerLayout>
-
+</ScrollView>

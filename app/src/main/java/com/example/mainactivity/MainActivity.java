@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.Manifest;
 import android.animation.ObjectAnimator;
@@ -23,6 +25,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.navigation.NavigationView;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -30,9 +34,10 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int ADD_TASK_REQUEST = 1;
 
+    private DrawerLayout drawerLayout;
+    private ImageButton menuButton;
     private Button editButton;
     private ImageButton addButton;
-    private View historyButton;
     private LinearLayout morningTasksContainer;
     private LinearLayout afternoonTasksContainer;
     private LinearLayout nightTasksContainer;
@@ -55,9 +60,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        drawerLayout = findViewById(R.id.drawer_layout);
+        menuButton = findViewById(R.id.menuButton);
         editButton = findViewById(R.id.editButton);
         addButton = findViewById(R.id.addButton);
-        historyButton = findViewById(R.id.historyButton);
         morningTasksContainer = findViewById(R.id.morningTasksContainer);
         afternoonTasksContainer = findViewById(R.id.afternoonTasksContainer);
         nightTasksContainer = findViewById(R.id.nightTasksContainer);
@@ -75,18 +81,23 @@ public class MainActivity extends AppCompatActivity {
         // Request notification permission for Android 13+
         requestNotificationPermission();
 
+        menuButton.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        View headerView = navigationView.getHeaderView(0);
+
+        Button calendarHistoryButton = headerView.findViewById(R.id.nav_calendar_history);
+        calendarHistoryButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
+            startActivity(intent);
+            drawerLayout.closeDrawer(GravityCompat.START);
+        });
+
         editButton.setOnClickListener(v -> toggleEditMode());
         addButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddTaskActivity.class);
             startActivityForResult(intent, ADD_TASK_REQUEST);
         });
-
-        if (historyButton != null) {
-            historyButton.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
-                startActivity(intent);
-            });
-        }
 
         updateTaskLists();
     }
@@ -159,7 +170,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // **** THIS IS THE UPDATED METHOD ****
     private void updateTaskLists() {
         ArrayList<Task> morningTasks = taskRepository.morningTasks;
         ArrayList<Task> afternoonTasks = taskRepository.afternoonTasks;
@@ -173,7 +183,6 @@ public class MainActivity extends AppCompatActivity {
         afternoonTasksContainer.removeAllViews();
         nightTasksContainer.removeAllViews();
 
-        // Get Today's Date to filter
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
         String todayDate = sdf.format(new java.util.Date());
 
@@ -181,9 +190,7 @@ public class MainActivity extends AppCompatActivity {
         int completedTasks = 0;
         boolean hasTasksForToday = false;
 
-        // Check Morning
         for (Task task : morningTasks) {
-            // FILTER: ONLY SHOW IF DATE MATCHES TODAY
             if (task.date != null && task.date.equals(todayDate)) {
                 morningTasksContainer.addView(createTaskView(task));
                 totalTasks++;
@@ -191,7 +198,6 @@ public class MainActivity extends AppCompatActivity {
                 hasTasksForToday = true;
             }
         }
-        // Check Afternoon
         for (Task task : afternoonTasks) {
             if (task.date != null && task.date.equals(todayDate)) {
                 afternoonTasksContainer.addView(createTaskView(task));
@@ -200,7 +206,6 @@ public class MainActivity extends AppCompatActivity {
                 hasTasksForToday = true;
             }
         }
-        // Check Night
         for (Task task : nightTasks) {
             if (task.date != null && task.date.equals(todayDate)) {
                 nightTasksContainer.addView(createTaskView(task));
@@ -293,9 +298,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         deleteButton.setOnClickListener(v -> {
-            // Cancel the alarm for this task
             AlarmHelper.cancelTaskAlarm(this, task);
-            // Delete from database
             taskRepository.deleteTask(task);
             updateTaskLists();
         });

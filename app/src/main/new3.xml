@@ -1,0 +1,17 @@
+<!-- **** PASTE THIS IN activity_add_task.xml **** -->
+<RelativeLayout android:id="@+id/dateRow" android:layout_width="match_parent"
+    android:layout_height="wrap_content" android:padding="16dp"
+    android:background="?attr/selectableItemBackground">
+
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Date" android:textSize="18sp" android:textStyle="bold"
+        android:textColor="@color/black" />
+
+    <TextView android:id="@+id/dateValue" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:text="Today" android:textSize="16sp"
+        android:textColor="@android:color/darker_gray" android:layout_alignParentEnd="true" />
+
+    <View android:layout_width="match_parent" android:layout_height="1dp"
+        android:background="#E0E0E0" android:layout_below="@id/dateValue"
+        android:layout_marginTop="16dp" />
+</RelativeLayout>
