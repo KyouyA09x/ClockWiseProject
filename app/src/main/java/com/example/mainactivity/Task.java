@@ -3,7 +3,16 @@ package com.example.mainactivity;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+import androidx.room.TypeConverters;
+
+@Entity(tableName = "tasks")
+@TypeConverters(Converters.class)
 public class Task implements Parcelable {
+    @PrimaryKey(autoGenerate = true)
+    public int id;
+
     String name;
     int hour;
     int minute;
@@ -13,6 +22,7 @@ public class Task implements Parcelable {
     boolean isComplete;
     boolean isAlarmOn;
     String date; // Added date field
+    String timeCategory; // "morning", "afternoon", or "night"
 
     public Task(String name, int hour, int minute, String amPm, String urgency, boolean[] selectedDays) {
         this.name = name;
@@ -26,6 +36,7 @@ public class Task implements Parcelable {
     }
 
     protected Task(Parcel in) {
+        id = in.readInt();
         name = in.readString();
         hour = in.readInt();
         minute = in.readInt();
@@ -35,6 +46,7 @@ public class Task implements Parcelable {
         isComplete = in.readByte() != 0;
         isAlarmOn = in.readByte() != 0;
         date = in.readString(); // Read date
+        timeCategory = in.readString();
     }
 
     public static final Creator<Task> CREATOR = new Creator<Task>() {
@@ -56,6 +68,7 @@ public class Task implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
         dest.writeString(name);
         dest.writeInt(hour);
         dest.writeInt(minute);
@@ -65,5 +78,6 @@ public class Task implements Parcelable {
         dest.writeByte((byte) (isComplete ? 1 : 0));
         dest.writeByte((byte) (isAlarmOn ? 1 : 0));
         dest.writeString(date); // Write date
+        dest.writeString(timeCategory);
     }
 }

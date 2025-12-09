@@ -67,6 +67,7 @@ public class AddTaskActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_task);
 
         taskRepository = TaskRepository.getInstance();
+        taskRepository.initialize(this);
 
         cancelButton = findViewById(R.id.cancelButton);
         saveButton = findViewById(R.id.saveButton);
@@ -107,13 +108,21 @@ public class AddTaskActivity extends AppCompatActivity {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             newTask.date = sdf.format(selectedDate.getTime());
 
+            // Set time category for the task
             if (amPm.equals("AM")) {
-                taskRepository.morningTasks.add(newTask);
+                newTask.timeCategory = "morning";
             } else if (hour == 12 || (hour >= 1 && hour < 6)) {
-                taskRepository.afternoonTasks.add(newTask);
+                newTask.timeCategory = "afternoon";
             } else {
-                taskRepository.nightTasks.add(newTask);
+                newTask.timeCategory = "night";
             }
+
+            // Save to database and get the ID
+            long taskId = taskRepository.addTask(newTask);
+            newTask.id = (int) taskId;
+
+            // Schedule alarm notification for this task
+            AlarmHelper.scheduleTaskAlarm(this, newTask);
 
             setResult(RESULT_OK);
             finish();

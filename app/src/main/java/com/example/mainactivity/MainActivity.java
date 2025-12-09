@@ -3,11 +3,16 @@ package com.example.mainactivity;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Paint;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,6 +70,10 @@ public class MainActivity extends AppCompatActivity {
         completionText = findViewById(R.id.completionText);
 
         taskRepository = TaskRepository.getInstance();
+        taskRepository.initialize(this);
+
+        // Request notification permission for Android 13+
+        requestNotificationPermission();
 
         editButton.setOnClickListener(v -> toggleEditMode());
         addButton.setOnClickListener(v -> {
@@ -79,6 +88,14 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        updateTaskLists();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Refresh tasks from database
+        taskRepository.refreshTasks();
         updateTaskLists();
     }
 
@@ -251,6 +268,12 @@ public class MainActivity extends AppCompatActivity {
 
         taskSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             task.isAlarmOn = isChecked;
+            taskRepository.updateTask(task);
+            if (isChecked) {
+                AlarmHelper.scheduleTaskAlarm(this, task);
+            } else {
+                AlarmHelper.cancelTaskAlarm(this, task);
+            }
             Toast.makeText(MainActivity.this, "Alarm for " + task.name + " is " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
         });
 
@@ -270,9 +293,10 @@ public class MainActivity extends AppCompatActivity {
         });
 
         deleteButton.setOnClickListener(v -> {
-            taskRepository.morningTasks.remove(task);
-            taskRepository.afternoonTasks.remove(task);
-            taskRepository.nightTasks.remove(task);
+            // Cancel the alarm for this task
+            AlarmHelper.cancelTaskAlarm(this, task);
+            // Delete from database
+            taskRepository.deleteTask(task);
             updateTaskLists();
         });
 
@@ -283,6 +307,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             } else {
                 task.isComplete = !task.isComplete;
+                taskRepository.updateTask(task);
                 updateTaskLists();
             }
         });
@@ -367,5 +392,15 @@ public class MainActivity extends AppCompatActivity {
                 return Integer.compare(t1.minute, t2.minute);
             }
         });
+    }
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS}, 100);
+            }
+        }
     }
 }
