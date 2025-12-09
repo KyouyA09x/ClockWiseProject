@@ -7,15 +7,20 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Paint;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -29,6 +34,7 @@ import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -75,11 +81,11 @@ public class MainActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         completionText = findViewById(R.id.completionText);
 
-        taskRepository = TaskRepository.getInstance();
-        taskRepository.initialize(this);
+        taskRepository = TaskRepository.getInstance(getApplication());
 
-        // Request notification permission for Android 13+
+        // Request necessary permissions
         requestNotificationPermission();
+        requestAlarmPermission();
 
         menuButton.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
@@ -96,27 +102,10 @@ public class MainActivity extends AppCompatActivity {
         editButton.setOnClickListener(v -> toggleEditMode());
         addButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddTaskActivity.class);
-            startActivityForResult(intent, ADD_TASK_REQUEST);
+            startActivity(intent);
         });
 
-        updateTaskLists();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Refresh tasks from database
-        taskRepository.refreshTasks();
-        updateTaskLists();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == ADD_TASK_REQUEST && resultCode == RESULT_OK) {
-            updateTaskLists();
-        }
+        taskRepository.getAllTasks().observe(this, this::updateTaskLists);
     }
 
     private void toggleEditMode() {
@@ -170,10 +159,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateTaskLists() {
-        ArrayList<Task> morningTasks = taskRepository.morningTasks;
-        ArrayList<Task> afternoonTasks = taskRepository.afternoonTasks;
-        ArrayList<Task> nightTasks = taskRepository.nightTasks;
+    private void updateTaskLists(List<Task> allTasks) {
+        ArrayList<Task> morningTasks = new ArrayList<>();
+        ArrayList<Task> afternoonTasks = new ArrayList<>();
+        ArrayList<Task> nightTasks = new ArrayList<>();
+
+        for (Task task : allTasks) {
+            if (task.amPm.equals("AM")) {
+                morningTasks.add(task);
+            } else if (task.hour == 12 || (task.hour >= 1 && task.hour < 6)) {
+                afternoonTasks.add(task);
+            } else {
+                nightTasks.add(task);
+            }
+        }
 
         sortTasks(morningTasks);
         sortTasks(afternoonTasks);
@@ -300,7 +299,6 @@ public class MainActivity extends AppCompatActivity {
         deleteButton.setOnClickListener(v -> {
             AlarmHelper.cancelTaskAlarm(this, task);
             taskRepository.deleteTask(task);
-            updateTaskLists();
         });
 
         taskContent.setOnClickListener(v -> {
@@ -311,7 +309,6 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 task.isComplete = !task.isComplete;
                 taskRepository.updateTask(task);
-                updateTaskLists();
             }
         });
 
@@ -403,6 +400,16 @@ public class MainActivity extends AppCompatActivity {
                     != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.POST_NOTIFICATIONS}, 100);
+            }
+        }
+    }
+
+    private void requestAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            if (!alarmManager.canScheduleExactAlarms()) {
+                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                startActivity(intent);
             }
         }
     }

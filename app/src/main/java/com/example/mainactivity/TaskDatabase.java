@@ -1,27 +1,27 @@
 package com.example.mainactivity;
 
 import android.content.Context;
-
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
-@Database(entities = {Task.class}, version = 2, exportSchema = false)
-@TypeConverters(Converters.class)
+@Database(entities = {Task.class}, version = 2, exportSchema = false) // Incremented version to 2
+@TypeConverters({Converters.class})
 public abstract class TaskDatabase extends RoomDatabase {
-    private static volatile TaskDatabase INSTANCE;
 
     public abstract TaskDao taskDao();
 
-    public static TaskDatabase getInstance(Context context) {
+    private static volatile TaskDatabase INSTANCE;
+
+    public static TaskDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {
             synchronized (TaskDatabase.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                                    TaskDatabase.class, "task_database")
-                            .allowMainThreadQueries() // For simplicity; consider using async operations in production
-                            .fallbackToDestructiveMigration() // Handle schema changes
+                            TaskDatabase.class, "task_database")
+                            .fallbackToDestructiveMigration() // Handles schema changes
+                            .allowMainThreadQueries()
                             .build();
                 }
             }
@@ -29,4 +29,3 @@ public abstract class TaskDatabase extends RoomDatabase {
         return INSTANCE;
     }
 }
-

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class HistoryActivity extends AppCompatActivity {
@@ -30,14 +31,18 @@ public class HistoryActivity extends AppCompatActivity {
 
     // Access to your global task data
     private TaskRepository taskRepository;
+    
+    // Cache for all tasks from LiveData
+    private List<Task> allTasksCache = new ArrayList<>();
+    private long currentSelectedDateInMillis;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
-        // Initialize the Repository
-        taskRepository = TaskRepository.getInstance();
+        // Initialize the Repository correctly with Application context
+        taskRepository = TaskRepository.getInstance(getApplication());
         tasksForSelectedDate = new ArrayList<>();
 
         calendarView = findViewById(R.id.calendarView);
@@ -54,33 +59,34 @@ public class HistoryActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
 
         // Initialize with Today's date
-        long todayInMillis = System.currentTimeMillis();
+        currentSelectedDateInMillis = System.currentTimeMillis();
+        calendarView.setDate(currentSelectedDateInMillis);
+        updateHeader(currentSelectedDateInMillis);
 
-        // Set calendar view to today
-        calendarView.setDate(todayInMillis);
-
-        // Load data for today immediately
-        updateHeaderAndLoadTasks(todayInMillis);
+        // Observe the LiveData to get updates whenever the database changes
+        taskRepository.getAllTasks().observe(this, tasks -> {
+            allTasksCache = tasks;
+            // Reload for the currently selected date
+            loadTasksForDate(currentSelectedDateInMillis);
+        });
 
         // Calendar Click Logic
         calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
             Calendar calendar = Calendar.getInstance();
             calendar.set(year, month, dayOfMonth);
-
-            updateHeaderAndLoadTasks(calendar.getTimeInMillis());
+            
+            currentSelectedDateInMillis = calendar.getTimeInMillis();
+            updateHeader(currentSelectedDateInMillis);
+            loadTasksForDate(currentSelectedDateInMillis);
         });
     }
 
-    private void updateHeaderAndLoadTasks(long dateInMillis) {
-        // 1. Update the Header Text
+    private void updateHeader(long dateInMillis) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(dateInMillis);
 
         SimpleDateFormat displayFormat = new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault());
         tvSelectedDate.setText("Tasks For " + displayFormat.format(calendar.getTime()));
-
-        // 2. Load the tasks
-        loadTasksForDate(dateInMillis);
     }
 
     private void loadTasksForDate(long dateInMillis) {
@@ -93,28 +99,16 @@ public class HistoryActivity extends AppCompatActivity {
         // Clear the old list
         tasksForSelectedDate.clear();
 
-        // Search ALL lists (Morning, Afternoon, Night) for matches
-        searchList(taskRepository.morningTasks, selectedDateString);
-        searchList(taskRepository.afternoonTasks, selectedDateString);
-        searchList(taskRepository.nightTasks, selectedDateString);
+        // Filter the cached list for tasks matching the date
+        if (allTasksCache != null) {
+            for (Task task : allTasksCache) {
+                if (task.date != null && task.date.equals(selectedDateString)) {
+                    tasksForSelectedDate.add(task);
+                }
+            }
+        }
 
         // Update the UI
         adapter.notifyDataSetChanged();
-
-        // Optional: Show a message if empty
-        if (tasksForSelectedDate.isEmpty()) {
-            // You can comment this out if the Toast is annoying
-            Toast.makeText(this, "No tasks found for " + selectedDateString, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    // Helper method to check a list for tasks matching the date
-    private void searchList(ArrayList<Task> list, String dateString) {
-        for (Task task : list) {
-            // Check if task has a date AND if it matches the selected date
-            if (task.date != null && task.date.equals(dateString)) {
-                tasksForSelectedDate.add(task);
-            }
-        }
     }
 }
