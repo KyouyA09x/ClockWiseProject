@@ -35,7 +35,7 @@
                 android:layout_width="26dp"
                 android:layout_height="26dp"
                 android:src="@drawable/ic_edit"
-                app:tint="#666666"
+                app:tint="@color/clock_text_color"
                 android:contentDescription="@string/edit_desc" />
 
             <TextView
@@ -44,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/edit_button"
                 android:textSize="12sp"
-                android:textColor="#666666"
+                android:textColor="@color/clock_text_color"
                 android:layout_marginTop="2dp" />
         </LinearLayout>
 
@@ -86,7 +86,7 @@
                 android:layout_width="26dp"
                 android:layout_height="26dp"
                 android:src="@drawable/ic_calendar"
-                app:tint="#666666"
+                app:tint="@color/clock_text_color"
                 android:contentDescription="@string/calendar_desc" />
 
             <TextView
@@ -95,7 +95,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/calendar"
                 android:textSize="12sp"
-                android:textColor="#666666"
+                android:textColor="@color/clock_text_color"
                 android:layout_marginTop="2dp" />
         </LinearLayout>
 
@@ -161,12 +161,12 @@
 
                 </LinearLayout>
 
-                <!-- Theme Switch Button -->
+                <!-- Theme Switch Button (Sun/Moon) -->
                 <ImageButton
                     android:id="@+id/themeSwitch"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:src="@drawable/ic_theme_switch"
+                    android:src="@drawable/ic_moon"
                     android:background="?android:attr/selectableItemBackgroundBorderless"
                     app:tint="#333333"
                     android:contentDescription="@string/theme_switch" />

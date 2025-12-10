@@ -13,4 +13,10 @@
     <color name="cyan_primary">#00FFDE</color>
     <color name="cyan_dark">#00CCB2</color>
     <color name="cyan_text">#006B5E</color>
+
+    <!-- Dark Mode Colors -->
+    <color name="dark_background_start">#1a1a1a</color>
+    <color name="dark_background_end">#2d2d2d</color>
+    <color name="dark_text">#E0E0E0</color>
+    <color name="dark_text_secondary">#B0B0B0</color>
 </resources>

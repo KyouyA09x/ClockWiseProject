@@ -54,9 +54,9 @@ public class MainActivity extends AppCompatActivity {
     private TaskRepository taskRepository;
     private boolean isEditMode = false;
     private View currentlyOpenTaskView = null;
-    private boolean isCyanTheme = false;
+    private boolean isDarkMode = false;
     private static final String PREFS_NAME = "ThemePrefs";
-    private static final String THEME_KEY = "cyan_theme";
+    private static final String THEME_KEY = "dark_mode";
 
 
     @SuppressLint("MissingInflatedId")
@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Load saved theme preference
         android.content.SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        isCyanTheme = prefs.getBoolean(THEME_KEY, false);
+        isDarkMode = prefs.getBoolean(THEME_KEY, false);
         applyTheme();
 
         // Request notification permission for Android 13+
@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // Theme switch - toggles between cyan and default theme
+        // Theme switch - toggles between dark mode and light mode (sun/moon icon)
         themeSwitch.setOnClickListener(v -> toggleTheme());
 
         updateTaskLists();
@@ -546,25 +546,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void toggleTheme() {
-        isCyanTheme = !isCyanTheme;
+        isDarkMode = !isDarkMode;
 
         // Save preference
         android.content.SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         android.content.SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean(THEME_KEY, isCyanTheme);
+        editor.putBoolean(THEME_KEY, isDarkMode);
         editor.apply();
 
-        // Apply theme
+        // Apply theme and update icon
         applyTheme();
 
-        Toast.makeText(this, "Theme changed!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, isDarkMode ? "Dark mode enabled" : "Light mode enabled", Toast.LENGTH_SHORT).show();
     }
 
     private void applyTheme() {
         if (mainLayout != null) {
-            if (isCyanTheme) {
-                mainLayout.setBackgroundResource(R.drawable.background_gradient_cyan);
+            if (isDarkMode) {
+                // Dark mode: show sun icon (to switch back to light)
+                themeSwitch.setImageResource(R.drawable.ic_sun);
+                mainLayout.setBackgroundResource(R.drawable.background_gradient_dark);
             } else {
+                // Light mode: show moon icon (to switch to dark)
+                themeSwitch.setImageResource(R.drawable.ic_moon);
                 mainLayout.setBackgroundResource(R.drawable.background_gradient);
             }
         }
