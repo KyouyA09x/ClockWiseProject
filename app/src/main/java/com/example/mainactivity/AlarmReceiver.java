@@ -79,6 +79,20 @@ public class AlarmReceiver extends BroadcastReceiver {
             taskTime = "";
         }
 
+        // Mark task as complete IMMEDIATELY when alarm fires
+        TaskRepository repository = TaskRepository.getInstance();
+        repository.initialize(context);
+        Task task = repository.getTaskById(taskId);
+        if (task != null) {
+            task.isComplete = true;
+            task.isAlarmOn = false;
+            repository.updateTask(task);
+
+            // Send broadcast to refresh MainActivity immediately
+            Intent broadcastIntent = new Intent(MainActivity.ACTION_TASK_COMPLETED);
+            context.sendBroadcast(broadcastIntent);
+        }
+
         createNotificationChannel(context);
 
         // Show appropriate notification based on task type
@@ -113,32 +127,11 @@ public class AlarmReceiver extends BroadcastReceiver {
     private void handleDone(Context context, Intent intent) {
         int taskId = intent.getIntExtra(EXTRA_TASK_ID, -1);
 
-        // Dismiss notification
+        // Dismiss notification (task is already marked complete when alarm fired)
         NotificationManager notificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null) {
             notificationManager.cancel(taskId);
-        }
-
-        // Mark task as complete - it will now appear in History instead of main screen
-        TaskRepository repository = TaskRepository.getInstance();
-        repository.initialize(context);
-        Task task = repository.getTaskById(taskId);
-        if (task != null) {
-            task.isComplete = true;
-            task.isAlarmOn = false; // Turn off alarm since task is done
-            repository.updateTask(task);
-
-            // Cancel any remaining alarms for this task
-            if (task.isFocusTask()) {
-                AlarmHelper.cancelFocusTaskAlarms(context, task);
-            } else {
-                AlarmHelper.cancelTaskAlarm(context, task);
-            }
-
-            // Send broadcast to refresh MainActivity immediately
-            Intent broadcastIntent = new Intent(MainActivity.ACTION_TASK_COMPLETED);
-            context.sendBroadcast(broadcastIntent);
         }
     }
 

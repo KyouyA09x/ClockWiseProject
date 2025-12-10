@@ -5,7 +5,7 @@
     android:orientation="horizontal"
     android:padding="16dp"
     android:background="@drawable/task_background"
-    android:layout_marginBottom="10dp"
+    android:layout_marginBottom="16dp"
     android:gravity="center_vertical">
 
     <!-- Checkmark icon -->
