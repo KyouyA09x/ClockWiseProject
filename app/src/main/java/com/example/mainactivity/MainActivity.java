@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isEditMode = false;
     private View currentlyOpenTaskView = null;
     private ArrayList<Task> completedTasksToday = new ArrayList<>();
+    private boolean isReceiverRegistered = false;
 
     private BroadcastReceiver taskCompletionReceiver = new BroadcastReceiver() {
         @Override
@@ -167,15 +168,29 @@ public class MainActivity extends AppCompatActivity {
         taskRepository.refreshTasks();
         updateTaskLists();
 
-        // Register receiver for task completion
-        registerReceiver(taskCompletionReceiver, new IntentFilter(ACTION_TASK_COMPLETED));
+        // Register receiver for task completion (only if not already registered)
+        if (!isReceiverRegistered) {
+            try {
+                registerReceiver(taskCompletionReceiver, new IntentFilter(ACTION_TASK_COMPLETED));
+                isReceiverRegistered = true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        // Unregister receiver to prevent leaks
-        unregisterReceiver(taskCompletionReceiver);
+        // Unregister receiver to prevent leaks (only if registered)
+        if (isReceiverRegistered) {
+            try {
+                unregisterReceiver(taskCompletionReceiver);
+                isReceiverRegistered = false;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
