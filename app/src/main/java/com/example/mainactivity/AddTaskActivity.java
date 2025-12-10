@@ -101,7 +101,15 @@ public class AddTaskActivity extends AppCompatActivity {
         cancelButton.setOnClickListener(v -> finish());
 
         saveButton.setOnClickListener(v -> {
-            String taskName = labelEditText.getText().toString();
+            String taskName = labelEditText.getText().toString().trim();
+
+            // Validate task name is not empty
+            if (taskName.isEmpty()) {
+                Toast.makeText(this, "Please enter a task name", Toast.LENGTH_SHORT).show();
+                labelEditText.requestFocus();
+                return;
+            }
+
             int hour = hourPicker.getValue();
             int minute = minutePicker.getValue();
             String amPm = amPmPicker.getDisplayedValues()[amPmPicker.getValue()];

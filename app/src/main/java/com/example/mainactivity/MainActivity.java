@@ -1,16 +1,20 @@
 package com.example.mainactivity;
 
+import android.Manifest;
+import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import android.Manifest;
-import android.animation.ObjectAnimator;
-import android.annotation.SuppressLint;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Paint;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,6 +35,7 @@ import java.util.Collections;
 public class MainActivity extends AppCompatActivity {
 
     private static final int ADD_TASK_REQUEST = 1;
+    public static final String ACTION_TASK_COMPLETED = "com.example.mainactivity.TASK_COMPLETED";
 
     private View editButtonContainer;
     private TextView editButtonText;
@@ -57,6 +62,14 @@ public class MainActivity extends AppCompatActivity {
     private View currentlyOpenTaskView = null;
     private ArrayList<Task> completedTasksToday = new ArrayList<>();
 
+    private BroadcastReceiver taskCompletionReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Refresh task list immediately when a task is completed
+            taskRepository.refreshTasks();
+            updateTaskLists();
+        }
+    };
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -153,6 +166,16 @@ public class MainActivity extends AppCompatActivity {
         // Refresh tasks from database
         taskRepository.refreshTasks();
         updateTaskLists();
+
+        // Register receiver for task completion
+        registerReceiver(taskCompletionReceiver, new IntentFilter(ACTION_TASK_COMPLETED));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Unregister receiver to prevent leaks
+        unregisterReceiver(taskCompletionReceiver);
     }
 
     @Override

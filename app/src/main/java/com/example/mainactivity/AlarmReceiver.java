@@ -135,6 +135,10 @@ public class AlarmReceiver extends BroadcastReceiver {
             } else {
                 AlarmHelper.cancelTaskAlarm(context, task);
             }
+
+            // Send broadcast to refresh MainActivity immediately
+            Intent broadcastIntent = new Intent(MainActivity.ACTION_TASK_COMPLETED);
+            context.sendBroadcast(broadcastIntent);
         }
     }
 
