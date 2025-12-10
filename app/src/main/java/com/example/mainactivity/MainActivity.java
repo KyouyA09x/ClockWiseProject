@@ -635,6 +635,16 @@ public class MainActivity extends AppCompatActivity {
         LayoutInflater inflater = LayoutInflater.from(this);
         View taskView = inflater.inflate(R.layout.item_completed_task, null, false);
 
+        // Set layout params with proper margins for spacing between items
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        int marginVertical = (int) (16 * getResources().getDisplayMetrics().density); // 16dp top and bottom
+        int marginHorizontal = (int) (12 * getResources().getDisplayMetrics().density); // 12dp left and right
+        layoutParams.setMargins(marginHorizontal, marginVertical, marginHorizontal, marginVertical);
+        taskView.setLayoutParams(layoutParams);
+
         TextView taskNameTextView = taskView.findViewById(R.id.completedTaskName);
         TextView taskTimeTextView = taskView.findViewById(R.id.completedTaskTime);
 
