@@ -5,10 +5,10 @@
     android:orientation="horizontal"
     android:padding="16dp"
     android:background="@drawable/task_background"
-    android:layout_marginBottom="20dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginStart="8dp"
-    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="16dp"
+    android:layout_marginTop="16dp"
+    android:layout_marginStart="12dp"
+    android:layout_marginEnd="12dp"
     android:gravity="center_vertical">
 
     <!-- Checkmark icon -->
