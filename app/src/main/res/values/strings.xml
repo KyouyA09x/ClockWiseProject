@@ -2,6 +2,7 @@
     <string name="app_name">ClockWise</string>
     <string name="edit_button">Edit</string>
     <string name="history">History</string>
+    <string name="calendar">Calendar</string>
     <string name="clock_text">Clock</string>
     <string name="wise_text">Wise</string>
     <string name="task_progress">Task 0/0</string>
@@ -14,4 +15,21 @@
     <string name="task_name_label">Task Name</string>
     <string name="task_hint">What are you going to do?</string>
     <string name="clear_label">Clear text</string>
+    <string name="close">Close</string>
+
+    <!-- Focus Task strings -->
+    <string name="focus_task_title">Focus Task</string>
+    <string name="reminder_title">Reminder</string>
+    <string name="choose_task_type">Choose Task Type</string>
+    <string name="focus_task_hint">What are you going to focus on?</string>
+    <string name="keep_going">Keep Going</string>
+    <string name="time_up">Time\'s Up!</string>
+
+    <!-- Theme and UI strings -->
+    <string name="theme_switch">Theme Switch</string>
+    <string name="edit_desc">Edit</string>
+    <string name="add_task">Add Task</string>
+    <string name="calendar_desc">Calendar</string>
+    <string name="history_menu">History Menu</string>
 </resources>
+

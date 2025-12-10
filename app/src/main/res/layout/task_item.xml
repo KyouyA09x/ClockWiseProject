@@ -2,22 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginStart="16dp"
-    android:layout_marginEnd="16dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginBottom="12dp">
-
-    <Button
-        android:id="@+id/deleteButton"
-        android:layout_width="100dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="end"
-        android:background="@drawable/delete_button_background"
-        android:text="Delete"
-        android:textColor="@android:color/white"
-        android:visibility="gone"
-        app:backgroundTint="@null" />
+    android:layout_height="wrap_content">
 
     <RelativeLayout
         android:id="@+id/taskContent"
@@ -25,27 +10,18 @@
         android:layout_height="wrap_content"
         android:minHeight="72dp"
         android:background="@drawable/task_background"
-        android:clickable="true"
-        android:focusable="true"
         android:paddingVertical="12dp"
         android:paddingHorizontal="16dp">
 
-        <ImageButton
-            android:id="@+id/removeTaskButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_remove_circle"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:visibility="gone"
+        <!-- Task Type Icon (Reminder or Focus Task) -->
+        <ImageView
+            android:id="@+id/taskTypeIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:layout_marginEnd="8dp"/>
-
-        <View
-            android:id="@+id/taskCircle"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_toEndOf="@id/removeTaskButton"
-            android:layout_centerVertical="true"/>
+            android:src="@drawable/ic_reminder"
+            android:contentDescription="Task Type" />
 
         <FrameLayout
             android:id="@+id/right_side_container"
@@ -54,40 +30,63 @@
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true">
 
+            <!-- Normal Mode: Show alarm switch -->
             <LinearLayout
-                android:id="@+id/timeLayout"
+                android:id="@+id/normalModeLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="end">
-
-                <Button
-                    android:id="@+id/setTimerButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="30dp"
-                    android:text="SET TIMER"
-                    android:background="@drawable/timer_button_background"
-                    android:textColor="@android:color/white"
-                    android:textSize="10sp"
-                    android:paddingHorizontal="12dp"/>
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="visible">
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/taskSwitch"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
                     android:scaleX="1.2"
                     android:scaleY="1.2"/>
 
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/editTaskButton"
+            <!-- Edit Mode: Show pencil (edit time) and X (delete) buttons -->
+            <LinearLayout
+                android:id="@+id/editModeLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_chevron_right"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:visibility="gone"/>
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+
+                <!-- Pencil button - Edit Time -->
+                <ImageButton
+                    android:id="@+id/editTimeButton"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/ic_edit"
+                    android:background="@drawable/rounded_corner_background"
+                    android:backgroundTint="#E3F2FD"
+                    app:tint="#1976D2"
+                    android:padding="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="Edit Time" />
+
+                <!-- X button - Delete -->
+                <ImageButton
+                    android:id="@+id/deleteTaskButton"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:background="@drawable/rounded_corner_background"
+                    android:backgroundTint="#FFEBEE"
+                    app:tint="#F44336"
+                    android:padding="8dp"
+                    android:layout_marginStart="6dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="Delete Task" />
+
+            </LinearLayout>
 
         </FrameLayout>
 
@@ -96,16 +95,19 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_centerVertical="true"
-            android:layout_toEndOf="@id/taskCircle"
+            android:layout_toEndOf="@id/taskTypeIcon"
             android:layout_toStartOf="@id/right_side_container"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp">
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp">
 
             <TextView
                 android:id="@+id/taskTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="25sp"/>
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:maxLines="1"
+                android:ellipsize="end"/>
 
             <TextView
                 android:id="@+id/taskName"
@@ -113,6 +115,7 @@
                 android:layout_height="wrap_content"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
+                android:textSize="18sp"
                 android:ellipsize="end"
                 android:maxLines="1" />
 

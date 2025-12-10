@@ -29,7 +29,16 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         Task task = taskList.get(position);
         holder.taskName.setText(task.name);
-        holder.taskTime.setText(String.format("%d:%02d %s", task.hour, task.minute, task.amPm));
+
+        // Show time range for Focus Tasks, single time for Reminders
+        if (task.isFocusTask()) {
+            String timeRange = String.format("%d:%02d %s → %d:%02d %s",
+                    task.hour, task.minute, task.amPm != null ? task.amPm : "AM",
+                    task.endHour, task.endMinute, task.endAmPm != null ? task.endAmPm : "AM");
+            holder.taskTime.setText(timeRange);
+        } else {
+            holder.taskTime.setText(String.format("%d:%02d %s", task.hour, task.minute, task.amPm != null ? task.amPm : "AM"));
+        }
 
         if (task.isComplete) {
             holder.taskName.setPaintFlags(holder.taskName.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);

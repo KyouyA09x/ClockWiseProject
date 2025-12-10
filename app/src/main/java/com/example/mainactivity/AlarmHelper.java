@@ -170,19 +170,204 @@ public class AlarmHelper {
 
         for (Task task : repository.morningTasks) {
             if (task.isAlarmOn) {
-                scheduleTaskAlarm(context, task);
+                if (task.isFocusTask()) {
+                    scheduleFocusTaskAlarms(context, task);
+                } else {
+                    scheduleTaskAlarm(context, task);
+                }
             }
         }
         for (Task task : repository.afternoonTasks) {
             if (task.isAlarmOn) {
-                scheduleTaskAlarm(context, task);
+                if (task.isFocusTask()) {
+                    scheduleFocusTaskAlarms(context, task);
+                } else {
+                    scheduleTaskAlarm(context, task);
+                }
             }
         }
         for (Task task : repository.nightTasks) {
             if (task.isAlarmOn) {
-                scheduleTaskAlarm(context, task);
+                if (task.isFocusTask()) {
+                    scheduleFocusTaskAlarms(context, task);
+                } else {
+                    scheduleTaskAlarm(context, task);
+                }
             }
         }
+    }
+
+    /**
+     * Schedule both start and end alarms for a Focus Task
+     */
+    public static void scheduleFocusTaskAlarms(Context context, Task task) {
+        if (!task.isAlarmOn || !task.isFocusTask()) {
+            cancelFocusTaskAlarms(context, task);
+            return;
+        }
+
+        // Schedule START alarm
+        scheduleAlarmAtTime(context, task, task.hour, task.minute, task.amPm,
+                           task.id, AlarmReceiver.ALARM_TYPE_FOCUS_START);
+
+        // Schedule END alarm (with any extensions)
+        int endMinuteTotal = task.endMinute + task.extendedMinutes;
+        int extraHours = endMinuteTotal / 60;
+        int finalEndMinute = endMinuteTotal % 60;
+        int finalEndHour = task.endHour + extraHours;
+        String finalEndAmPm = task.endAmPm;
+
+        // Handle hour overflow
+        if (finalEndHour > 12) {
+            finalEndHour = finalEndHour - 12;
+            finalEndAmPm = finalEndAmPm.equals("AM") ? "PM" : "AM";
+        }
+
+        scheduleAlarmAtTime(context, task, finalEndHour, finalEndMinute, finalEndAmPm,
+                           task.id + 50000, AlarmReceiver.ALARM_TYPE_FOCUS_END);
+
+        Log.d(TAG, "Scheduled Focus Task alarms: Start at " + task.getStartTimeFormatted() +
+              ", End at " + finalEndHour + ":" + String.format("%02d", finalEndMinute) + " " + finalEndAmPm);
+    }
+
+    private static void scheduleAlarmAtTime(Context context, Task task, int hour, int minute,
+                                            String amPm, int requestCode, String alarmType) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager == null) return;
+
+        Intent intent = new Intent(context, AlarmReceiver.class);
+        intent.putExtra(AlarmReceiver.EXTRA_TASK_ID, task.id);
+        intent.putExtra(AlarmReceiver.EXTRA_TASK_NAME, task.name);
+        intent.putExtra(AlarmReceiver.EXTRA_TASK_TIME, String.format(Locale.getDefault(),
+                "%d:%02d %s", hour, minute, amPm));
+        intent.putExtra(AlarmReceiver.EXTRA_VIBRATION_ENABLED, task.vibrationEnabled);
+        intent.putExtra(AlarmReceiver.EXTRA_ALARM_TYPE, alarmType);
+        intent.putExtra(AlarmReceiver.EXTRA_TASK_TYPE, task.taskType);
+        intent.putExtra(AlarmReceiver.EXTRA_END_TIME, task.getEndTimeFormatted());
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        // Calculate alarm time
+        Calendar calendar = Calendar.getInstance();
+
+        if (task.date != null && !task.date.isEmpty()) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                Date taskDate = sdf.parse(task.date);
+                if (taskDate != null) {
+                    Calendar taskCal = Calendar.getInstance();
+                    taskCal.setTime(taskDate);
+                    calendar.set(Calendar.YEAR, taskCal.get(Calendar.YEAR));
+                    calendar.set(Calendar.MONTH, taskCal.get(Calendar.MONTH));
+                    calendar.set(Calendar.DAY_OF_MONTH, taskCal.get(Calendar.DAY_OF_MONTH));
+                }
+            } catch (ParseException e) {
+                Log.e(TAG, "Error parsing date: " + e.getMessage());
+            }
+        }
+
+        int hour24 = hour;
+        if (amPm.equals("PM") && hour != 12) {
+            hour24 += 12;
+        } else if (amPm.equals("AM") && hour == 12) {
+            hour24 = 0;
+        }
+
+        calendar.set(Calendar.HOUR_OF_DAY, hour24);
+        calendar.set(Calendar.MINUTE, minute);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+            Log.d(TAG, "Alarm time has passed, skipping: " + alarmType);
+            return;
+        }
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
+                            calendar.getTimeInMillis(), pendingIntent);
+                } else {
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
+                        calendar.getTimeInMillis(), pendingIntent);
+            } else {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+            }
+        } catch (SecurityException e) {
+            Log.e(TAG, "No permission for exact alarms: " + e.getMessage());
+            alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+        }
+    }
+
+    public static void cancelFocusTaskAlarms(Context context, Task task) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager == null) return;
+
+        // Cancel start alarm
+        Intent intent = new Intent(context, AlarmReceiver.class);
+        PendingIntent startPendingIntent = PendingIntent.getBroadcast(
+                context, task.id, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        alarmManager.cancel(startPendingIntent);
+
+        // Cancel end alarm
+        PendingIntent endPendingIntent = PendingIntent.getBroadcast(
+                context, task.id + 50000, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        alarmManager.cancel(endPendingIntent);
+
+        Log.d(TAG, "Cancelled Focus Task alarms for: " + task.name);
+    }
+
+    /**
+     * Extend a Focus Task's end time by specified minutes
+     */
+    public static void extendFocusTask(Context context, Task task, int additionalMinutes) {
+        task.extendedMinutes += additionalMinutes;
+
+        TaskRepository repository = TaskRepository.getInstance();
+        repository.initialize(context);
+        repository.updateTask(task);
+
+        // Cancel old end alarm and schedule new one
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) {
+            Intent intent = new Intent(context, AlarmReceiver.class);
+            PendingIntent oldEndPendingIntent = PendingIntent.getBroadcast(
+                    context, task.id + 50000, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+            alarmManager.cancel(oldEndPendingIntent);
+        }
+
+        // Calculate new end time
+        int endMinuteTotal = task.endMinute + task.extendedMinutes;
+        int extraHours = endMinuteTotal / 60;
+        int finalEndMinute = endMinuteTotal % 60;
+        int finalEndHour = task.endHour + extraHours;
+        String finalEndAmPm = task.endAmPm;
+
+        if (finalEndHour > 12) {
+            finalEndHour = finalEndHour - 12;
+            finalEndAmPm = finalEndAmPm.equals("AM") ? "PM" : "AM";
+        }
+
+        scheduleAlarmAtTime(context, task, finalEndHour, finalEndMinute, finalEndAmPm,
+                           task.id + 50000, AlarmReceiver.ALARM_TYPE_FOCUS_END);
+
+        Log.d(TAG, "Extended Focus Task to: " + finalEndHour + ":" +
+              String.format("%02d", finalEndMinute) + " " + finalEndAmPm);
     }
 }
 

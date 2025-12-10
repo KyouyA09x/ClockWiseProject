@@ -1,120 +1,54 @@
 package com.example.mainactivity;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.widget.CalendarView;
 import android.widget.ImageButton;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Locale;
+import androidx.cardview.widget.CardView;
 
 public class HistoryActivity extends AppCompatActivity {
 
-    private CalendarView calendarView;
-    private TextView tvSelectedDate;
-    private RecyclerView recyclerViewHistory;
-    private ImageButton btnBack;
-
-    // Use the HistoryAdapter we created in Step 2
-    private HistoryAdapter adapter;
-
-    // To store the tasks we find for the selected date
-    private ArrayList<Task> tasksForSelectedDate;
-
-    // Access to your global task data
-    private TaskRepository taskRepository;
+    private ImageButton backButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_history);
+        setContentView(R.layout.activity_history_months);
 
-        // Initialize the Repository
-        taskRepository = TaskRepository.getInstance();
-        tasksForSelectedDate = new ArrayList<>();
+        backButton = findViewById(R.id.backButton);
+        backButton.setOnClickListener(v -> finish());
 
-        calendarView = findViewById(R.id.calendarView);
-        tvSelectedDate = findViewById(R.id.tvSelectedDate);
-        recyclerViewHistory = findViewById(R.id.recyclerViewHistory);
-        btnBack = findViewById(R.id.btnBack);
-
-        // Setup RecyclerView
-        recyclerViewHistory.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new HistoryAdapter(tasksForSelectedDate);
-        recyclerViewHistory.setAdapter(adapter);
-
-        // Back Button Logic
-        btnBack.setOnClickListener(v -> finish());
-
-        // Initialize with Today's date
-        long todayInMillis = System.currentTimeMillis();
-
-        // Set calendar view to today
-        calendarView.setDate(todayInMillis);
-
-        // Load data for today immediately
-        updateHeaderAndLoadTasks(todayInMillis);
-
-        // Calendar Click Logic
-        calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(year, month, dayOfMonth);
-
-            updateHeaderAndLoadTasks(calendar.getTimeInMillis());
-        });
+        setupMonthClickListeners();
     }
 
-    private void updateHeaderAndLoadTasks(long dateInMillis) {
-        // 1. Update the Header Text
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(dateInMillis);
+    private void setupMonthClickListeners() {
+        int[] monthCardIds = {
+                R.id.monthJan, R.id.monthFeb, R.id.monthMar,
+                R.id.monthApr, R.id.monthMay, R.id.monthJun,
+                R.id.monthJul, R.id.monthAug, R.id.monthSep,
+                R.id.monthOct, R.id.monthNov, R.id.monthDec
+        };
 
-        SimpleDateFormat displayFormat = new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault());
-        tvSelectedDate.setText("Tasks For " + displayFormat.format(calendar.getTime()));
+        String[] monthNames = {
+                "January", "February", "March",
+                "April", "May", "June",
+                "July", "August", "September",
+                "October", "November", "December"
+        };
 
-        // 2. Load the tasks
-        loadTasksForDate(dateInMillis);
-    }
+        for (int i = 0; i < monthCardIds.length; i++) {
+            CardView card = findViewById(monthCardIds[i]);
+            final int monthIndex = i;
+            final String monthName = monthNames[i];
 
-    private void loadTasksForDate(long dateInMillis) {
-        // Format the selected date to match how we saved it in AddTaskActivity ("yyyy-MM-dd")
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(dateInMillis);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        String selectedDateString = sdf.format(calendar.getTime());
-
-        // Clear the old list
-        tasksForSelectedDate.clear();
-
-        // Search ALL lists (Morning, Afternoon, Night) for matches
-        searchList(taskRepository.morningTasks, selectedDateString);
-        searchList(taskRepository.afternoonTasks, selectedDateString);
-        searchList(taskRepository.nightTasks, selectedDateString);
-
-        // Update the UI
-        adapter.notifyDataSetChanged();
-
-        // Optional: Show a message if empty
-        if (tasksForSelectedDate.isEmpty()) {
-            // You can comment this out if the Toast is annoying
-            Toast.makeText(this, "No tasks found for " + selectedDateString, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    // Helper method to check a list for tasks matching the date
-    private void searchList(ArrayList<Task> list, String dateString) {
-        for (Task task : list) {
-            // Check if task has a date AND if it matches the selected date
-            if (task.date != null && task.date.equals(dateString)) {
-                tasksForSelectedDate.add(task);
-            }
+            card.setOnClickListener(v -> {
+                Intent intent = new Intent(HistoryActivity.this, HistoryMonthDetailActivity.class);
+                intent.putExtra("month_index", monthIndex);
+                intent.putExtra("month_name", monthName);
+                startActivity(intent);
+            });
         }
     }
 }
+

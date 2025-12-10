@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/dialog_background">
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Edit Time"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#333333"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Time Picker Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Hour Picker -->
+        <NumberPicker
+            android:id="@+id/hourPicker"
+            android:layout_width="60dp"
+            android:layout_height="150dp"
+            android:theme="@style/Theme.MaterialComponents.DayNight" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=":"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginHorizontal="8dp" />
+
+        <!-- Minute Picker -->
+        <NumberPicker
+            android:id="@+id/minutePicker"
+            android:layout_width="60dp"
+            android:layout_height="150dp"
+            android:theme="@style/Theme.MaterialComponents.DayNight" />
+
+        <!-- AM/PM Picker -->
+        <NumberPicker
+            android:id="@+id/amPmPicker"
+            android:layout_width="70dp"
+            android:layout_height="150dp"
+            android:layout_marginStart="16dp"
+            android:theme="@style/Theme.MaterialComponents.DayNight" />
+
+    </LinearLayout>
+
+    <!-- For Focus Tasks: End Time Section -->
+    <LinearLayout
+        android:id="@+id/endTimeSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_marginTop="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="End Time"
+            android:textSize="16sp"
+            android:textColor="#666666"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <NumberPicker
+                android:id="@+id/endHourPicker"
+                android:layout_width="60dp"
+                android:layout_height="150dp"
+                android:theme="@style/Theme.MaterialComponents.DayNight" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=":"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginHorizontal="8dp" />
+
+            <NumberPicker
+                android:id="@+id/endMinutePicker"
+                android:layout_width="60dp"
+                android:layout_height="150dp"
+                android:theme="@style/Theme.MaterialComponents.DayNight" />
+
+            <NumberPicker
+                android:id="@+id/endAmPmPicker"
+                android:layout_width="70dp"
+                android:layout_height="150dp"
+                android:layout_marginStart="16dp"
+                android:theme="@style/Theme.MaterialComponents.DayNight" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="24dp">
+
+        <Button
+            android:id="@+id/cancelButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Cancel"
+            android:textColor="#666666"
+            android:backgroundTint="#E0E0E0"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Save"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#4CAF50"
+            android:layout_marginStart="8dp" />
+
+    </LinearLayout>
+
+</LinearLayout>
+

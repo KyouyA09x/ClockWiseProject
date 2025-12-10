@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:fillViewport="true"
+    tools:context=".AddFocusTaskActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="24dp">
+
+        <Button
+            android:id="@+id/cancelButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:background="?android:attr/selectableItemBackground"
+            android:textColor="@android:color/black"
+            android:textAllCaps="false"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:id="@+id/addTaskTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Focus Task"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_centerHorizontal="true"
+            android:layout_alignBaseline="@id/cancelButton"/>
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Save"
+            android:background="?android:attr/selectableItemBackground"
+            android:textColor="@android:color/black"
+            android:textAllCaps="false"
+            android:layout_alignParentEnd="true"
+            android:layout_alignBaseline="@id/cancelButton"
+            android:layout_marginEnd="16dp"/>
+
+        <!-- Time Range Section -->
+        <LinearLayout
+            android:id="@+id/timeRangeSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/addTaskTitle"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp"
+            android:layout_marginHorizontal="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Set Time Range"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="16dp" />
+
+            <!-- From Time -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="From:"
+                    android:textSize="16sp"
+                    android:textColor="#2196F3"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <NumberPicker
+                        android:id="@+id/startHourPicker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="120dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=":"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:layout_marginHorizontal="4dp" />
+
+                    <NumberPicker
+                        android:id="@+id/startMinutePicker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="120dp" />
+
+                    <NumberPicker
+                        android:id="@+id/startAmPmPicker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="120dp"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Arrow Indicator -->
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:src="@android:drawable/arrow_down_float"
+                app:tint="#666666"
+                android:contentDescription="To"
+                android:layout_marginVertical="8dp" />
+
+            <!-- To Time -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="To:"
+                    android:textSize="16sp"
+                    android:textColor="#F44336"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <NumberPicker
+                        android:id="@+id/endHourPicker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="120dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=":"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:layout_marginHorizontal="4dp" />
+
+                    <NumberPicker
+                        android:id="@+id/endMinutePicker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="120dp" />
+
+                    <NumberPicker
+                        android:id="@+id/endAmPmPicker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="120dp"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Options Section -->
+        <LinearLayout
+            android:id="@+id/optionsSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/timeRangeSection"
+            android:orientation="vertical"
+            android:background="@drawable/options_background"
+            android:layout_margin="16dp"
+            android:paddingHorizontal="16dp">
+
+            <!-- Task Name Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Task Name"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="@color/black" />
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <EditText
+                        android:id="@+id/labelEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:hint="What are you going to focus on?"
+                        android:background="@drawable/rounded_corner_background"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="40dp"
+                        android:textSize="16sp"
+                        android:singleLine="true"
+                        android:textColor="@color/black"
+                        android:inputType="textCapSentences"
+                        android:importantForAutofill="no" />
+
+                    <ImageButton
+                        android:id="@+id/clearLabelButton"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@android:drawable/ic_menu_close_clear_cancel"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:layout_gravity="end|center_vertical"
+                        android:layout_marginEnd="8dp"
+                        android:visibility="gone"
+                        app:tint="@android:color/darker_gray"
+                        android:contentDescription="Clear" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"/>
+
+            <!-- Date Row -->
+            <LinearLayout
+                android:id="@+id/dateRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground"
+                android:paddingVertical="16dp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Date"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black" />
+
+                <TextView
+                    android:id="@+id/dateValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Today"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/darker_gray" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@android:color/darker_gray"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="Select" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"/>
+
+            <!-- Urgency Row -->
+            <LinearLayout
+                android:id="@+id/urgencyLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground"
+                android:paddingVertical="16dp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Priority"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black" />
+
+                <TextView
+                    android:id="@+id/urgencyValueText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="None"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/darker_gray" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@android:color/darker_gray"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="Select" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"/>
+
+            <!-- Vibration Row -->
+            <LinearLayout
+                android:id="@+id/vibrationLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground"
+                android:paddingVertical="16dp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Vibration"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/vibrationSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Info Box -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/optionsSection"
+            android:orientation="horizontal"
+            android:background="#E3F2FD"
+            android:padding="16dp"
+            android:layout_marginHorizontal="16dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_dialog_info"
+                app:tint="#2196F3"
+                android:contentDescription="Info" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:text="You'll receive an alarm at the start time and another at the end time. You can extend your focus session using the 'Keep Going' button."
+                android:textSize="13sp"
+                android:textColor="#1565C0" />
+        </LinearLayout>
+
+    </RelativeLayout>
+</ScrollView>
+

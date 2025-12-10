@@ -18,8 +18,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,9 +32,14 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int ADD_TASK_REQUEST = 1;
 
-    private Button editButton;
-    private ImageButton addButton;
-    private View historyButton;
+    private View editButtonContainer;
+    private TextView editButtonText;
+    private ImageView editButtonIcon;
+    private ImageView addButton;
+    private View calendarButtonContainer;
+    private ImageButton historyMenuButton;
+    private ImageButton themeSwitch;
+    private RelativeLayout mainLayout;
     private LinearLayout morningTasksContainer;
     private LinearLayout afternoonTasksContainer;
     private LinearLayout nightTasksContainer;
@@ -47,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
     private TaskRepository taskRepository;
     private boolean isEditMode = false;
     private View currentlyOpenTaskView = null;
+    private boolean isCyanTheme = false;
+    private static final String PREFS_NAME = "ThemePrefs";
+    private static final String THEME_KEY = "cyan_theme";
 
 
     @SuppressLint("MissingInflatedId")
@@ -55,9 +65,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        editButton = findViewById(R.id.editButton);
+        editButtonContainer = findViewById(R.id.editButtonContainer);
+        editButtonText = findViewById(R.id.editButton);
+        editButtonIcon = findViewById(R.id.editButtonIcon);
         addButton = findViewById(R.id.addButton);
-        historyButton = findViewById(R.id.historyButton);
+        calendarButtonContainer = findViewById(R.id.calendarButtonContainer);
+        historyMenuButton = findViewById(R.id.historyMenuButton);
+        themeSwitch = findViewById(R.id.themeSwitch);
+        mainLayout = findViewById(R.id.mainLayout);
         morningTasksContainer = findViewById(R.id.morningTasksContainer);
         afternoonTasksContainer = findViewById(R.id.afternoonTasksContainer);
         nightTasksContainer = findViewById(R.id.nightTasksContainer);
@@ -72,23 +87,66 @@ public class MainActivity extends AppCompatActivity {
         taskRepository = TaskRepository.getInstance();
         taskRepository.initialize(this);
 
+        // Load saved theme preference
+        android.content.SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        isCyanTheme = prefs.getBoolean(THEME_KEY, false);
+        applyTheme();
+
         // Request notification permission for Android 13+
         requestNotificationPermission();
 
-        editButton.setOnClickListener(v -> toggleEditMode());
-        addButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, AddTaskActivity.class);
-            startActivityForResult(intent, ADD_TASK_REQUEST);
-        });
+        editButtonContainer.setOnClickListener(v -> toggleEditMode());
+        addButton.setOnClickListener(v -> showTaskTypeChooser());
 
-        if (historyButton != null) {
-            historyButton.setOnClickListener(v -> {
+        // Calendar button - shows ongoing tasks by date
+        if (calendarButtonContainer != null) {
+            calendarButtonContainer.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, CalendarActivity.class);
+                startActivity(intent);
+            });
+        }
+
+        // History hamburger menu - shows completed tasks by month
+        if (historyMenuButton != null) {
+            historyMenuButton.setOnClickListener(v -> {
                 Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
                 startActivity(intent);
             });
         }
 
+        // Theme switch - toggles between cyan and default theme
+        themeSwitch.setOnClickListener(v -> toggleTheme());
+
         updateTaskLists();
+    }
+
+    private void showTaskTypeChooser() {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_task_type_chooser, null);
+        builder.setView(dialogView);
+
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        // Reminder option
+        View reminderOption = dialogView.findViewById(R.id.reminderOption);
+        reminderOption.setOnClickListener(v -> {
+            dialog.dismiss();
+            Intent intent = new Intent(MainActivity.this, AddTaskActivity.class);
+            startActivityForResult(intent, ADD_TASK_REQUEST);
+        });
+
+        // Focus Task option
+        View focusTaskOption = dialogView.findViewById(R.id.focusTaskOption);
+        focusTaskOption.setOnClickListener(v -> {
+            dialog.dismiss();
+            Intent intent = new Intent(MainActivity.this, AddFocusTaskActivity.class);
+            startActivityForResult(intent, ADD_TASK_REQUEST);
+        });
+
+        dialog.show();
     }
 
     @Override
@@ -110,52 +168,36 @@ public class MainActivity extends AppCompatActivity {
 
     private void toggleEditMode() {
         isEditMode = !isEditMode;
-        editButton.setText(isEditMode ? "Done" : "Edit");
+        editButtonText.setText(isEditMode ? "Done" : "Edit");
 
-        if (!isEditMode && currentlyOpenTaskView != null) {
-            closeDeleteButton(currentlyOpenTaskView, false);
-        }
-
-        animateAllTasks(true);
+        // Update all task views to show/hide edit mode buttons
+        updateAllTasksEditMode();
     }
 
-    private void animateAllTasks(boolean animate) {
-        long duration = animate ? 300 : 0;
-
+    private void updateAllTasksEditMode() {
         for (int i = 0; i < morningTasksContainer.getChildCount(); i++) {
-            animateTaskView(morningTasksContainer.getChildAt(i), duration);
+            updateTaskViewEditMode(morningTasksContainer.getChildAt(i));
         }
         for (int i = 0; i < afternoonTasksContainer.getChildCount(); i++) {
-            animateTaskView(afternoonTasksContainer.getChildAt(i), duration);
+            updateTaskViewEditMode(afternoonTasksContainer.getChildAt(i));
         }
         for (int i = 0; i < nightTasksContainer.getChildCount(); i++) {
-            animateTaskView(nightTasksContainer.getChildAt(i), duration);
+            updateTaskViewEditMode(nightTasksContainer.getChildAt(i));
         }
     }
 
-    private void animateTaskView(View taskView, long duration) {
-        ImageButton removeTaskButton = taskView.findViewById(R.id.removeTaskButton);
-        ImageButton editTaskButton = taskView.findViewById(R.id.editTaskButton);
-        View timeLayout = taskView.findViewById(R.id.timeLayout);
+    private void updateTaskViewEditMode(View taskView) {
+        View normalModeLayout = taskView.findViewById(R.id.normalModeLayout);
+        View editModeLayout = taskView.findViewById(R.id.editModeLayout);
 
         if (isEditMode) {
-            timeLayout.animate().alpha(0f).setDuration(duration).withEndAction(() -> timeLayout.setVisibility(View.GONE));
-
-            removeTaskButton.setVisibility(View.VISIBLE);
-            removeTaskButton.setAlpha(0f);
-            removeTaskButton.animate().alpha(1f).setDuration(duration).start();
-
-            editTaskButton.setVisibility(View.VISIBLE);
-            editTaskButton.setAlpha(0f);
-            editTaskButton.animate().alpha(1f).setDuration(duration).start();
-
+            // Show edit mode buttons (pencil + X)
+            normalModeLayout.setVisibility(View.GONE);
+            editModeLayout.setVisibility(View.VISIBLE);
         } else {
-            timeLayout.setVisibility(View.VISIBLE);
-            timeLayout.setAlpha(0f);
-            timeLayout.animate().alpha(1f).setDuration(duration).start();
-
-            removeTaskButton.animate().alpha(0f).setDuration(duration).withEndAction(() -> removeTaskButton.setVisibility(View.GONE));
-            editTaskButton.animate().alpha(0f).setDuration(duration).withEndAction(() -> editTaskButton.setVisibility(View.GONE));
+            // Show normal mode (switch)
+            normalModeLayout.setVisibility(View.VISIBLE);
+            editModeLayout.setVisibility(View.GONE);
         }
     }
 
@@ -181,32 +223,39 @@ public class MainActivity extends AppCompatActivity {
         int completedTasks = 0;
         boolean hasTasksForToday = false;
 
-        // Check Morning
+        // Check Morning - ONLY show INCOMPLETE tasks (completed tasks go to History)
         for (Task task : morningTasks) {
-            // FILTER: ONLY SHOW IF DATE MATCHES TODAY
-            if (task.date != null && task.date.equals(todayDate)) {
+            // FILTER: ONLY SHOW IF DATE MATCHES TODAY AND TASK IS NOT COMPLETE
+            if (task.date != null && task.date.equals(todayDate) && !task.isComplete) {
                 morningTasksContainer.addView(createTaskView(task));
                 totalTasks++;
-                if (task.isComplete) completedTasks++;
                 hasTasksForToday = true;
+            } else if (task.date != null && task.date.equals(todayDate) && task.isComplete) {
+                // Count completed tasks for progress but don't display them
+                completedTasks++;
+                totalTasks++;
             }
         }
-        // Check Afternoon
+        // Check Afternoon - ONLY show INCOMPLETE tasks
         for (Task task : afternoonTasks) {
-            if (task.date != null && task.date.equals(todayDate)) {
+            if (task.date != null && task.date.equals(todayDate) && !task.isComplete) {
                 afternoonTasksContainer.addView(createTaskView(task));
                 totalTasks++;
-                if (task.isComplete) completedTasks++;
                 hasTasksForToday = true;
+            } else if (task.date != null && task.date.equals(todayDate) && task.isComplete) {
+                completedTasks++;
+                totalTasks++;
             }
         }
-        // Check Night
+        // Check Night - ONLY show INCOMPLETE tasks
         for (Task task : nightTasks) {
-            if (task.date != null && task.date.equals(todayDate)) {
+            if (task.date != null && task.date.equals(todayDate) && !task.isComplete) {
                 nightTasksContainer.addView(createTaskView(task));
                 totalTasks++;
-                if (task.isComplete) completedTasks++;
                 hasTasksForToday = true;
+            } else if (task.date != null && task.date.equals(todayDate) && task.isComplete) {
+                completedTasks++;
+                totalTasks++;
             }
         }
 
@@ -225,17 +274,16 @@ public class MainActivity extends AppCompatActivity {
             morningTasksHeader.setVisibility(View.GONE);
             afternoonTasksHeader.setVisibility(View.GONE);
             nightTasksHeader.setVisibility(View.GONE);
-            editButton.setVisibility(View.GONE);
+            // Hide edit button when no tasks (but keep bottom bar visible)
             if (isEditMode) {
                 isEditMode = false;
-                editButton.setText("Edit");
+                editButtonText.setText("Edit");
             }
         } else {
             emptyTasksText.setVisibility(View.GONE);
             morningTasksHeader.setVisibility(morningTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
             afternoonTasksHeader.setVisibility(afternoonTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
             nightTasksHeader.setVisibility(nightTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
-            editButton.setVisibility(View.VISIBLE);
         }
     }
 
@@ -243,20 +291,63 @@ public class MainActivity extends AppCompatActivity {
         LayoutInflater inflater = LayoutInflater.from(this);
         View taskView = inflater.inflate(R.layout.task_item, null, false);
 
+        // Set layout params with margins for spacing between tasks
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        int marginHorizontal = (int) (16 * getResources().getDisplayMetrics().density);
+        int marginVertical = (int) (12 * getResources().getDisplayMetrics().density);
+        layoutParams.setMargins(marginHorizontal, marginVertical, marginHorizontal, marginVertical);
+        taskView.setLayoutParams(layoutParams);
+
         TextView taskNameTextView = taskView.findViewById(R.id.taskName);
         TextView taskTimeTextView = taskView.findViewById(R.id.taskTime);
-        View taskCircle = taskView.findViewById(R.id.taskCircle);
+        ImageView taskTypeIcon = taskView.findViewById(R.id.taskTypeIcon);
         TextView repeatDaysTextView = taskView.findViewById(R.id.repeatDays);
-        ImageButton removeTaskButton = taskView.findViewById(R.id.removeTaskButton);
-        ImageButton editTaskButton = taskView.findViewById(R.id.editTaskButton);
-        Button deleteButton = taskView.findViewById(R.id.deleteButton);
         final View taskContent = taskView.findViewById(R.id.taskContent);
-        View timeLayout = taskView.findViewById(R.id.timeLayout);
         SwitchCompat taskSwitch = taskView.findViewById(R.id.taskSwitch);
 
+        // Edit mode buttons
+        View normalModeLayout = taskView.findViewById(R.id.normalModeLayout);
+        View editModeLayout = taskView.findViewById(R.id.editModeLayout);
+        ImageButton editTimeButton = taskView.findViewById(R.id.editTimeButton);
+        ImageButton deleteTaskButton = taskView.findViewById(R.id.deleteTaskButton);
+
+        // Set initial visibility based on edit mode
+        normalModeLayout.setVisibility(isEditMode ? View.GONE : View.VISIBLE);
+        editModeLayout.setVisibility(isEditMode ? View.VISIBLE : View.GONE);
+
         taskNameTextView.setText(task.name);
-        taskTimeTextView.setText(String.format("%d:%02d %s", task.hour, task.minute, task.amPm));
+
+        // Show time range for Focus Tasks, single time for Reminders
+        if (task.isFocusTask()) {
+            String timeRange = String.format("%d:%02d %s → %d:%02d %s",
+                    task.hour, task.minute, task.amPm != null ? task.amPm : "AM",
+                    task.endHour, task.endMinute, task.endAmPm != null ? task.endAmPm : "AM");
+            taskTimeTextView.setText(timeRange);
+        } else {
+            taskTimeTextView.setText(String.format("%d:%02d %s", task.hour, task.minute, task.amPm != null ? task.amPm : "AM"));
+        }
         taskSwitch.setChecked(task.isAlarmOn);
+
+        // Pencil button click - show time edit dialog
+        editTimeButton.setOnClickListener(v -> showEditTimeDialog(task, taskTimeTextView));
+
+        // X button click - delete task completely (not move to history)
+        deleteTaskButton.setOnClickListener(v -> {
+            // Cancel alarms first
+            if (task.isFocusTask()) {
+                AlarmHelper.cancelFocusTaskAlarms(this, task);
+            } else {
+                AlarmHelper.cancelTaskAlarm(this, task);
+            }
+
+            // Delete the task completely from database (not moving to history)
+            taskRepository.deleteTask(task);
+            updateTaskLists();
+            Toast.makeText(MainActivity.this, "Task deleted", Toast.LENGTH_SHORT).show();
+        });
 
         if (task.isComplete) {
             taskNameTextView.setPaintFlags(taskNameTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
@@ -270,61 +361,27 @@ public class MainActivity extends AppCompatActivity {
             task.isAlarmOn = isChecked;
             taskRepository.updateTask(task);
             if (isChecked) {
-                AlarmHelper.scheduleTaskAlarm(this, task);
+                if (task.isFocusTask()) {
+                    AlarmHelper.scheduleFocusTaskAlarms(this, task);
+                } else {
+                    AlarmHelper.scheduleTaskAlarm(this, task);
+                }
             } else {
-                AlarmHelper.cancelTaskAlarm(this, task);
+                if (task.isFocusTask()) {
+                    AlarmHelper.cancelFocusTaskAlarms(this, task);
+                } else {
+                    AlarmHelper.cancelTaskAlarm(this, task);
+                }
             }
             Toast.makeText(MainActivity.this, "Alarm for " + task.name + " is " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
         });
 
-        deleteButton.setVisibility(View.GONE);
-        animateTaskView(taskView, 0);
 
-        removeTaskButton.setOnClickListener(v -> {
-            if (currentlyOpenTaskView != null && currentlyOpenTaskView != taskView) {
-                closeDeleteButton(currentlyOpenTaskView, true);
-            }
-
-            if (currentlyOpenTaskView == taskView) {
-                closeDeleteButton(taskView, true);
-            } else {
-                openDeleteButton(taskView, true);
-            }
-        });
-
-        deleteButton.setOnClickListener(v -> {
-            // Cancel the alarm for this task
-            AlarmHelper.cancelTaskAlarm(this, task);
-            // Delete from database
-            taskRepository.deleteTask(task);
-            updateTaskLists();
-        });
-
-        taskContent.setOnClickListener(v -> {
-            if (isEditMode) {
-                if (currentlyOpenTaskView == taskView) {
-                    closeDeleteButton(taskView, true);
-                }
-            } else {
-                task.isComplete = !task.isComplete;
-                taskRepository.updateTask(task);
-                updateTaskLists();
-            }
-        });
-
-        switch (task.urgency) {
-            case "Low":
-                taskCircle.setBackgroundResource(R.drawable.green_circle);
-                break;
-            case "Medium":
-                taskCircle.setBackgroundResource(R.drawable.yellow_circle);
-                break;
-            case "High":
-                taskCircle.setBackgroundResource(R.drawable.red_circle);
-                break;
-            default:
-                taskCircle.setVisibility(View.INVISIBLE);
-                break;
+        // Set task type icon (Reminder or Focus Task)
+        if (task.isFocusTask()) {
+            taskTypeIcon.setImageResource(R.drawable.ic_focus_task);
+        } else {
+            taskTypeIcon.setImageResource(R.drawable.ic_reminder);
         }
 
         ArrayList<String> selectedDayNames = new ArrayList<>();
@@ -348,40 +405,124 @@ public class MainActivity extends AppCompatActivity {
         return taskView;
     }
 
-    private void openDeleteButton(View taskView, boolean animate) {
-        final View taskContent = taskView.findViewById(R.id.taskContent);
-        final Button deleteButton = taskView.findViewById(R.id.deleteButton);
-        deleteButton.setVisibility(View.VISIBLE);
+    private void showEditTimeDialog(Task task, TextView taskTimeTextView) {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_time, null);
+        builder.setView(dialogView);
 
-        taskContent.post(() -> {
-            if (animate) {
-                ObjectAnimator animation = ObjectAnimator.ofFloat(taskContent, "translationX", -deleteButton.getWidth());
-                animation.setDuration(300);
-                animation.start();
-            } else {
-                taskContent.setTranslationX(-deleteButton.getWidth());
-            }
-        });
-
-        currentlyOpenTaskView = taskView;
-    }
-
-    private void closeDeleteButton(View taskView, boolean animate) {
-        final View taskContent = taskView.findViewById(R.id.taskContent);
-        final Button deleteButton = taskView.findViewById(R.id.deleteButton);
-
-        if (animate) {
-            ObjectAnimator animation = ObjectAnimator.ofFloat(taskContent, "translationX", 0f);
-            animation.setDuration(300);
-            animation.start();
-
-            taskContent.postDelayed(() -> deleteButton.setVisibility(View.GONE), 300);
-        } else {
-            taskContent.setTranslationX(0f);
-            deleteButton.setVisibility(View.GONE);
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
 
-        currentlyOpenTaskView = null;
+        // Get views
+        android.widget.NumberPicker hourPicker = dialogView.findViewById(R.id.hourPicker);
+        android.widget.NumberPicker minutePicker = dialogView.findViewById(R.id.minutePicker);
+        android.widget.NumberPicker amPmPicker = dialogView.findViewById(R.id.amPmPicker);
+        View endTimeSection = dialogView.findViewById(R.id.endTimeSection);
+        android.widget.NumberPicker endHourPicker = dialogView.findViewById(R.id.endHourPicker);
+        android.widget.NumberPicker endMinutePicker = dialogView.findViewById(R.id.endMinutePicker);
+        android.widget.NumberPicker endAmPmPicker = dialogView.findViewById(R.id.endAmPmPicker);
+        Button cancelButton = dialogView.findViewById(R.id.cancelButton);
+        Button saveButton = dialogView.findViewById(R.id.saveButton);
+
+        // Setup hour picker
+        hourPicker.setMinValue(1);
+        hourPicker.setMaxValue(12);
+        hourPicker.setValue(task.hour);
+
+        // Setup minute picker
+        minutePicker.setMinValue(0);
+        minutePicker.setMaxValue(59);
+        minutePicker.setFormatter(i -> String.format("%02d", i));
+        minutePicker.setValue(task.minute);
+
+        // Setup AM/PM picker
+        amPmPicker.setMinValue(0);
+        amPmPicker.setMaxValue(1);
+        amPmPicker.setDisplayedValues(new String[]{"AM", "PM"});
+        amPmPicker.setValue(task.amPm != null && task.amPm.equals("PM") ? 1 : 0);
+
+        // If Focus Task, show end time section
+        if (task.isFocusTask()) {
+            endTimeSection.setVisibility(View.VISIBLE);
+
+            endHourPicker.setMinValue(1);
+            endHourPicker.setMaxValue(12);
+            endHourPicker.setValue(task.endHour);
+
+            endMinutePicker.setMinValue(0);
+            endMinutePicker.setMaxValue(59);
+            endMinutePicker.setFormatter(i -> String.format("%02d", i));
+            endMinutePicker.setValue(task.endMinute);
+
+            endAmPmPicker.setMinValue(0);
+            endAmPmPicker.setMaxValue(1);
+            endAmPmPicker.setDisplayedValues(new String[]{"AM", "PM"});
+            endAmPmPicker.setValue(task.endAmPm != null && task.endAmPm.equals("PM") ? 1 : 0);
+        }
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+
+        saveButton.setOnClickListener(v -> {
+            // Cancel old alarm
+            if (task.isFocusTask()) {
+                AlarmHelper.cancelFocusTaskAlarms(this, task);
+            } else {
+                AlarmHelper.cancelTaskAlarm(this, task);
+            }
+
+            // Update task time
+            task.hour = hourPicker.getValue();
+            task.minute = minutePicker.getValue();
+            task.amPm = amPmPicker.getDisplayedValues()[amPmPicker.getValue()];
+
+            if (task.isFocusTask()) {
+                task.endHour = endHourPicker.getValue();
+                task.endMinute = endMinutePicker.getValue();
+                task.endAmPm = endAmPmPicker.getDisplayedValues()[endAmPmPicker.getValue()];
+            }
+
+            // Update time category
+            if (task.amPm.equals("AM")) {
+                task.timeCategory = "morning";
+            } else if (task.hour == 12 || (task.hour >= 1 && task.hour < 6)) {
+                task.timeCategory = "afternoon";
+            } else {
+                task.timeCategory = "night";
+            }
+
+            // Save to database
+            taskRepository.updateTask(task);
+
+            // Reschedule alarm if enabled
+            if (task.isAlarmOn) {
+                if (task.isFocusTask()) {
+                    AlarmHelper.scheduleFocusTaskAlarms(this, task);
+                } else {
+                    AlarmHelper.scheduleTaskAlarm(this, task);
+                }
+            }
+
+            // Update UI
+            if (task.isFocusTask()) {
+                String timeRange = String.format("%d:%02d %s → %d:%02d %s",
+                        task.hour, task.minute, task.amPm,
+                        task.endHour, task.endMinute, task.endAmPm);
+                taskTimeTextView.setText(timeRange);
+            } else {
+                taskTimeTextView.setText(String.format("%d:%02d %s", task.hour, task.minute, task.amPm));
+            }
+
+            Toast.makeText(MainActivity.this, "Time updated!", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+
+            // Refresh to apply time category changes
+            taskRepository.refreshTasks();
+            updateTaskLists();
+        });
+
+        dialog.show();
     }
 
     private void sortTasks(ArrayList<Task> tasks) {
@@ -400,6 +541,31 @@ public class MainActivity extends AppCompatActivity {
                     != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.POST_NOTIFICATIONS}, 100);
+            }
+        }
+    }
+
+    private void toggleTheme() {
+        isCyanTheme = !isCyanTheme;
+
+        // Save preference
+        android.content.SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        android.content.SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(THEME_KEY, isCyanTheme);
+        editor.apply();
+
+        // Apply theme
+        applyTheme();
+
+        Toast.makeText(this, "Theme changed!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void applyTheme() {
+        if (mainLayout != null) {
+            if (isCyanTheme) {
+                mainLayout.setBackgroundResource(R.drawable.background_gradient_cyan);
+            } else {
+                mainLayout.setBackgroundResource(R.drawable.background_gradient);
             }
         }
     }

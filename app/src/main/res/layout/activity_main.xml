@@ -1,87 +1,188 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
     android:background="@drawable/background_gradient">
 
-    <RelativeLayout
+    <!-- Bottom Navigation Bar -->
+    <LinearLayout
+        android:id="@+id/bottomNavBar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingBottom="24dp">
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:background="@android:color/white"
+        android:elevation="8dp"
+        android:gravity="center_vertical"
+        android:baselineAligned="false">
 
+        <!-- Edit Button (Left) -->
         <LinearLayout
-            android:id="@+id/topBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="16dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp">
+            android:id="@+id/editButtonContainer"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground">
 
-            <Button
+            <ImageView
+                android:id="@+id/editButtonIcon"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:src="@drawable/ic_edit"
+                app:tint="#666666"
+                android:contentDescription="@string/edit_desc" />
+
+            <TextView
                 android:id="@+id/editButton"
-                style="?android:attr/borderlessButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/edit_button"
-                android:textColor="@android:color/black"/>
+                android:textSize="12sp"
+                android:textColor="#666666"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
 
-            <include
-                android:id="@+id/historyButton"
-                layout="@layout/history_button"
+        <!-- Add Button (Center, Prominent) -->
+        <LinearLayout
+            android:id="@+id/addButtonContainer"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground">
+
+            <ImageView
+                android:id="@+id/addButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/ic_add_fab"
+                android:background="@drawable/fab_background"
+                android:padding="10dp"
+                android:contentDescription="@string/add_task" />
+        </LinearLayout>
+
+        <!-- Calendar Button (Right) -->
+        <LinearLayout
+            android:id="@+id/calendarButtonContainer"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground">
+
+            <ImageView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:src="@drawable/ic_calendar"
+                app:tint="#666666"
+                android:contentDescription="@string/calendar_desc" />
+
+            <TextView
+                android:id="@+id/calendarButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <LinearLayout
-                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:text="@string/calendar"
+                android:textSize="12sp"
+                android:textColor="#666666"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/clock_text"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/clock_text_color"
-                    android:fontFamily="serif" />
+    </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
+    <!-- Main Content ScrollView -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomNavBar"
+        android:fillViewport="true">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="24dp">
+
+            <!-- Top Bar with Hamburger Menu and App Title -->
+            <LinearLayout
+                android:id="@+id/topBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp">
+
+                <!-- Hamburger Menu for History -->
+                <ImageButton
+                    android:id="@+id/historyMenuButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_menu_hamburger"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    app:tint="#333333"
+                    android:contentDescription="@string/history_menu" />
+
+                <!-- App Title (Centered) -->
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/wise_text"
-                    android:textSize="24sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:fontFamily="serif" />
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/clock_text"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/clock_text_color"
+                        android:fontFamily="serif" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/wise_text"
+                        android:textSize="28sp"
+                        android:textColor="@android:color/darker_gray"
+                        android:fontFamily="serif" />
+
+                </LinearLayout>
+
+                <!-- Theme Switch Button -->
+                <ImageButton
+                    android:id="@+id/themeSwitch"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_theme_switch"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    app:tint="#333333"
+                    android:contentDescription="@string/theme_switch" />
 
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/addButton"
-                android:layout_width="wrap_content"
+            <RelativeLayout
+                android:id="@+id/progressTracker"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:src="@android:drawable/ic_input_add"
-                android:background="?android:attr/selectableItemBackground"
-                app:tint="@android:color/black"/>
-
-        </LinearLayout>
-
-        <RelativeLayout
-            android:id="@+id/progressTracker"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/topBar"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/task_background"
-            android:padding="16dp">
+                android:layout_below="@id/topBar"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/task_background"
+                android:padding="16dp">
 
             <TextView
                 android:id="@+id/taskCountText"
@@ -190,3 +291,4 @@
         </LinearLayout>
     </RelativeLayout>
 </ScrollView>
+</RelativeLayout>

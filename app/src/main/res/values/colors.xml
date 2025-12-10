@@ -8,4 +8,9 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="clock_text_color">#0D47A1</color>
+
+    <!-- Cyan Theme Colors -->
+    <color name="cyan_primary">#00FFDE</color>
+    <color name="cyan_dark">#00CCB2</color>
+    <color name="cyan_text">#006B5E</color>
 </resources>
