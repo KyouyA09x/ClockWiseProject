@@ -83,6 +83,7 @@
             android:background="?android:attr/selectableItemBackground">
 
             <ImageView
+                android:id="@+id/calendarIcon"
                 android:layout_width="26dp"
                 android:layout_height="26dp"
                 android:src="@drawable/ic_calendar"
@@ -168,7 +169,6 @@
                     android:layout_height="40dp"
                     android:src="@drawable/ic_moon"
                     android:background="?android:attr/selectableItemBackgroundBorderless"
-                    app:tint="#333333"
                     android:contentDescription="@string/theme_switch" />
 
             </LinearLayout>
