@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView calendarIcon;
     private TextView calendarText;
     private ImageButton historyMenuButton;
+    private View progressTracker;
     private LinearLayout morningTasksContainer;
     private LinearLayout afternoonTasksContainer;
     private LinearLayout nightTasksContainer;
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private TaskRepository taskRepository;
     private boolean isEditMode = false;
     private View currentlyOpenTaskView = null;
+    private ArrayList<Task> completedTasksToday = new ArrayList<>();
 
 
     @SuppressLint("MissingInflatedId")
@@ -70,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
         calendarIcon = findViewById(R.id.calendarIcon);
         calendarText = findViewById(R.id.calendarButton);
         historyMenuButton = findViewById(R.id.historyMenuButton);
+        progressTracker = findViewById(R.id.progressTracker);
         morningTasksContainer = findViewById(R.id.morningTasksContainer);
         afternoonTasksContainer = findViewById(R.id.afternoonTasksContainer);
         nightTasksContainer = findViewById(R.id.nightTasksContainer);
@@ -107,6 +110,10 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        // Progress tracker - shows completed tasks for today
+        if (progressTracker != null) {
+            progressTracker.setOnClickListener(v -> showCompletedTasksDialog());
+        }
 
         updateTaskLists();
     }
@@ -534,5 +541,78 @@ public class MainActivity extends AppCompatActivity {
                         new String[]{Manifest.permission.POST_NOTIFICATIONS}, 100);
             }
         }
+    }
+
+    private void showCompletedTasksDialog() {
+        // Create and show a dialog to display completed tasks for today
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_completed_tasks, null);
+        builder.setView(dialogView);
+
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        LinearLayout completedTasksContainer = dialogView.findViewById(R.id.completedTasksContainer);
+        TextView emptyCompletedTasksText = dialogView.findViewById(R.id.emptyCompletedTasksText);
+
+        // Clear previous views
+        completedTasksContainer.removeAllViews();
+
+        // Get today's date
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+        String todayDate = sdf.format(new java.util.Date());
+
+        // Collect completed tasks for today
+        completedTasksToday.clear();
+        ArrayList<Task> allTasks = new ArrayList<>();
+        allTasks.addAll(taskRepository.morningTasks);
+        allTasks.addAll(taskRepository.afternoonTasks);
+        allTasks.addAll(taskRepository.nightTasks);
+
+        for (Task task : allTasks) {
+            if (task.date != null && task.date.equals(todayDate) && task.isComplete) {
+                completedTasksToday.add(task);
+            }
+        }
+
+        if (completedTasksToday.isEmpty()) {
+            emptyCompletedTasksText.setVisibility(View.VISIBLE);
+            dialogView.findViewById(R.id.completedTasksScrollView).setVisibility(View.GONE);
+        } else {
+            emptyCompletedTasksText.setVisibility(View.GONE);
+            dialogView.findViewById(R.id.completedTasksScrollView).setVisibility(View.VISIBLE);
+            for (Task task : completedTasksToday) {
+                completedTasksContainer.addView(createCompletedTaskView(task));
+            }
+        }
+
+        dialogView.findViewById(R.id.closeButton).setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+    }
+
+    private View createCompletedTaskView(Task task) {
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View taskView = inflater.inflate(R.layout.item_completed_task, null, false);
+
+        TextView taskNameTextView = taskView.findViewById(R.id.completedTaskName);
+        TextView taskTimeTextView = taskView.findViewById(R.id.completedTaskTime);
+
+        taskNameTextView.setText(task.name);
+
+        // Show time range for Focus Tasks, single time for Reminders
+        if (task.isFocusTask()) {
+            String timeRange = String.format("%d:%02d %s → %d:%02d %s",
+                    task.hour, task.minute, task.amPm != null ? task.amPm : "AM",
+                    task.endHour, task.endMinute, task.endAmPm != null ? task.endAmPm : "AM");
+            taskTimeTextView.setText(timeRange);
+        } else {
+            taskTimeTextView.setText(String.format("%d:%02d %s", task.hour, task.minute, task.amPm != null ? task.amPm : "AM"));
+        }
+
+
+        return taskView;
     }
 }

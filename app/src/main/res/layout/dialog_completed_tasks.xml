@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="20dp"
+    android:background="@drawable/dialog_background">
+
+    <TextView
+        android:id="@+id/dialogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Completed Tasks Today"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/clock_text_color"
+        android:gravity="center"
+        android:paddingBottom="16dp" />
+
+    <ScrollView
+        android:id="@+id/completedTasksScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/dialogTitle"
+        android:maxHeight="400dp">
+
+        <LinearLayout
+            android:id="@+id/completedTasksContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp" />
+
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/emptyCompletedTasksText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/dialogTitle"
+        android:layout_centerHorizontal="true"
+        android:text="No completed tasks yet today"
+        android:textSize="16sp"
+        android:textColor="@android:color/darker_gray"
+        android:padding="20dp"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/closeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/completedTasksScrollView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:text="Close"
+        android:textColor="@android:color/white"
+        android:background="@drawable/add_button_background"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp" />
+
+</RelativeLayout>
+
