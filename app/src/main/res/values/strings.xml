@@ -31,5 +31,6 @@
     <string name="add_task">Add Task</string>
     <string name="calendar_desc">Calendar</string>
     <string name="history_menu">History Menu</string>
+    <string name="completed_task_indicator">Completed task indicator</string>
 </resources>
 
