@@ -343,26 +343,25 @@ public class MainActivity extends AppCompatActivity {
         TextView repeatDaysTextView = taskView.findViewById(R.id.repeatDays);
         final View taskContent = taskView.findViewById(R.id.taskContent);
         SwitchCompat taskSwitch = taskView.findViewById(R.id.taskSwitch);
-        View urgencyIndicator = taskView.findViewById(R.id.urgencyIndicator);
 
-        // Set urgency indicator color based on task urgency
-        if (urgencyIndicator != null && task.urgency != null) {
-            int color;
+        // Set task background with colored border based on urgency
+        if (taskContent != null && task.urgency != null) {
             switch (task.urgency.toLowerCase()) {
                 case "high":
-                    color = 0xFFF44336; // Red
+                    taskContent.setBackgroundResource(R.drawable.task_background_high);
                     break;
                 case "medium":
-                    color = 0xFFFFEB3B; // Yellow
+                    taskContent.setBackgroundResource(R.drawable.task_background_medium);
                     break;
                 case "low":
-                    color = 0xFF4CAF50; // Green
+                    taskContent.setBackgroundResource(R.drawable.task_background_low);
                     break;
                 default:
-                    color = 0xFF9E9E9E; // Gray for none/default
+                    taskContent.setBackgroundResource(R.drawable.task_background_none);
                     break;
             }
-            urgencyIndicator.setBackgroundColor(color);
+        } else if (taskContent != null) {
+            taskContent.setBackgroundResource(R.drawable.task_background_none);
         }
 
         // Edit mode buttons

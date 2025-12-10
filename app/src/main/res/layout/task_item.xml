@@ -4,14 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <!-- Urgency Color Indicator Bar (Left Side) -->
-    <View
-        android:id="@+id/urgencyIndicator"
-        android:layout_width="6dp"
-        android:layout_height="match_parent"
-        android:background="#9E9E9E"
-        android:layout_gravity="start" />
-
     <RelativeLayout
         android:id="@+id/taskContent"
         android:layout_width="match_parent"
@@ -19,8 +11,7 @@
         android:minHeight="72dp"
         android:background="@drawable/task_background"
         android:paddingVertical="12dp"
-        android:paddingStart="22dp"
-        android:paddingEnd="16dp">
+        android:paddingHorizontal="16dp">
 
         <!-- Task Type Icon (Reminder or Focus Task) -->
         <ImageView
