@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -50,6 +51,10 @@ public class AddFocusTaskActivity extends AppCompatActivity {
     private String selectedUrgency = "None";
     private TaskRepository taskRepository;
 
+    // Edit mode variables
+    private boolean isEditMode = false;
+    private Task editingTask = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +66,59 @@ public class AddFocusTaskActivity extends AppCompatActivity {
         initViews();
         setupTimePickers();
         setupClickListeners();
+
+        // Check if we're in edit mode
+        checkEditMode();
+    }
+
+    private void checkEditMode() {
+        Intent intent = getIntent();
+        if (intent.getBooleanExtra("EDIT_MODE", false)) {
+            isEditMode = true;
+            editingTask = intent.getParcelableExtra("TASK");
+            if (editingTask != null) {
+                populateFieldsForEditing();
+            }
+        }
+    }
+
+    private void populateFieldsForEditing() {
+        // Set task name
+        labelEditText.setText(editingTask.name);
+        clearLabelButton.setVisibility(editingTask.name != null && !editingTask.name.isEmpty() ? View.VISIBLE : View.GONE);
+
+        // Set start time
+        startHourPicker.setValue(editingTask.hour);
+        startMinutePicker.setValue(editingTask.minute);
+        startAmPmPicker.setValue(editingTask.amPm != null && editingTask.amPm.equals("PM") ? 1 : 0);
+
+        // Set end time
+        endHourPicker.setValue(editingTask.endHour);
+        endMinutePicker.setValue(editingTask.endMinute);
+        endAmPmPicker.setValue(editingTask.endAmPm != null && editingTask.endAmPm.equals("PM") ? 1 : 0);
+
+        // Set urgency
+        if (editingTask.urgency != null && !editingTask.urgency.equals("None")) {
+            selectedUrgency = editingTask.urgency;
+            urgencyValueText.setText(selectedUrgency);
+        }
+
+        // Set date
+        if (editingTask.date != null) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                selectedDate.setTime(sdf.parse(editingTask.date));
+                updateDateLabel();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Set vibration
+        vibrationSwitch.setChecked(editingTask.vibrationEnabled);
+
+        // Change save button text to indicate update
+        saveButton.setText("Update");
     }
 
     private void initViews() {
@@ -174,37 +232,65 @@ public class AddFocusTaskActivity extends AppCompatActivity {
             return;
         }
 
-        // Create Focus Task
-        Task focusTask = new Task(taskName, startHour, startMinute, startAmPm,
-                                  endHour, endMinute, endAmPm, selectedUrgency);
-
         // Set date
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        focusTask.date = sdf.format(selectedDate.getTime());
+        String dateStr = sdf.format(selectedDate.getTime());
 
-        // Set time category based on start time
+        // Determine time category based on start time
+        String timeCategory;
         if (startAmPm.equals("AM")) {
-            focusTask.timeCategory = "morning";
+            timeCategory = "morning";
         } else if (startHour == 12 || (startHour >= 1 && startHour < 6)) {
-            focusTask.timeCategory = "afternoon";
+            timeCategory = "afternoon";
         } else {
-            focusTask.timeCategory = "night";
+            timeCategory = "night";
         }
 
-        // Set vibration
-        focusTask.vibrationEnabled = vibrationSwitch.isChecked();
+        if (isEditMode && editingTask != null) {
+            // Update existing task
+            // Cancel old alarms first
+            AlarmHelper.cancelFocusTaskAlarms(this, editingTask);
 
-        // Save to database
-        long taskId = taskRepository.addTask(focusTask);
-        focusTask.id = (int) taskId;
+            editingTask.name = taskName;
+            editingTask.hour = startHour;
+            editingTask.minute = startMinute;
+            editingTask.amPm = startAmPm;
+            editingTask.endHour = endHour;
+            editingTask.endMinute = endMinute;
+            editingTask.endAmPm = endAmPm;
+            editingTask.urgency = selectedUrgency;
+            editingTask.date = dateStr;
+            editingTask.timeCategory = timeCategory;
+            editingTask.vibrationEnabled = vibrationSwitch.isChecked();
 
-        // Schedule both alarms (start and end)
-        AlarmHelper.scheduleFocusTaskAlarms(this, focusTask);
+            taskRepository.updateTask(editingTask);
 
-        Toast.makeText(this, "Focus Task created: " + startHour + ":" +
-                String.format("%02d", startMinute) + " " + startAmPm + " to " +
-                endHour + ":" + String.format("%02d", endMinute) + " " + endAmPm,
-                Toast.LENGTH_LONG).show();
+            // Schedule new alarms if enabled
+            if (editingTask.isAlarmOn) {
+                AlarmHelper.scheduleFocusTaskAlarms(this, editingTask);
+            }
+
+            Toast.makeText(this, "Focus Task updated!", Toast.LENGTH_SHORT).show();
+        } else {
+            // Create new Focus Task
+            Task focusTask = new Task(taskName, startHour, startMinute, startAmPm,
+                                      endHour, endMinute, endAmPm, selectedUrgency);
+            focusTask.date = dateStr;
+            focusTask.timeCategory = timeCategory;
+            focusTask.vibrationEnabled = vibrationSwitch.isChecked();
+
+            // Save to database
+            long taskId = taskRepository.addTask(focusTask);
+            focusTask.id = (int) taskId;
+
+            // Schedule both alarms (start and end)
+            AlarmHelper.scheduleFocusTaskAlarms(this, focusTask);
+
+            Toast.makeText(this, "Focus Task created: " + startHour + ":" +
+                    String.format("%02d", startMinute) + " " + startAmPm + " to " +
+                    endHour + ":" + String.format("%02d", endMinute) + " " + endAmPm,
+                    Toast.LENGTH_LONG).show();
+        }
 
         setResult(RESULT_OK);
         finish();

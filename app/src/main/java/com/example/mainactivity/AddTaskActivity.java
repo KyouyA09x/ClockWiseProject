@@ -63,6 +63,10 @@ public class AddTaskActivity extends AppCompatActivity {
     private String selectedUrgency = "None";
     private TaskRepository taskRepository;
 
+    // Edit mode variables
+    private boolean isEditMode = false;
+    private Task editingTask = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,30 +118,56 @@ public class AddTaskActivity extends AppCompatActivity {
             int minute = minutePicker.getValue();
             String amPm = amPmPicker.getDisplayedValues()[amPmPicker.getValue()];
 
-            Task newTask = new Task(taskName, hour, minute, amPm, selectedUrgency, selectedDays);
-
-            // **** SAVE THE DATE TO THE TASK ****
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            newTask.date = sdf.format(selectedDate.getTime());
-
-            // Set time category for the task
+            // Determine time category
+            String timeCategory;
             if (amPm.equals("AM")) {
-                newTask.timeCategory = "morning";
+                timeCategory = "morning";
             } else if (hour == 12 || (hour >= 1 && hour < 6)) {
-                newTask.timeCategory = "afternoon";
+                timeCategory = "afternoon";
             } else {
-                newTask.timeCategory = "night";
+                timeCategory = "night";
             }
 
-            // Save vibration setting
-            newTask.vibrationEnabled = vibrationSwitch.isChecked();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            String dateStr = sdf.format(selectedDate.getTime());
 
-            // Save to database and get the ID
-            long taskId = taskRepository.addTask(newTask);
-            newTask.id = (int) taskId;
+            if (isEditMode && editingTask != null) {
+                // Update existing task
+                // Cancel old alarm first
+                AlarmHelper.cancelTaskAlarm(this, editingTask);
 
-            // Schedule alarm notification for this task
-            AlarmHelper.scheduleTaskAlarm(this, newTask);
+                editingTask.name = taskName;
+                editingTask.hour = hour;
+                editingTask.minute = minute;
+                editingTask.amPm = amPm;
+                editingTask.urgency = selectedUrgency;
+                editingTask.selectedDays = selectedDays;
+                editingTask.date = dateStr;
+                editingTask.timeCategory = timeCategory;
+                editingTask.vibrationEnabled = vibrationSwitch.isChecked();
+
+                taskRepository.updateTask(editingTask);
+
+                // Schedule new alarm if enabled
+                if (editingTask.isAlarmOn) {
+                    AlarmHelper.scheduleTaskAlarm(this, editingTask);
+                }
+
+                Toast.makeText(this, "Task updated!", Toast.LENGTH_SHORT).show();
+            } else {
+                // Create new task
+                Task newTask = new Task(taskName, hour, minute, amPm, selectedUrgency, selectedDays);
+                newTask.date = dateStr;
+                newTask.timeCategory = timeCategory;
+                newTask.vibrationEnabled = vibrationSwitch.isChecked();
+
+                // Save to database and get the ID
+                long taskId = taskRepository.addTask(newTask);
+                newTask.id = (int) taskId;
+
+                // Schedule alarm notification for this task
+                AlarmHelper.scheduleTaskAlarm(this, newTask);
+            }
 
             setResult(RESULT_OK);
             finish();
@@ -198,6 +228,60 @@ public class AddTaskActivity extends AppCompatActivity {
         });
 
         clearLabelButton.setOnClickListener(v -> labelEditText.setText(""));
+
+        // Check if we're in edit mode
+        checkEditMode();
+    }
+
+    private void checkEditMode() {
+        Intent intent = getIntent();
+        if (intent.getBooleanExtra("EDIT_MODE", false)) {
+            isEditMode = true;
+            editingTask = intent.getParcelableExtra("TASK");
+            if (editingTask != null) {
+                populateFieldsForEditing();
+            }
+        }
+    }
+
+    private void populateFieldsForEditing() {
+        // Set task name
+        labelEditText.setText(editingTask.name);
+        clearLabelButton.setVisibility(editingTask.name != null && !editingTask.name.isEmpty() ? View.VISIBLE : View.GONE);
+
+        // Set time
+        hourPicker.setValue(editingTask.hour);
+        minutePicker.setValue(editingTask.minute);
+        amPmPicker.setValue(editingTask.amPm != null && editingTask.amPm.equals("PM") ? 1 : 0);
+
+        // Set urgency
+        if (editingTask.urgency != null && !editingTask.urgency.equals("None")) {
+            selectedUrgency = editingTask.urgency;
+            urgencyValueText.setText(selectedUrgency);
+        }
+
+        // Set date
+        if (editingTask.date != null) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                selectedDate.setTime(sdf.parse(editingTask.date));
+                updateDateLabel();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Set repeat days
+        if (editingTask.selectedDays != null) {
+            selectedDays = editingTask.selectedDays.clone();
+            updateRepeatText();
+        }
+
+        // Set vibration
+        vibrationSwitch.setChecked(editingTask.vibrationEnabled);
+
+        // Change save button text to indicate update
+        saveButton.setText("Update");
     }
 
     // **** NEW METHOD: SHOW DATE PICKER ****

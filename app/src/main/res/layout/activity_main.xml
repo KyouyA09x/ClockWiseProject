@@ -6,115 +6,18 @@
     android:layout_height="match_parent"
     android:background="@drawable/background_gradient">
 
-    <!-- Bottom Navigation Bar -->
-    <LinearLayout
-        android:id="@+id/bottomNavBar"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:orientation="horizontal"
-        android:background="@android:color/white"
-        android:elevation="8dp"
-        android:gravity="center_vertical"
-        android:baselineAligned="false">
-
-        <!-- Edit Button (Left) -->
-        <LinearLayout
-            android:id="@+id/editButtonContainer"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?android:attr/selectableItemBackground">
-
-            <ImageView
-                android:id="@+id/editButtonIcon"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:src="@drawable/ic_edit"
-                app:tint="@color/clock_text_color"
-                android:contentDescription="@string/edit_desc" />
-
-            <TextView
-                android:id="@+id/editButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/edit_button"
-                android:textSize="12sp"
-                android:textColor="@color/clock_text_color"
-                android:layout_marginTop="2dp" />
-        </LinearLayout>
-
-        <!-- Add Button (Center, Prominent) -->
-        <LinearLayout
-            android:id="@+id/addButtonContainer"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?android:attr/selectableItemBackground">
-
-            <ImageView
-                android:id="@+id/addButton"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:src="@drawable/ic_add_fab"
-                android:background="@drawable/fab_background"
-                android:padding="10dp"
-                android:contentDescription="@string/add_task" />
-        </LinearLayout>
-
-        <!-- Calendar Button (Right) -->
-        <LinearLayout
-            android:id="@+id/calendarButtonContainer"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?android:attr/selectableItemBackground">
-
-            <ImageView
-                android:id="@+id/calendarIcon"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:src="@drawable/ic_calendar"
-                app:tint="@color/clock_text_color"
-                android:contentDescription="@string/calendar_desc" />
-
-            <TextView
-                android:id="@+id/calendarButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/calendar"
-                android:textSize="12sp"
-                android:textColor="@color/clock_text_color"
-                android:layout_marginTop="2dp" />
-        </LinearLayout>
-
-    </LinearLayout>
-
     <!-- Main Content ScrollView -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/bottomNavBar"
         android:fillViewport="true">
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="24dp">
+            android:paddingBottom="80dp">
 
-            <!-- Top Bar with Hamburger Menu and App Title -->
+            <!-- Top Bar with Hamburger Menu, App Title, and Calendar -->
             <LinearLayout
                 android:id="@+id/topBar"
                 android:layout_width="match_parent"
@@ -162,10 +65,15 @@
 
                 </LinearLayout>
 
-                <!-- Spacer to balance the hamburger menu -->
-                <View
+                <!-- Calendar Button (Right) -->
+                <ImageButton
+                    android:id="@+id/calendarButton"
                     android:layout_width="40dp"
-                    android:layout_height="40dp" />
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_calendar"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    app:tint="#333333"
+                    android:contentDescription="@string/calendar_desc" />
 
             </LinearLayout>
 
@@ -183,111 +91,127 @@
                 android:focusable="true"
                 android:foreground="?android:attr/selectableItemBackground">
 
+                <TextView
+                    android:id="@+id/taskCountText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/task_progress"
+                    android:textColor="@android:color/black"
+                    android:textStyle="bold"
+                    android:textSize="22sp"
+                    android:layout_centerHorizontal="true" />
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/taskCountText"
+                    android:layout_marginTop="8dp"
+                    android:progressDrawable="@drawable/custom_progress_bar"/>
+
+                <TextView
+                    android:id="@+id/completionText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/progressBar"
+                    android:layout_centerHorizontal="true"
+                    android:text="@string/progress_zero"/>
+
+            </RelativeLayout>
+
             <TextView
-                android:id="@+id/taskCountText"
+                android:id="@+id/emptyTasksText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/task_progress"
-                android:textColor="@android:color/black"
-                android:textStyle="bold"
-                android:textSize="22sp"
-                android:layout_centerHorizontal="true" />
+                android:text="@string/add_task_prompt"
+                android:textSize="24sp"
+                android:layout_centerInParent="true"
+                android:visibility="gone"/>
 
-            <ProgressBar
-                android:id="@+id/progressBar"
-                style="?android:attr/progressBarStyleHorizontal"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/taskCountText"
-                android:layout_marginTop="8dp"
-                android:progressDrawable="@drawable/custom_progress_bar"/>
+                android:layout_below="@id/progressTracker"
+                android:orientation="vertical"
+                android:layout_marginTop="24dp"
+                android:paddingVertical="24dp">
 
-            <TextView
-                android:id="@+id/completionText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/progressBar"
-                android:layout_centerHorizontal="true"
-                android:text="@string/progress_zero"/>
+                <TextView
+                    android:id="@+id/morningTasksHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/morning_tasks_header"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:layout_marginStart="16dp"/>
 
+                <LinearLayout
+                    android:id="@+id/morningTasksContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp"
+                    android:divider="@drawable/list_divider"
+                    android:showDividers="middle" />
+
+                <TextView
+                    android:id="@+id/afternoonTasksHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/afternoon_tasks_header"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginStart="16dp"/>
+
+                <LinearLayout
+                    android:id="@+id/afternoonTasksContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp"
+                    android:divider="@drawable/list_divider"
+                    android:showDividers="middle" />
+
+                <TextView
+                    android:id="@+id/nightTasksHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/night_tasks_header"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginStart="16dp"/>
+
+                <LinearLayout
+                    android:id="@+id/nightTasksContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp"
+                    android:divider="@drawable/list_divider"
+                    android:showDividers="middle" />
+            </LinearLayout>
         </RelativeLayout>
+    </ScrollView>
 
-        <TextView
-            android:id="@+id/emptyTasksText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/add_task_prompt"
-            android:textSize="24sp"
-            android:layout_centerInParent="true"
-            android:visibility="gone"/>
+    <!-- Floating Action Button for Adding Tasks -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddTask"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="24dp"
+        android:src="@drawable/ic_add_fab"
+        android:contentDescription="@string/add_task"
+        app:backgroundTint="@color/clock_text_color"
+        app:tint="@android:color/white"
+        app:fabSize="normal"
+        app:elevation="6dp" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/progressTracker"
-            android:orientation="vertical"
-            android:layout_marginTop="24dp"
-            android:paddingVertical="24dp">
-
-            <TextView
-                android:id="@+id/morningTasksHeader"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/morning_tasks_header"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginStart="16dp"/>
-                
-            <LinearLayout
-                android:id="@+id/morningTasksContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="16dp"
-                android:divider="@drawable/list_divider"
-                android:showDividers="middle" />
-
-            <TextView
-                android:id="@+id/afternoonTasksHeader"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/afternoon_tasks_header"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginTop="24dp"
-                android:layout_marginStart="16dp"/>
-                
-            <LinearLayout
-                android:id="@+id/afternoonTasksContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="16dp"
-                android:divider="@drawable/list_divider"
-                android:showDividers="middle" />
-
-            <TextView
-                android:id="@+id/nightTasksHeader"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/night_tasks_header"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginTop="24dp"
-                android:layout_marginStart="16dp"/>
-
-            <LinearLayout
-                android:id="@+id/nightTasksContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="16dp"
-                android:divider="@drawable/list_divider"
-                android:showDividers="middle" />
-        </LinearLayout>
-    </RelativeLayout>
-</ScrollView>
 </RelativeLayout>

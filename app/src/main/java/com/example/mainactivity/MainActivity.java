@@ -1,7 +1,6 @@
 package com.example.mainactivity;
 
 import android.Manifest;
-import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -20,14 +19,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,16 +33,12 @@ import java.util.Collections;
 public class MainActivity extends AppCompatActivity {
 
     private static final int ADD_TASK_REQUEST = 1;
+    private static final int EDIT_TASK_REQUEST = 2;
     public static final String ACTION_TASK_COMPLETED = "com.example.mainactivity.TASK_COMPLETED";
 
-    private View editButtonContainer;
-    private TextView editButtonText;
-    private ImageView editButtonIcon;
-    private ImageView addButton;
-    private View calendarButtonContainer;
-    private ImageView calendarIcon;
-    private TextView calendarText;
     private ImageButton historyMenuButton;
+    private ImageButton calendarButton;
+    private FloatingActionButton fabAddTask;
     private View progressTracker;
     private LinearLayout morningTasksContainer;
     private LinearLayout afternoonTasksContainer;
@@ -58,8 +52,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView completionText;
 
     private TaskRepository taskRepository;
-    private boolean isEditMode = false;
-    private View currentlyOpenTaskView = null;
     private ArrayList<Task> completedTasksToday = new ArrayList<>();
     private boolean isReceiverRegistered = false;
 
@@ -78,14 +70,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        editButtonContainer = findViewById(R.id.editButtonContainer);
-        editButtonText = findViewById(R.id.editButton);
-        editButtonIcon = findViewById(R.id.editButtonIcon);
-        addButton = findViewById(R.id.addButton);
-        calendarButtonContainer = findViewById(R.id.calendarButtonContainer);
-        calendarIcon = findViewById(R.id.calendarIcon);
-        calendarText = findViewById(R.id.calendarButton);
         historyMenuButton = findViewById(R.id.historyMenuButton);
+        calendarButton = findViewById(R.id.calendarButton);
+        fabAddTask = findViewById(R.id.fabAddTask);
         progressTracker = findViewById(R.id.progressTracker);
         morningTasksContainer = findViewById(R.id.morningTasksContainer);
         afternoonTasksContainer = findViewById(R.id.afternoonTasksContainer);
@@ -101,27 +88,23 @@ public class MainActivity extends AppCompatActivity {
         taskRepository = TaskRepository.getInstance();
         taskRepository.initialize(this);
 
-
         // Request notification permission for Android 13+
         requestNotificationPermission();
 
-        editButtonContainer.setOnClickListener(v -> toggleEditMode());
-        addButton.setOnClickListener(v -> showTaskTypeChooser());
+        // FAB - shows task type chooser
+        fabAddTask.setOnClickListener(v -> showTaskTypeChooser());
 
         // Calendar button - shows ongoing tasks by date
-        if (calendarButtonContainer != null) {
-            calendarButtonContainer.setOnClickListener(v -> {
+        if (calendarButton != null) {
+            calendarButton.setOnClickListener(v -> {
                 Intent intent = new Intent(MainActivity.this, CalendarActivity.class);
                 startActivity(intent);
             });
         }
 
-        // History hamburger menu - shows completed tasks by month
+        // Hamburger menu - shows menu options bottom sheet
         if (historyMenuButton != null) {
-            historyMenuButton.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
-                startActivity(intent);
-            });
+            historyMenuButton.setOnClickListener(v -> showMenuBottomSheet());
         }
 
         // Progress tracker - shows completed tasks for today
@@ -197,47 +180,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == ADD_TASK_REQUEST && resultCode == RESULT_OK) {
+        if ((requestCode == ADD_TASK_REQUEST || requestCode == EDIT_TASK_REQUEST) && resultCode == RESULT_OK) {
+            // Refresh tasks from database
+            taskRepository.refreshTasks();
             updateTaskLists();
         }
     }
 
-    private void toggleEditMode() {
-        isEditMode = !isEditMode;
-        editButtonText.setText(isEditMode ? "Done" : "Edit");
-
-        // Update all task views to show/hide edit mode buttons
-        updateAllTasksEditMode();
-    }
-
-    private void updateAllTasksEditMode() {
-        for (int i = 0; i < morningTasksContainer.getChildCount(); i++) {
-            updateTaskViewEditMode(morningTasksContainer.getChildAt(i));
-        }
-        for (int i = 0; i < afternoonTasksContainer.getChildCount(); i++) {
-            updateTaskViewEditMode(afternoonTasksContainer.getChildAt(i));
-        }
-        for (int i = 0; i < nightTasksContainer.getChildCount(); i++) {
-            updateTaskViewEditMode(nightTasksContainer.getChildAt(i));
-        }
-    }
-
-    private void updateTaskViewEditMode(View taskView) {
-        View normalModeLayout = taskView.findViewById(R.id.normalModeLayout);
-        View editModeLayout = taskView.findViewById(R.id.editModeLayout);
-
-        if (isEditMode) {
-            // Show edit mode buttons (pencil + X)
-            normalModeLayout.setVisibility(View.GONE);
-            editModeLayout.setVisibility(View.VISIBLE);
-        } else {
-            // Show normal mode (switch)
-            normalModeLayout.setVisibility(View.VISIBLE);
-            editModeLayout.setVisibility(View.GONE);
-        }
-    }
-
-    // **** THIS IS THE UPDATED METHOD ****
     private void updateTaskLists() {
         ArrayList<Task> morningTasks = taskRepository.morningTasks;
         ArrayList<Task> afternoonTasks = taskRepository.afternoonTasks;
@@ -310,11 +259,6 @@ public class MainActivity extends AppCompatActivity {
             morningTasksHeader.setVisibility(View.GONE);
             afternoonTasksHeader.setVisibility(View.GONE);
             nightTasksHeader.setVisibility(View.GONE);
-            // Hide edit button when no tasks (but keep bottom bar visible)
-            if (isEditMode) {
-                isEditMode = false;
-                editButtonText.setText("Edit");
-            }
         } else {
             emptyTasksText.setVisibility(View.GONE);
             morningTasksHeader.setVisibility(morningTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
@@ -339,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
 
         TextView taskNameTextView = taskView.findViewById(R.id.taskName);
         TextView taskTimeTextView = taskView.findViewById(R.id.taskTime);
-        ImageView taskTypeIcon = taskView.findViewById(R.id.taskTypeIcon);
+        android.widget.ImageView taskTypeIcon = taskView.findViewById(R.id.taskTypeIcon);
         TextView repeatDaysTextView = taskView.findViewById(R.id.repeatDays);
         final View taskContent = taskView.findViewById(R.id.taskContent);
         SwitchCompat taskSwitch = taskView.findViewById(R.id.taskSwitch);
@@ -364,15 +308,11 @@ public class MainActivity extends AppCompatActivity {
             taskContent.setBackgroundResource(R.drawable.task_background_none);
         }
 
-        // Edit mode buttons
+        // Hide edit mode layout completely (we removed edit mode)
         View normalModeLayout = taskView.findViewById(R.id.normalModeLayout);
         View editModeLayout = taskView.findViewById(R.id.editModeLayout);
-        ImageButton editTimeButton = taskView.findViewById(R.id.editTimeButton);
-        ImageButton deleteTaskButton = taskView.findViewById(R.id.deleteTaskButton);
-
-        // Set initial visibility based on edit mode
-        normalModeLayout.setVisibility(isEditMode ? View.GONE : View.VISIBLE);
-        editModeLayout.setVisibility(isEditMode ? View.VISIBLE : View.GONE);
+        if (normalModeLayout != null) normalModeLayout.setVisibility(View.VISIBLE);
+        if (editModeLayout != null) editModeLayout.setVisibility(View.GONE);
 
         taskNameTextView.setText(task.name);
 
@@ -387,24 +327,6 @@ public class MainActivity extends AppCompatActivity {
         }
         taskSwitch.setChecked(task.isAlarmOn);
 
-        // Pencil button click - show time edit dialog
-        editTimeButton.setOnClickListener(v -> showEditTimeDialog(task, taskTimeTextView));
-
-        // X button click - delete task completely (not move to history)
-        deleteTaskButton.setOnClickListener(v -> {
-            // Cancel alarms first
-            if (task.isFocusTask()) {
-                AlarmHelper.cancelFocusTaskAlarms(this, task);
-            } else {
-                AlarmHelper.cancelTaskAlarm(this, task);
-            }
-
-            // Delete the task completely from database (not moving to history)
-            taskRepository.deleteTask(task);
-            updateTaskLists();
-            Toast.makeText(MainActivity.this, "Task deleted", Toast.LENGTH_SHORT).show();
-        });
-
         if (task.isComplete) {
             taskNameTextView.setPaintFlags(taskNameTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
             taskView.setAlpha(0.6f);
@@ -412,6 +334,9 @@ public class MainActivity extends AppCompatActivity {
             taskNameTextView.setPaintFlags(taskNameTextView.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
             taskView.setAlpha(1.0f);
         }
+
+        // Make task clickable for editing
+        taskContent.setOnClickListener(v -> openTaskForEditing(task));
 
         taskSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             task.isAlarmOn = isChecked;
@@ -431,7 +356,6 @@ public class MainActivity extends AppCompatActivity {
             }
             Toast.makeText(MainActivity.this, "Alarm for " + task.name + " is " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
         });
-
 
         // Set task type icon (Reminder or Focus Task)
         if (task.isFocusTask()) {
@@ -461,124 +385,16 @@ public class MainActivity extends AppCompatActivity {
         return taskView;
     }
 
-    private void showEditTimeDialog(Task task, TextView taskTimeTextView) {
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_time, null);
-        builder.setView(dialogView);
-
-        androidx.appcompat.app.AlertDialog dialog = builder.create();
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        }
-
-        // Get views
-        android.widget.NumberPicker hourPicker = dialogView.findViewById(R.id.hourPicker);
-        android.widget.NumberPicker minutePicker = dialogView.findViewById(R.id.minutePicker);
-        android.widget.NumberPicker amPmPicker = dialogView.findViewById(R.id.amPmPicker);
-        View endTimeSection = dialogView.findViewById(R.id.endTimeSection);
-        android.widget.NumberPicker endHourPicker = dialogView.findViewById(R.id.endHourPicker);
-        android.widget.NumberPicker endMinutePicker = dialogView.findViewById(R.id.endMinutePicker);
-        android.widget.NumberPicker endAmPmPicker = dialogView.findViewById(R.id.endAmPmPicker);
-        Button cancelButton = dialogView.findViewById(R.id.cancelButton);
-        Button saveButton = dialogView.findViewById(R.id.saveButton);
-
-        // Setup hour picker
-        hourPicker.setMinValue(1);
-        hourPicker.setMaxValue(12);
-        hourPicker.setValue(task.hour);
-
-        // Setup minute picker
-        minutePicker.setMinValue(0);
-        minutePicker.setMaxValue(59);
-        minutePicker.setFormatter(i -> String.format("%02d", i));
-        minutePicker.setValue(task.minute);
-
-        // Setup AM/PM picker
-        amPmPicker.setMinValue(0);
-        amPmPicker.setMaxValue(1);
-        amPmPicker.setDisplayedValues(new String[]{"AM", "PM"});
-        amPmPicker.setValue(task.amPm != null && task.amPm.equals("PM") ? 1 : 0);
-
-        // If Focus Task, show end time section
+    private void openTaskForEditing(Task task) {
+        Intent intent;
         if (task.isFocusTask()) {
-            endTimeSection.setVisibility(View.VISIBLE);
-
-            endHourPicker.setMinValue(1);
-            endHourPicker.setMaxValue(12);
-            endHourPicker.setValue(task.endHour);
-
-            endMinutePicker.setMinValue(0);
-            endMinutePicker.setMaxValue(59);
-            endMinutePicker.setFormatter(i -> String.format("%02d", i));
-            endMinutePicker.setValue(task.endMinute);
-
-            endAmPmPicker.setMinValue(0);
-            endAmPmPicker.setMaxValue(1);
-            endAmPmPicker.setDisplayedValues(new String[]{"AM", "PM"});
-            endAmPmPicker.setValue(task.endAmPm != null && task.endAmPm.equals("PM") ? 1 : 0);
+            intent = new Intent(MainActivity.this, AddFocusTaskActivity.class);
+        } else {
+            intent = new Intent(MainActivity.this, AddTaskActivity.class);
         }
-
-        cancelButton.setOnClickListener(v -> dialog.dismiss());
-
-        saveButton.setOnClickListener(v -> {
-            // Cancel old alarm
-            if (task.isFocusTask()) {
-                AlarmHelper.cancelFocusTaskAlarms(this, task);
-            } else {
-                AlarmHelper.cancelTaskAlarm(this, task);
-            }
-
-            // Update task time
-            task.hour = hourPicker.getValue();
-            task.minute = minutePicker.getValue();
-            task.amPm = amPmPicker.getDisplayedValues()[amPmPicker.getValue()];
-
-            if (task.isFocusTask()) {
-                task.endHour = endHourPicker.getValue();
-                task.endMinute = endMinutePicker.getValue();
-                task.endAmPm = endAmPmPicker.getDisplayedValues()[endAmPmPicker.getValue()];
-            }
-
-            // Update time category
-            if (task.amPm.equals("AM")) {
-                task.timeCategory = "morning";
-            } else if (task.hour == 12 || (task.hour >= 1 && task.hour < 6)) {
-                task.timeCategory = "afternoon";
-            } else {
-                task.timeCategory = "night";
-            }
-
-            // Save to database
-            taskRepository.updateTask(task);
-
-            // Reschedule alarm if enabled
-            if (task.isAlarmOn) {
-                if (task.isFocusTask()) {
-                    AlarmHelper.scheduleFocusTaskAlarms(this, task);
-                } else {
-                    AlarmHelper.scheduleTaskAlarm(this, task);
-                }
-            }
-
-            // Update UI
-            if (task.isFocusTask()) {
-                String timeRange = String.format("%d:%02d %s → %d:%02d %s",
-                        task.hour, task.minute, task.amPm,
-                        task.endHour, task.endMinute, task.endAmPm);
-                taskTimeTextView.setText(timeRange);
-            } else {
-                taskTimeTextView.setText(String.format("%d:%02d %s", task.hour, task.minute, task.amPm));
-            }
-
-            Toast.makeText(MainActivity.this, "Time updated!", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-
-            // Refresh to apply time category changes
-            taskRepository.refreshTasks();
-            updateTaskLists();
-        });
-
-        dialog.show();
+        intent.putExtra("EDIT_MODE", true);
+        intent.putExtra("TASK", task);
+        startActivityForResult(intent, EDIT_TASK_REQUEST);
     }
 
     private void sortTasks(ArrayList<Task> tasks) {
@@ -599,6 +415,35 @@ public class MainActivity extends AppCompatActivity {
                         new String[]{Manifest.permission.POST_NOTIFICATIONS}, 100);
             }
         }
+    }
+
+    private void showMenuBottomSheet() {
+        com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog =
+            new com.google.android.material.bottomsheet.BottomSheetDialog(this);
+        View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_menu, null);
+        bottomSheetDialog.setContentView(bottomSheetView);
+
+        // History option - opens History Activity
+        View historyOption = bottomSheetView.findViewById(R.id.menuHistoryOption);
+        historyOption.setOnClickListener(v -> {
+            bottomSheetDialog.dismiss();
+            Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
+            startActivity(intent);
+        });
+
+        // Settings option - coming soon
+        View settingsOption = bottomSheetView.findViewById(R.id.menuSettingsOption);
+        settingsOption.setOnClickListener(v -> {
+            Toast.makeText(this, "Settings coming soon!", Toast.LENGTH_SHORT).show();
+        });
+
+        // About option - coming soon
+        View aboutOption = bottomSheetView.findViewById(R.id.menuAboutOption);
+        aboutOption.setOnClickListener(v -> {
+            Toast.makeText(this, "About coming soon!", Toast.LENGTH_SHORT).show();
+        });
+
+        bottomSheetDialog.show();
     }
 
     private void showCompletedTasksDialog() {
@@ -660,8 +505,8 @@ public class MainActivity extends AppCompatActivity {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        int marginVertical = (int) (16 * getResources().getDisplayMetrics().density); // 16dp top and bottom
-        int marginHorizontal = (int) (12 * getResources().getDisplayMetrics().density); // 12dp left and right
+        int marginVertical = (int) (16 * getResources().getDisplayMetrics().density);
+        int marginHorizontal = (int) (12 * getResources().getDisplayMetrics().density);
         layoutParams.setMargins(marginHorizontal, marginVertical, marginHorizontal, marginVertical);
         taskView.setLayoutParams(layoutParams);
 
