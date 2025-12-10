@@ -162,14 +162,10 @@
 
                 </LinearLayout>
 
-                <!-- Theme Switch Button (Sun/Moon) -->
-                <ImageButton
-                    android:id="@+id/themeSwitch"
+                <!-- Spacer to balance the hamburger menu -->
+                <View
                     android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/ic_moon"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/theme_switch" />
+                    android:layout_height="40dp" />
 
             </LinearLayout>
 

@@ -40,9 +40,6 @@ public class MainActivity extends AppCompatActivity {
     private ImageView calendarIcon;
     private TextView calendarText;
     private ImageButton historyMenuButton;
-    private ImageButton themeSwitch;
-    private RelativeLayout mainLayout;
-    private LinearLayout bottomNavBar;
     private LinearLayout morningTasksContainer;
     private LinearLayout afternoonTasksContainer;
     private LinearLayout nightTasksContainer;
@@ -57,9 +54,6 @@ public class MainActivity extends AppCompatActivity {
     private TaskRepository taskRepository;
     private boolean isEditMode = false;
     private View currentlyOpenTaskView = null;
-    private boolean isDarkMode = false;
-    private static final String PREFS_NAME = "ThemePrefs";
-    private static final String THEME_KEY = "dark_mode";
 
 
     @SuppressLint("MissingInflatedId")
@@ -76,9 +70,6 @@ public class MainActivity extends AppCompatActivity {
         calendarIcon = findViewById(R.id.calendarIcon);
         calendarText = findViewById(R.id.calendarButton);
         historyMenuButton = findViewById(R.id.historyMenuButton);
-        themeSwitch = findViewById(R.id.themeSwitch);
-        mainLayout = findViewById(R.id.mainLayout);
-        bottomNavBar = findViewById(R.id.bottomNavBar);
         morningTasksContainer = findViewById(R.id.morningTasksContainer);
         afternoonTasksContainer = findViewById(R.id.afternoonTasksContainer);
         nightTasksContainer = findViewById(R.id.nightTasksContainer);
@@ -93,10 +84,6 @@ public class MainActivity extends AppCompatActivity {
         taskRepository = TaskRepository.getInstance();
         taskRepository.initialize(this);
 
-        // Load saved theme preference
-        android.content.SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        isDarkMode = prefs.getBoolean(THEME_KEY, false);
-        applyTheme();
 
         // Request notification permission for Android 13+
         requestNotificationPermission();
@@ -120,8 +107,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // Theme switch - toggles between dark mode and light mode (sun/moon icon)
-        themeSwitch.setOnClickListener(v -> toggleTheme());
 
         updateTaskLists();
     }
@@ -547,129 +532,6 @@ public class MainActivity extends AppCompatActivity {
                     != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.POST_NOTIFICATIONS}, 100);
-            }
-        }
-    }
-
-    private void toggleTheme() {
-        isDarkMode = !isDarkMode;
-
-        // Save preference
-        android.content.SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        android.content.SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean(THEME_KEY, isDarkMode);
-        editor.apply();
-
-        // Apply theme and update icon
-        applyTheme();
-
-        Toast.makeText(this, isDarkMode ? "Dark mode enabled" : "Light mode enabled", Toast.LENGTH_SHORT).show();
-    }
-
-    private void applyTheme() {
-        if (mainLayout != null) {
-            if (isDarkMode) {
-                // Dark mode: Black and White theme
-                themeSwitch.setImageResource(R.drawable.ic_sun);
-                mainLayout.setBackgroundResource(R.drawable.background_gradient_dark);
-                
-                // Bottom navigation bar - black background
-                if (bottomNavBar != null) {
-                    bottomNavBar.setBackgroundColor(0xFF000000); // Black
-                }
-                
-                // Edit button - white icon and text
-                if (editButtonIcon != null) {
-                    editButtonIcon.setColorFilter(0xFFFFFFFF); // White
-                }
-                if (editButtonText != null) {
-                    editButtonText.setTextColor(0xFFFFFFFF); // White
-                }
-                
-                // Calendar button - white icon and text
-                if (calendarIcon != null) {
-                    calendarIcon.setColorFilter(0xFFFFFFFF); // White
-                }
-                if (calendarText != null) {
-                    calendarText.setTextColor(0xFFFFFFFF); // White
-                }
-                
-                // Add button - white background circle
-                if (addButton != null) {
-                    addButton.setBackgroundResource(R.drawable.fab_background_dark);
-                }
-                
-                // Text headers - white text
-                if (morningTasksHeader != null) {
-                    morningTasksHeader.setTextColor(0xFFFFFFFF);
-                }
-                if (afternoonTasksHeader != null) {
-                    afternoonTasksHeader.setTextColor(0xFFFFFFFF);
-                }
-                if (nightTasksHeader != null) {
-                    nightTasksHeader.setTextColor(0xFFFFFFFF);
-                }
-                if (taskCountText != null) {
-                    taskCountText.setTextColor(0xFFFFFFFF);
-                }
-                if (completionText != null) {
-                    completionText.setTextColor(0xFFFFFFFF);
-                }
-                if (emptyTasksText != null) {
-                    emptyTasksText.setTextColor(0xFFFFFFFF);
-                }
-                
-            } else {
-                // Light mode: Original theme
-                themeSwitch.setImageResource(R.drawable.ic_moon);
-                mainLayout.setBackgroundResource(R.drawable.background_gradient);
-                
-                // Bottom navigation bar - white background
-                if (bottomNavBar != null) {
-                    bottomNavBar.setBackgroundColor(0xFFFFFFFF); // White
-                }
-                
-                // Edit button - dark blue icon and text
-                if (editButtonIcon != null) {
-                    editButtonIcon.setColorFilter(0xFF0D47A1); // Dark blue
-                }
-                if (editButtonText != null) {
-                    editButtonText.setTextColor(0xFF0D47A1); // Dark blue
-                }
-                
-                // Calendar button - dark blue icon and text
-                if (calendarIcon != null) {
-                    calendarIcon.setColorFilter(0xFF0D47A1); // Dark blue
-                }
-                if (calendarText != null) {
-                    calendarText.setTextColor(0xFF0D47A1); // Dark blue
-                }
-                
-                // Add button - dark blue background circle with white icon
-                if (addButton != null) {
-                    addButton.setBackgroundResource(R.drawable.fab_background);
-                    addButton.setImageResource(R.drawable.ic_add_fab);
-                }
-                
-                // Text headers - black text
-                if (morningTasksHeader != null) {
-                    morningTasksHeader.setTextColor(0xFF000000);
-                }
-                if (afternoonTasksHeader != null) {
-                    afternoonTasksHeader.setTextColor(0xFF000000);
-                }
-                if (nightTasksHeader != null) {
-                    nightTasksHeader.setTextColor(0xFF000000);
-                }
-                if (taskCountText != null) {
-                    taskCountText.setTextColor(0xFF000000);
-                }
-                if (completionText != null) {
-                    completionText.setTextColor(0xFF000000);
-                }
-                if (emptyTasksText != null) {
-                    emptyTasksText.setTextColor(0xFF000000);
-                }
             }
         }
     }
