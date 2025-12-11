@@ -1,36 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/spacing_xs"
+    android:layout_marginVertical="@dimen/spacing_xs"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardCornerRadius="@dimen/card_corner_radius"
+    app:cardElevation="1dp"
+    app:strokeWidth="0dp">
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/taskContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="72dp"
-        android:background="@drawable/task_background"
-        android:paddingVertical="12dp"
-        android:paddingHorizontal="16dp">
+        android:minHeight="@dimen/task_item_min_height"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingVertical="@dimen/spacing_md"
+        android:paddingHorizontal="@dimen/spacing_md">
 
-        <!-- Task Type Icon (Reminder or Focus Task) -->
-        <ImageView
-            android:id="@+id/taskTypeIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_reminder"
-            android:contentDescription="Task Type" />
+        <!-- Task Type Icon -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="@dimen/icon_size_xl"
+            android:layout_height="@dimen/icon_size_xl"
+            app:cardBackgroundColor="?attr/colorPrimaryContainer"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp">
 
+            <ImageView
+                android:id="@+id/taskTypeIcon"
+                android:layout_width="@dimen/icon_size_md"
+                android:layout_height="@dimen/icon_size_md"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_reminder"
+                app:tint="?attr/colorOnPrimaryContainer"
+                android:contentDescription="Task Type" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Task Info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginHorizontal="@dimen/spacing_md">
+
+            <TextView
+                android:id="@+id/taskName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:ellipsize="end"
+                android:maxLines="1" />
+
+            <TextView
+                android:id="@+id/taskTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_xs"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:maxLines="1"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/repeatDays"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_xs"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorPrimary"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+
+        <!-- Right Side Container -->
         <FrameLayout
             android:id="@+id/right_side_container"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true">
+            android:layout_height="wrap_content">
 
-            <!-- Normal Mode: Show alarm switch -->
+            <!-- Normal Mode: Material Switch -->
             <LinearLayout
                 android:id="@+id/normalModeLayout"
                 android:layout_width="wrap_content"
@@ -39,16 +95,14 @@
                 android:gravity="center_vertical"
                 android:visibility="visible">
 
-                <androidx.appcompat.widget.SwitchCompat
+                <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/taskSwitch"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:scaleX="1.2"
-                    android:scaleY="1.2"/>
+                    android:layout_height="wrap_content" />
 
             </LinearLayout>
 
-            <!-- Edit Mode: Show pencil (edit time) and X (delete) buttons -->
+            <!-- Edit Mode: Icon buttons -->
             <LinearLayout
                 android:id="@+id/editModeLayout"
                 android:layout_width="wrap_content"
@@ -57,76 +111,30 @@
                 android:gravity="center_vertical"
                 android:visibility="gone">
 
-                <!-- Pencil button - Edit Time -->
-                <ImageButton
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/editTimeButton"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_edit"
-                    android:background="@drawable/rounded_corner_background"
-                    android:backgroundTint="#E3F2FD"
-                    app:tint="#1976D2"
-                    android:padding="8dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:contentDescription="Edit Time" />
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    app:icon="@drawable/ic_edit"
+                    app:iconTint="?attr/colorOnSecondaryContainer"
+                    android:contentDescription="Edit" />
 
-                <!-- X button - Delete -->
-                <ImageButton
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/deleteTaskButton"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@android:drawable/ic_menu_close_clear_cancel"
-                    android:background="@drawable/rounded_corner_background"
-                    android:backgroundTint="#FFEBEE"
-                    app:tint="#F44336"
-                    android:padding="8dp"
-                    android:layout_marginStart="6dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:contentDescription="Delete Task" />
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="@dimen/spacing_sm"
+                    app:icon="@drawable/ic_delete"
+                    app:iconTint="@color/error"
+                    app:backgroundTint="@color/error_container"
+                    android:contentDescription="Delete" />
 
             </LinearLayout>
 
         </FrameLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_centerVertical="true"
-            android:layout_toEndOf="@id/taskTypeIcon"
-            android:layout_toStartOf="@id/right_side_container"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="8dp">
+    </LinearLayout>
 
-            <TextView
-                android:id="@+id/taskTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:textColor="#333333"
-                android:maxLines="1"
-                android:ellipsize="end"/>
-
-            <TextView
-                android:id="@+id/taskName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:textSize="18sp"
-                android:ellipsize="end"
-                android:maxLines="1" />
-
-            <TextView
-                android:id="@+id/repeatDays"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@android:color/darker_gray"
-                android:ellipsize="end"
-                android:maxLines="1"/>
-        </LinearLayout>
-
-    </RelativeLayout>
-</FrameLayout>
+</com.google.android.material.card.MaterialCardView>

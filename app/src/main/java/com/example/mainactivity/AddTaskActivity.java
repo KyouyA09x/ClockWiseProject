@@ -69,6 +69,9 @@ public class AddTaskActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeHelper.applyTheme(this);
+
+        setTheme(ThemeHelper.getThemeResource(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_task);
 
@@ -80,27 +83,35 @@ public class AddTaskActivity extends AppCompatActivity {
         hourPicker = findViewById(R.id.hourPicker);
         minutePicker = findViewById(R.id.minutePicker);
         amPmPicker = findViewById(R.id.amPmPicker);
-        snoozeSwitch = findViewById(R.id.snoozeSwitch);
-        repeatLayout = findViewById(R.id.repeatLayout);
-        repeatValueText = findViewById(R.id.repeatValueText);
-        labelEditText = findViewById(R.id.labelEditText);
-        clearLabelButton = findViewById(R.id.clearLabelButton);
-        soundLayout = findViewById(R.id.soundLayout);
-        soundValueText = findViewById(R.id.soundValueText);
-        snoozeLayout = findViewById(R.id.snoozeLayout);
-        urgencyLayout = findViewById(R.id.urgencyLayout);
-        urgencyValueText = findViewById(R.id.urgencyValueText);
-        repeatInfoText = findViewById(R.id.repeatInfoText);
-        vibrationLayout = findViewById(R.id.vibrationLayout);
-        vibrationSwitch = findViewById(R.id.vibrationSwitch);
+        
+        // New simplified layout views
+        com.google.android.material.textfield.TextInputEditText taskNameInput = findViewById(R.id.taskNameEditText);
+        if (taskNameInput != null) {
+            labelEditText = taskNameInput;
+        }
+        
+        snoozeSwitch = findViewById(R.id.alarmSwitch); // Renamed to alarmSwitch in new layout
+        
+        // repeatLayout = findViewById(R.id.repeatLayout);
+        repeatValueText = findViewById(R.id.repeatDaysText);
+        
+        // Optional views that may not exist in simplified layout
+        // clearLabelButton = findViewById(R.id.clearLabelButton);
+        // soundLayout = findViewById(R.id.soundLayout);
+        // soundValueText = findViewById(R.id.soundValueText);
+        // snoozeLayout = findViewById(R.id.snoozeLayout);
+        // urgencyLayout = findViewById(R.id.urgencyLayout);
+        // urgencyValueText = findViewById(R.id.urgencyValueText);
+        // repeatInfoText = findViewById(R.id.repeatInfoText);
+        // vibrationLayout = findViewById(R.id.vibrationLayout);
+        // vibrationSwitch = findViewById(R.id.vibrationSwitch);
+        // dateRow = findViewById(R.id.dateRow);
+        // dateValue = findViewById(R.id.dateValue);
 
-        // **** FIND VIEWS FOR DATE ****
-        dateRow = findViewById(R.id.dateRow);
-        dateValue = findViewById(R.id.dateValue);
-
-        // **** SET UP DATE CLICK LISTENER ****
-        updateDateLabel(); // Set initial text to Today
-        dateRow.setOnClickListener(v -> showDatePicker());
+        // Set up click listeners for views that exist
+        if (repeatValueText != null) {
+            repeatValueText.setOnClickListener(v -> showRepeatDialog());
+        }
 
         cancelButton.setOnClickListener(v -> finish());
 
@@ -185,49 +196,63 @@ public class AddTaskActivity extends AppCompatActivity {
         amPmPicker.setMaxValue(1);
         amPmPicker.setDisplayedValues(new String[]{"AM", "PM"});
 
-        repeatLayout.setOnClickListener(v -> showRepeatDialog());
-        soundLayout.setOnClickListener(v -> showSoundDialog());
-        urgencyLayout.setOnClickListener(v -> showUrgencyDialog());
+        if (repeatLayout != null) repeatLayout.setOnClickListener(v -> showRepeatDialog());
+        if (soundLayout != null) soundLayout.setOnClickListener(v -> showSoundDialog());
+        if (urgencyLayout != null) urgencyLayout.setOnClickListener(v -> showUrgencyDialog());
 
-        snoozeLayout.setOnClickListener(v -> snoozeSwitch.toggle());
+        if (snoozeLayout != null && snoozeSwitch != null) {
+            snoozeLayout.setOnClickListener(v -> snoozeSwitch.toggle());
+        }
 
-        snoozeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                Toast.makeText(this, "Snooze is ON", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Snooze is OFF", Toast.LENGTH_SHORT).show();
-            }
-        });
+        if (snoozeSwitch != null) {
+            snoozeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked) {
+                    Toast.makeText(this, "Alarm is ON", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Alarm is OFF", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
 
         // Vibration toggle setup
-        vibrationLayout.setOnClickListener(v -> vibrationSwitch.toggle());
+        if (vibrationLayout != null && vibrationSwitch != null) {
+            vibrationLayout.setOnClickListener(v -> vibrationSwitch.toggle());
 
-        vibrationSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                Toast.makeText(this, "Vibration is ON", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Vibration is OFF", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        labelEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length() > 0) {
-                    clearLabelButton.setVisibility(View.VISIBLE);
+            vibrationSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked) {
+                    Toast.makeText(this, "Vibration is ON", Toast.LENGTH_SHORT).show();
                 } else {
-                    clearLabelButton.setVisibility(View.GONE);
+                    Toast.makeText(this, "Vibration is OFF", Toast.LENGTH_SHORT).show();
                 }
-            }
+            });
+        }
 
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
+        if (labelEditText != null) {
+            labelEditText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-        clearLabelButton.setOnClickListener(v -> labelEditText.setText(""));
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    if (clearLabelButton != null) {
+                        if (s.length() > 0) {
+                            clearLabelButton.setVisibility(View.VISIBLE);
+                        } else {
+                            clearLabelButton.setVisibility(View.GONE);
+                        }
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {}
+            });
+        }
+
+        if (clearLabelButton != null) {
+            clearLabelButton.setOnClickListener(v -> {
+                if (labelEditText != null) labelEditText.setText("");
+            });
+        }
 
         // Check if we're in edit mode
         checkEditMode();
@@ -246,8 +271,10 @@ public class AddTaskActivity extends AppCompatActivity {
 
     private void populateFieldsForEditing() {
         // Set task name
-        labelEditText.setText(editingTask.name);
-        clearLabelButton.setVisibility(editingTask.name != null && !editingTask.name.isEmpty() ? View.VISIBLE : View.GONE);
+        if (labelEditText != null) labelEditText.setText(editingTask.name);
+        if (clearLabelButton != null) {
+            clearLabelButton.setVisibility(editingTask.name != null && !editingTask.name.isEmpty() ? View.VISIBLE : View.GONE);
+        }
 
         // Set time
         hourPicker.setValue(editingTask.hour);
@@ -255,13 +282,13 @@ public class AddTaskActivity extends AppCompatActivity {
         amPmPicker.setValue(editingTask.amPm != null && editingTask.amPm.equals("PM") ? 1 : 0);
 
         // Set urgency
-        if (editingTask.urgency != null && !editingTask.urgency.equals("None")) {
+        if (urgencyValueText != null && editingTask.urgency != null && !editingTask.urgency.equals("None")) {
             selectedUrgency = editingTask.urgency;
             urgencyValueText.setText(selectedUrgency);
         }
 
         // Set date
-        if (editingTask.date != null) {
+        if (editingTask.date != null && dateValue != null) {
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                 selectedDate.setTime(sdf.parse(editingTask.date));
@@ -278,7 +305,9 @@ public class AddTaskActivity extends AppCompatActivity {
         }
 
         // Set vibration
-        vibrationSwitch.setChecked(editingTask.vibrationEnabled);
+        if (vibrationSwitch != null) {
+            vibrationSwitch.setChecked(editingTask.vibrationEnabled);
+        }
 
         // Change save button text to indicate update
         saveButton.setText("Update");

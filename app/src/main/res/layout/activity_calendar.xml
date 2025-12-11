@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="?attr/backgroundColor"
     tools:context=".CalendarActivity">
 
     <!-- Top Bar -->
@@ -14,7 +14,7 @@
         android:layout_height="56dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="@android:color/white"
+        android:background="?attr/cardBackgroundColor"
         android:elevation="4dp"
         android:paddingHorizontal="16dp">
 
@@ -24,7 +24,7 @@
             android:layout_height="40dp"
             android:src="@drawable/ic_arrow_back"
             android:background="?android:attr/selectableItemBackgroundBorderless"
-            app:tint="#333333"
+            app:tint="?attr/textColorPrimary"
             android:contentDescription="Back" />
 
         <TextView
@@ -34,7 +34,7 @@
             android:text="Calendar"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#333333"
+            android:textColor="?attr/textColorPrimary"
             android:layout_marginStart="16dp" />
 
     </LinearLayout>
@@ -45,7 +45,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/topBar"
-        android:background="@android:color/white"
+        android:background="?attr/cardBackgroundColor"
         android:layout_margin="16dp" />
 
     <!-- Selected Date Header -->
@@ -57,7 +57,7 @@
         android:text="Tasks for Today"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="#333333"
+        android:textColor="?attr/textColorPrimary"
         android:paddingHorizontal="16dp"
         android:paddingTop="16dp"
         android:paddingBottom="8dp" />
@@ -77,7 +77,7 @@
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:src="@drawable/ic_calendar"
-            app:tint="#CCCCCC"
+            app:tint="?attr/textColorSecondary"
             android:contentDescription="No tasks" />
 
         <TextView
@@ -85,7 +85,7 @@
             android:layout_height="wrap_content"
             android:text="No ongoing tasks for this date"
             android:textSize="14sp"
-            android:textColor="#999999"
+            android:textColor="?attr/textColorSecondary"
             android:layout_marginTop="12dp" />
 
     </LinearLayout>

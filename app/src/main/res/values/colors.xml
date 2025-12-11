@@ -1,22 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Basic Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Material 3 Light Theme Surface Colors -->
+    <color name="background_light">#FFFBFE</color>
+    <color name="surface_light">#FFFBFE</color>
+    <color name="surface_variant_light">#E7E0EC</color>
+    <color name="on_surface_light">#1C1B1F</color>
+    <color name="on_surface_variant_light">#49454F</color>
+    <color name="outline_light">#79747E</color>
+
+    <!-- Material 3 Dark Theme Surface Colors -->
+    <color name="background_dark">#1C1B1F</color>
+    <color name="surface_dark">#1C1B1F</color>
+    <color name="surface_variant_dark">#49454F</color>
+    <color name="on_surface_dark">#E6E1E5</color>
+    <color name="on_surface_variant_dark">#CAC4D0</color>
+    <color name="outline_dark">#938F99</color>
+
+    <!-- Blue Theme Colors (Default) -->
+    <color name="blue_primary">#1565C0</color>
+    <color name="blue_light">#D1E4FF</color>
+    <color name="blue_dark">#001D36</color>
+    <color name="blue_primary_dark">#A8C8FF</color>
+    <color name="blue_dark_variant">#004881</color>
+    <color name="clock_text_color">#1565C0</color>
+
+    <!-- Teal Colors -->
+    <color name="teal_200">#03DAC5</color>
+    <color name="teal_700">#018786</color>
+    <color name="teal_light">#B2DFDB</color>
+
+    <!-- Cyan Theme Colors -->
+    <color name="cyan_primary">#00ACC1</color>
+    <color name="cyan_light">#B2EBF2</color>
+    <color name="cyan_dark">#006064</color>
+    <color name="cyan_text">#006B5E</color>
+    <color name="cyan_primary_dark">#4DD0E1</color>
+    <color name="cyan_dark_variant">#00838F</color>
+
+    <!-- Green Theme Colors -->
+    <color name="green_primary">#2E7D32</color>
+    <color name="green_light">#C8E6C9</color>
+    <color name="green_dark">#1B5E20</color>
+    <color name="green_primary_dark">#81C784</color>
+    <color name="green_dark_variant">#388E3C</color>
+
+    <!-- Purple Theme Colors -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="clock_text_color">#0D47A1</color>
+    <color name="purple_primary">#7B1FA2</color>
+    <color name="purple_light">#E1BEE7</color>
+    <color name="purple_dark">#4A148C</color>
+    <color name="purple_primary_dark">#CE93D8</color>
+    <color name="purple_dark_variant">#8E24AA</color>
 
-    <!-- Cyan Theme Colors -->
-    <color name="cyan_primary">#00FFDE</color>
-    <color name="cyan_dark">#00CCB2</color>
-    <color name="cyan_text">#006B5E</color>
+    <!-- Orange Theme Colors -->
+    <color name="orange_primary">#E65100</color>
+    <color name="orange_light">#FFE0B2</color>
+    <color name="orange_dark">#BF360C</color>
+    <color name="orange_primary_dark">#FFAB91</color>
+    <color name="orange_dark_variant">#F57C00</color>
 
     <!-- Dark Mode Colors -->
-    <color name="dark_background_start">#1a1a1a</color>
-    <color name="dark_background_end">#2d2d2d</color>
-    <color name="dark_text">#E0E0E0</color>
-    <color name="dark_text_secondary">#B0B0B0</color>
+    <color name="dark_background_start">#121212</color>
+    <color name="dark_background_end">#1E1E1E</color>
+    <color name="dark_text">#E6E1E5</color>
+    <color name="dark_text_secondary">#CAC4D0</color>
+    <color name="dark_card_background">#2D2D2D</color>
+
+    <!-- Semantic Colors -->
+    <color name="error">#B3261E</color>
+    <color name="error_container">#F9DEDC</color>
+    <color name="on_error">#FFFFFF</color>
+    <color name="on_error_container">#410E0B</color>
+    <color name="success">#2E7D32</color>
+    <color name="warning">#F57C00</color>
+
+    <!-- Priority Chip Colors -->
+    <color name="chip_priority_none">#E7E0EC</color>
+    <color name="chip_priority_low">#C8E6C9</color>
+    <color name="chip_priority_medium">#FFE0B2</color>
+    <color name="chip_priority_high">#F9DEDC</color>
 </resources>

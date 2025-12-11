@@ -165,35 +165,61 @@ public class AlarmHelper {
     }
 
     public static void rescheduleAllAlarms(Context context) {
-        TaskRepository repository = TaskRepository.getInstance();
-        repository.initialize(context);
+        try {
+            TaskRepository repository = TaskRepository.getInstance();
+            repository.initialize(context);
 
-        for (Task task : repository.morningTasks) {
-            if (task.isAlarmOn) {
-                if (task.isFocusTask()) {
-                    scheduleFocusTaskAlarms(context, task);
-                } else {
-                    scheduleTaskAlarm(context, task);
+            if (repository.morningTasks != null) {
+                for (Task task : repository.morningTasks) {
+                    if (task != null && task.isAlarmOn) {
+                        try {
+                            if (task.isFocusTask()) {
+                                scheduleFocusTaskAlarms(context, task);
+                            } else {
+                                scheduleTaskAlarm(context, task);
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error rescheduling task: " + task.name, e);
+                        }
+                    }
                 }
             }
-        }
-        for (Task task : repository.afternoonTasks) {
-            if (task.isAlarmOn) {
-                if (task.isFocusTask()) {
-                    scheduleFocusTaskAlarms(context, task);
-                } else {
-                    scheduleTaskAlarm(context, task);
+
+            if (repository.afternoonTasks != null) {
+                for (Task task : repository.afternoonTasks) {
+                    if (task != null && task.isAlarmOn) {
+                        try {
+                            if (task.isFocusTask()) {
+                                scheduleFocusTaskAlarms(context, task);
+                            } else {
+                                scheduleTaskAlarm(context, task);
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error rescheduling task: " + task.name, e);
+                        }
+                    }
                 }
             }
-        }
-        for (Task task : repository.nightTasks) {
-            if (task.isAlarmOn) {
-                if (task.isFocusTask()) {
-                    scheduleFocusTaskAlarms(context, task);
-                } else {
-                    scheduleTaskAlarm(context, task);
+
+            if (repository.nightTasks != null) {
+                for (Task task : repository.nightTasks) {
+                    if (task != null && task.isAlarmOn) {
+                        try {
+                            if (task.isFocusTask()) {
+                                scheduleFocusTaskAlarms(context, task);
+                            } else {
+                                scheduleTaskAlarm(context, task);
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error rescheduling task: " + task.name, e);
+                        }
+                    }
                 }
             }
+
+            Log.d(TAG, "All alarms rescheduled successfully");
+        } catch (Exception e) {
+            Log.e(TAG, "Error in rescheduleAllAlarms", e);
         }
     }
 

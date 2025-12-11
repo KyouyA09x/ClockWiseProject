@@ -39,6 +39,9 @@ public class HistoryMonthDetailActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeHelper.applyTheme(this);
+
+        setTheme(ThemeHelper.getThemeResource(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history_month_detail);
 

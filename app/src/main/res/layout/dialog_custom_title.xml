@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:text="Title"
-        android:textColor="@android:color/black"
+        android:textColor="?attr/textColorPrimary"
         android:textSize="20sp"
         android:textStyle="bold" />
 

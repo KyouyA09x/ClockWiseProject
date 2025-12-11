@@ -8,24 +8,29 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.graphics.Paint;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,10 +41,13 @@ public class MainActivity extends AppCompatActivity {
     private static final int EDIT_TASK_REQUEST = 2;
     public static final String ACTION_TASK_COMPLETED = "com.example.mainactivity.TASK_COMPLETED";
 
-    private ImageButton historyMenuButton;
-    private ImageButton calendarButton;
-    private FloatingActionButton fabAddTask;
+    private DrawerLayout drawerLayout;
+    private MaterialToolbar topBar;
+    private NavigationView navigationView;
+    private ExtendedFloatingActionButton fabAddTask;
     private View progressTracker;
+    private View emptyStateCard;
+    private View tasksContainerCard;
     private LinearLayout morningTasksContainer;
     private LinearLayout afternoonTasksContainer;
     private LinearLayout nightTasksContainer;
@@ -48,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView afternoonTasksHeader;
     private TextView nightTasksHeader;
     private TextView taskCountText;
-    private ProgressBar progressBar;
+    private LinearProgressIndicator progressBar;
     private TextView completionText;
 
     private TaskRepository taskRepository;
@@ -67,13 +75,19 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeHelper.applyTheme(this);
+        setTheme(ThemeHelper.getThemeResource(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        historyMenuButton = findViewById(R.id.historyMenuButton);
-        calendarButton = findViewById(R.id.calendarButton);
+        // Initialize views
+        drawerLayout = findViewById(R.id.drawerLayout);
+        topBar = findViewById(R.id.topBar);
+        navigationView = findViewById(R.id.navigationView);
         fabAddTask = findViewById(R.id.fabAddTask);
         progressTracker = findViewById(R.id.progressTracker);
+        emptyStateCard = findViewById(R.id.emptyStateCard);
+        tasksContainerCard = findViewById(R.id.tasksContainerCard);
         morningTasksContainer = findViewById(R.id.morningTasksContainer);
         afternoonTasksContainer = findViewById(R.id.afternoonTasksContainer);
         nightTasksContainer = findViewById(R.id.nightTasksContainer);
@@ -85,6 +99,11 @@ public class MainActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         completionText = findViewById(R.id.completionText);
 
+        // Disable edge swiping - only open via hamburger button
+        if (drawerLayout != null) {
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        }
+
         taskRepository = TaskRepository.getInstance();
         taskRepository.initialize(this);
 
@@ -94,18 +113,45 @@ public class MainActivity extends AppCompatActivity {
         // FAB - shows task type chooser
         fabAddTask.setOnClickListener(v -> showTaskTypeChooser());
 
-        // Calendar button - shows ongoing tasks by date
-        if (calendarButton != null) {
-            calendarButton.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, CalendarActivity.class);
-                startActivity(intent);
+        // Setup toolbar navigation
+        if (topBar != null) {
+            topBar.setNavigationOnClickListener(v -> {
+                if (drawerLayout != null) {
+                    drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                    drawerLayout.openDrawer(GravityCompat.START);
+                }
+            });
+
+            topBar.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_calendar) {
+                    startActivity(new Intent(MainActivity.this, CalendarActivity.class));
+                    return true;
+                }
+                return false;
             });
         }
 
-        // Hamburger menu - shows menu options bottom sheet
-        if (historyMenuButton != null) {
-            historyMenuButton.setOnClickListener(v -> showMenuBottomSheet());
+        // Lock drawer when closed to prevent edge swipe
+        if (drawerLayout != null) {
+            drawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
+                @Override
+                public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {}
+
+                @Override
+                public void onDrawerOpened(@NonNull View drawerView) {}
+
+                @Override
+                public void onDrawerClosed(@NonNull View drawerView) {
+                    drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+                }
+
+                @Override
+                public void onDrawerStateChanged(int newState) {}
+            });
         }
+
+        // Set up navigation drawer
+        setupNavigationDrawer();
 
         // Progress tracker - shows completed tasks for today
         if (progressTracker != null) {
@@ -129,19 +175,45 @@ public class MainActivity extends AppCompatActivity {
         View reminderOption = dialogView.findViewById(R.id.reminderOption);
         reminderOption.setOnClickListener(v -> {
             dialog.dismiss();
-            Intent intent = new Intent(MainActivity.this, AddTaskActivity.class);
-            startActivityForResult(intent, ADD_TASK_REQUEST);
+            showReminderBottomSheet(null);
         });
 
         // Focus Task option
         View focusTaskOption = dialogView.findViewById(R.id.focusTaskOption);
         focusTaskOption.setOnClickListener(v -> {
             dialog.dismiss();
-            Intent intent = new Intent(MainActivity.this, AddFocusTaskActivity.class);
-            startActivityForResult(intent, ADD_TASK_REQUEST);
+            showFocusTaskBottomSheet(null);
         });
 
         dialog.show();
+    }
+
+    private void showReminderBottomSheet(Task taskToEdit) {
+        AddReminderBottomSheet bottomSheet;
+        if (taskToEdit != null) {
+            bottomSheet = AddReminderBottomSheet.newInstance(taskToEdit);
+        } else {
+            bottomSheet = AddReminderBottomSheet.newInstance();
+        }
+        bottomSheet.setOnTaskSavedListener(() -> {
+            taskRepository.refreshTasks();
+            updateTaskLists();
+        });
+        bottomSheet.show(getSupportFragmentManager(), "AddReminderBottomSheet");
+    }
+
+    private void showFocusTaskBottomSheet(Task taskToEdit) {
+        AddFocusTaskBottomSheet bottomSheet;
+        if (taskToEdit != null) {
+            bottomSheet = AddFocusTaskBottomSheet.newInstance(taskToEdit);
+        } else {
+            bottomSheet = AddFocusTaskBottomSheet.newInstance();
+        }
+        bottomSheet.setOnTaskSavedListener(() -> {
+            taskRepository.refreshTasks();
+            updateTaskLists();
+        });
+        bottomSheet.show(getSupportFragmentManager(), "AddFocusTaskBottomSheet");
     }
 
     @Override
@@ -154,10 +226,15 @@ public class MainActivity extends AppCompatActivity {
         // Register receiver for task completion (only if not already registered)
         if (!isReceiverRegistered) {
             try {
-                registerReceiver(taskCompletionReceiver, new IntentFilter(ACTION_TASK_COMPLETED));
+                IntentFilter filter = new IntentFilter(ACTION_TASK_COMPLETED);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    registerReceiver(taskCompletionReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+                } else {
+                    registerReceiver(taskCompletionReceiver, filter);
+                }
                 isReceiverRegistered = true;
             } catch (Exception e) {
-                e.printStackTrace();
+                android.util.Log.e("MainActivity", "Error registering receiver", e);
             }
         }
     }
@@ -171,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
                 unregisterReceiver(taskCompletionReceiver);
                 isReceiverRegistered = false;
             } catch (Exception e) {
-                e.printStackTrace();
+                android.util.Log.e("MainActivity", "Error unregistering receiver", e);
             }
         }
     }
@@ -255,12 +332,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (!hasTasksForToday) {
-            emptyTasksText.setVisibility(View.VISIBLE);
+            if (emptyStateCard != null) emptyStateCard.setVisibility(View.VISIBLE);
+            if (tasksContainerCard != null) tasksContainerCard.setVisibility(View.GONE);
             morningTasksHeader.setVisibility(View.GONE);
             afternoonTasksHeader.setVisibility(View.GONE);
             nightTasksHeader.setVisibility(View.GONE);
         } else {
-            emptyTasksText.setVisibility(View.GONE);
+            if (emptyStateCard != null) emptyStateCard.setVisibility(View.GONE);
+            if (tasksContainerCard != null) tasksContainerCard.setVisibility(View.VISIBLE);
             morningTasksHeader.setVisibility(morningTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
             afternoonTasksHeader.setVisibility(afternoonTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
             nightTasksHeader.setVisibility(nightTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
@@ -386,15 +465,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openTaskForEditing(Task task) {
-        Intent intent;
         if (task.isFocusTask()) {
-            intent = new Intent(MainActivity.this, AddFocusTaskActivity.class);
+            showFocusTaskBottomSheet(task);
         } else {
-            intent = new Intent(MainActivity.this, AddTaskActivity.class);
+            showReminderBottomSheet(task);
         }
-        intent.putExtra("EDIT_MODE", true);
-        intent.putExtra("TASK", task);
-        startActivityForResult(intent, EDIT_TASK_REQUEST);
     }
 
     private void sortTasks(ArrayList<Task> tasks) {
@@ -417,33 +492,36 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showMenuBottomSheet() {
-        com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog =
-            new com.google.android.material.bottomsheet.BottomSheetDialog(this);
-        View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_menu, null);
-        bottomSheetDialog.setContentView(bottomSheetView);
+    private void setupNavigationDrawer() {
+        if (navigationView == null) return;
 
-        // History option - opens History Activity
-        View historyOption = bottomSheetView.findViewById(R.id.menuHistoryOption);
-        historyOption.setOnClickListener(v -> {
-            bottomSheetDialog.dismiss();
-            Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
-            startActivity(intent);
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+
+            if (id == R.id.nav_home) {
+                // Already on home
+            } else if (id == R.id.nav_history) {
+                startActivity(new Intent(MainActivity.this, HistoryActivity.class));
+            } else if (id == R.id.nav_calendar) {
+                startActivity(new Intent(MainActivity.this, CalendarActivity.class));
+            } else if (id == R.id.nav_settings) {
+                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+            } else if (id == R.id.nav_about) {
+                Toast.makeText(this, "ClockWise v1.0 - Your smart task manager", Toast.LENGTH_SHORT).show();
+            }
+
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
         });
+    }
 
-        // Settings option - coming soon
-        View settingsOption = bottomSheetView.findViewById(R.id.menuSettingsOption);
-        settingsOption.setOnClickListener(v -> {
-            Toast.makeText(this, "Settings coming soon!", Toast.LENGTH_SHORT).show();
-        });
-
-        // About option - coming soon
-        View aboutOption = bottomSheetView.findViewById(R.id.menuAboutOption);
-        aboutOption.setOnClickListener(v -> {
-            Toast.makeText(this, "About coming soon!", Toast.LENGTH_SHORT).show();
-        });
-
-        bottomSheetDialog.show();
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private void showCompletedTasksDialog() {
@@ -455,10 +533,16 @@ public class MainActivity extends AppCompatActivity {
         androidx.appcompat.app.AlertDialog dialog = builder.create();
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            // Make dialog appear as small centered overlay
+            android.view.WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+            params.gravity = android.view.Gravity.CENTER;
+            params.width = android.view.WindowManager.LayoutParams.WRAP_CONTENT;
+            params.height = android.view.WindowManager.LayoutParams.WRAP_CONTENT;
+            dialog.getWindow().setAttributes(params);
         }
 
         LinearLayout completedTasksContainer = dialogView.findViewById(R.id.completedTasksContainer);
-        TextView emptyCompletedTasksText = dialogView.findViewById(R.id.emptyCompletedTasksText);
+        View emptyCompletedTasksText = dialogView.findViewById(R.id.emptyCompletedTasksText);
 
         // Clear previous views
         completedTasksContainer.removeAllViews();

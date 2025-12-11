@@ -1,68 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="320dp"
     android:layout_height="wrap_content"
-    android:minHeight="500dp"
-    android:padding="24dp"
-    android:background="@drawable/dialog_background">
+    android:layout_margin="@dimen/spacing_lg"
+    android:maxHeight="500dp"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardCornerRadius="@dimen/dialog_corner_radius"
+    app:cardElevation="8dp">
 
-    <TextView
-        android:id="@+id/dialogTitle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Completed Tasks Today"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textColor="@color/clock_text_color"
-        android:gravity="center"
-        android:paddingBottom="20dp" />
+        android:orientation="vertical">
 
-    <ScrollView
-        android:id="@+id/completedTasksScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/dialogTitle"
-        android:layout_above="@id/closeButton"
-        android:layout_marginBottom="16dp"
-        android:minHeight="350dp">
+        <!-- Header with Title and Close Button -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/spacing_lg"
+            android:paddingBottom="@dimen/spacing_md">
 
+            <TextView
+                android:id="@+id/dialogTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:text="✅ Completed Today"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textColor="?attr/colorOnSurface" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/closeButton"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                app:icon="@drawable/ic_close"
+                app:iconTint="?attr/colorOnSurface"
+                app:iconSize="20dp"
+                android:contentDescription="Close" />
+
+        </RelativeLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutline"
+            android:alpha="0.12" />
+
+        <!-- Content -->
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/completedTasksScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxHeight="320dp"
+            android:padding="@dimen/spacing_md">
+
+            <LinearLayout
+                android:id="@+id/completedTasksContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </androidx.core.widget.NestedScrollView>
+
+        <!-- Empty State -->
         <LinearLayout
-            android:id="@+id/completedTasksContainer"
+            android:id="@+id/emptyCompletedTasksText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp" />
+            android:gravity="center"
+            android:padding="@dimen/spacing_xxl"
+            android:visibility="gone">
 
-    </ScrollView>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💤"
+                android:textSize="48sp"
+                android:layout_marginBottom="@dimen/spacing_md" />
 
-    <TextView
-        android:id="@+id/emptyCompletedTasksText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/dialogTitle"
-        android:layout_centerHorizontal="true"
-        android:text="No completed tasks yet today"
-        android:textSize="16sp"
-        android:textColor="@android:color/darker_gray"
-        android:padding="60dp"
-        android:visibility="gone" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No completed tasks yet"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:gravity="center" />
 
-    <Button
-        android:id="@+id/closeButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:text="Close"
-        android:textColor="@android:color/white"
-        android:textStyle="bold"
-        android:background="@color/clock_text_color"
-        android:paddingStart="48dp"
-        android:paddingEnd="48dp"
-        android:paddingTop="14dp"
-        android:paddingBottom="14dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Let's get productive!"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginTop="@dimen/spacing_xs"
+                android:gravity="center" />
 
-</RelativeLayout>
+        </LinearLayout>
 
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

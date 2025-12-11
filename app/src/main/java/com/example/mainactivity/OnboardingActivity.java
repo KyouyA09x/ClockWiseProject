@@ -46,6 +46,9 @@ public class OnboardingActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Apply theme before onCreate
+        ThemeHelper.applyTheme(this);
+        setTheme(ThemeHelper.getThemeResource(this));
         super.onCreate(savedInstanceState);
 
         // Check if onboarding was already completed and permissions are still granted

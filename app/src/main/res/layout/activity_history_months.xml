@@ -14,7 +14,7 @@
         android:layout_height="56dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="@android:color/white"
+        android:background="?attr/cardBackgroundColor"
         android:elevation="4dp"
         android:paddingHorizontal="16dp">
 
@@ -34,7 +34,7 @@
             android:text="@string/history"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#333333"
+            android:textColor="?attr/textColorPrimary"
             android:layout_marginStart="16dp" />
 
     </LinearLayout>
@@ -57,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:text="Select a month to view completed tasks"
                 android:textSize="14sp"
-                android:textColor="#666666"
+                android:textColor="?attr/textColorSecondary"
                 android:layout_marginBottom="16dp" />
 
             <!-- January - Light Blue -->
@@ -95,7 +95,7 @@
                     android:text="February"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="#333333"
+                    android:textColor="?attr/textColorPrimary"
                     android:gravity="center_vertical"
                     android:paddingStart="20dp" />
             </androidx.cardview.widget.CardView>
@@ -135,7 +135,7 @@
                     android:text="April"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="#333333"
+                    android:textColor="?attr/textColorPrimary"
                     android:gravity="center_vertical"
                     android:paddingStart="20dp" />
             </androidx.cardview.widget.CardView>
@@ -175,7 +175,7 @@
                     android:text="June"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="#333333"
+                    android:textColor="?attr/textColorPrimary"
                     android:gravity="center_vertical"
                     android:paddingStart="20dp" />
             </androidx.cardview.widget.CardView>
@@ -215,7 +215,7 @@
                     android:text="August"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="#333333"
+                    android:textColor="?attr/textColorPrimary"
                     android:gravity="center_vertical"
                     android:paddingStart="20dp" />
             </androidx.cardview.widget.CardView>
@@ -255,7 +255,7 @@
                     android:text="October"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="#333333"
+                    android:textColor="?attr/textColorPrimary"
                     android:gravity="center_vertical"
                     android:paddingStart="20dp" />
             </androidx.cardview.widget.CardView>
@@ -295,7 +295,7 @@
                     android:text="December"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="#333333"
+                    android:textColor="?attr/textColorPrimary"
                     android:gravity="center_vertical"
                     android:paddingStart="20dp" />
             </androidx.cardview.widget.CardView>

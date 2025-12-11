@@ -19,7 +19,7 @@
             android:textStyle="bold"
             android:textSize="16sp"
             android:layout_marginBottom="8dp"
-            android:textColor="@color/black" />
+            android:textColor="?attr/textColorPrimary" />
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -35,7 +35,7 @@
                 android:paddingEnd="40dp"
                 android:textSize="16sp"
                 android:singleLine="true"
-                android:textColor="@color/black"
+                android:textColor="?attr/textColorPrimary"
                 android:inputType="textCapSentences" />
 
             <ImageButton

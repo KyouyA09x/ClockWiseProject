@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Larger spacing for tablets/foldables -->
+    <dimen name="spacing_xs">6dp</dimen>
+    <dimen name="spacing_sm">12dp</dimen>
+    <dimen name="spacing_md">24dp</dimen>
+    <dimen name="spacing_lg">32dp</dimen>
+    <dimen name="spacing_xl">48dp</dimen>
+    <dimen name="spacing_xxl">64dp</dimen>
+
+    <!-- Larger screen margins -->
+    <dimen name="screen_margin_horizontal">32dp</dimen>
+    <dimen name="screen_margin_vertical">24dp</dimen>
+
+    <!-- Larger card dimensions -->
+    <dimen name="card_corner_radius">24dp</dimen>
+    <dimen name="card_elevation">4dp</dimen>
+    <dimen name="card_padding">24dp</dimen>
+
+    <!-- Larger button dimensions -->
+    <dimen name="button_height">64dp</dimen>
+    <dimen name="button_corner_radius">32dp</dimen>
+
+    <!-- Larger icon sizes -->
+    <dimen name="icon_size_sm">24dp</dimen>
+    <dimen name="icon_size_md">28dp</dimen>
+    <dimen name="icon_size_lg">40dp</dimen>
+    <dimen name="icon_size_xl">56dp</dimen>
+
+    <!-- Top app bar -->
+    <dimen name="top_app_bar_height">72dp</dimen>
+
+    <!-- FAB -->
+    <dimen name="fab_margin">24dp</dimen>
+    <dimen name="fab_size">64dp</dimen>
+
+    <!-- Task item -->
+    <dimen name="task_item_min_height">88dp</dimen>
+    <dimen name="task_item_padding">24dp</dimen>
+
+    <!-- Dialog -->
+    <dimen name="dialog_corner_radius">32dp</dimen>
+    <dimen name="dialog_padding">32dp</dimen>
+</resources>

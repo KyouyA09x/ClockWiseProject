@@ -23,7 +23,7 @@
         android:text="Menu"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="@android:color/black"
+        android:textColor="?attr/textColorPrimary"
         android:paddingHorizontal="24dp"
         android:paddingBottom="16dp" />
 
@@ -60,14 +60,14 @@
                 android:text="History"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/black" />
+                android:textColor="?attr/textColorPrimary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="View your completed tasks"
                 android:textSize="13sp"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="?attr/textColorSecondary"
                 android:layout_marginTop="2dp" />
         </LinearLayout>
 
@@ -120,14 +120,14 @@
                 android:text="Settings"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/black" />
+                android:textColor="?attr/textColorPrimary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Coming soon..."
                 android:textSize="13sp"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="?attr/textColorSecondary"
                 android:layout_marginTop="2dp" />
         </LinearLayout>
 
@@ -180,14 +180,14 @@
                 android:text="About"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/black" />
+                android:textColor="?attr/textColorPrimary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Coming soon..."
                 android:textSize="13sp"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="?attr/textColorSecondary"
                 android:layout_marginTop="2dp" />
         </LinearLayout>
 

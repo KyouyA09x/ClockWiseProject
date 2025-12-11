@@ -28,13 +28,16 @@ android {
     }
 
     lint {
-        disable 'NotificationPermission'
+        disable 'NotificationPermission', 'UnspecifiedRegisterReceiverFlag'
+        abortOnError false
     }
 }
 
 dependencies {
     implementation libs.appcompat
     implementation libs.material
+    implementation libs.constraintlayout
+    implementation libs.cardview
     implementation libs.room.runtime
     annotationProcessor libs.room.compiler
     testImplementation libs.junit

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
+    android:background="?attr/backgroundColor"
     android:padding="24dp"
     tools:context=".OnboardingActivity">
 
@@ -39,7 +39,7 @@
         android:layout_marginTop="16dp"
         android:gravity="center"
         android:text="To ensure you never miss a task reminder, we need your permission to send notifications and run in the background."
-        android:textColor="#666666"
+        android:textColor="?attr/textColorSecondary"
         android:textSize="16sp" />
 
     <!-- Permissions Container -->
@@ -87,7 +87,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Required to remind you about tasks"
-                    android:textColor="#666666"
+                    android:textColor="?attr/textColorSecondary"
                     android:textSize="14sp" />
             </LinearLayout>
 
@@ -135,7 +135,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Required for precise task timing"
-                    android:textColor="#666666"
+                    android:textColor="?attr/textColorSecondary"
                     android:textSize="14sp" />
             </LinearLayout>
 
@@ -183,7 +183,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Required to send alerts even when app is closed"
-                    android:textColor="#666666"
+                    android:textColor="?attr/textColorSecondary"
                     android:textSize="14sp" />
             </LinearLayout>
 
@@ -220,7 +220,7 @@
         android:layout_marginBottom="24dp"
         android:gravity="center"
         android:text="All permissions are required to use the app"
-        android:textColor="#999999"
+        android:textColor="?attr/textColorSecondary"
         android:textSize="14sp" />
 
 </RelativeLayout>

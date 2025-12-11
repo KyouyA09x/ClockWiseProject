@@ -80,26 +80,42 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
 
         // Mark task as complete IMMEDIATELY when alarm fires
-        TaskRepository repository = TaskRepository.getInstance();
-        repository.initialize(context);
-        Task task = repository.getTaskById(taskId);
-        if (task != null) {
-            task.isComplete = true;
-            task.isAlarmOn = false;
-            repository.updateTask(task);
+        try {
+            TaskRepository repository = TaskRepository.getInstance();
+            if (repository != null) {
+                repository.initialize(context);
+                Task task = repository.getTaskById(taskId);
+                if (task != null && !task.isComplete) {
+                    task.isComplete = true;
+                    task.isAlarmOn = false;
+                    repository.updateTask(task);
 
-            // Send broadcast to refresh MainActivity immediately
-            Intent broadcastIntent = new Intent(MainActivity.ACTION_TASK_COMPLETED);
-            context.sendBroadcast(broadcastIntent);
+                    // Send broadcast to refresh MainActivity immediately
+                    try {
+                        Intent broadcastIntent = new Intent(MainActivity.ACTION_TASK_COMPLETED);
+                        context.sendBroadcast(broadcastIntent);
+                    } catch (Exception e) {
+                        // Ignore broadcast errors
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Log error but don't crash
+            android.util.Log.e("AlarmReceiver", "Error updating task: " + e.getMessage());
         }
 
-        createNotificationChannel(context);
+        try {
+            createNotificationChannel(context);
 
-        // Show appropriate notification based on task type
-        if ("focus".equals(taskType)) {
-            showFocusTaskNotification(context, taskId, taskName, taskTime, endTime, alarmType, vibrationEnabled);
-        } else {
-            showNotification(context, taskId, taskName, taskTime, vibrationEnabled);
+            // Show appropriate notification based on task type
+            if ("focus".equals(taskType)) {
+                showFocusTaskNotification(context, taskId, taskName, taskTime, endTime, alarmType, vibrationEnabled);
+            } else {
+                showNotification(context, taskId, taskName, taskTime, vibrationEnabled);
+            }
+        } catch (Exception e) {
+            // Log error but don't crash
+            android.util.Log.e("AlarmReceiver", "Error showing notification: " + e.getMessage());
         }
     }
 

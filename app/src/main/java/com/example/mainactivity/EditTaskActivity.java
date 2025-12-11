@@ -55,6 +55,9 @@ public class EditTaskActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeHelper.applyTheme(this);
+
+        setTheme(ThemeHelper.getThemeResource(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_task);
 
@@ -88,17 +91,17 @@ public class EditTaskActivity extends AppCompatActivity {
         hourPicker = findViewById(R.id.hourPicker);
         minutePicker = findViewById(R.id.minutePicker);
         amPmPicker = findViewById(R.id.amPmPicker);
-        snoozeSwitch = findViewById(R.id.snoozeSwitch);
-        repeatLayout = findViewById(R.id.repeatLayout);
-        repeatValueText = findViewById(R.id.repeatValueText);
+        // snoozeSwitch = findViewById(R.id.snoozeSwitch);
+        // repeatLayout = findViewById(R.id.repeatLayout);
+        repeatValueText = findViewById(R.id.repeatDaysText);
         labelEditText = findViewById(R.id.labelEditText);
-        clearLabelButton = findViewById(R.id.clearLabelButton);
-        urgencyLayout = findViewById(R.id.urgencyLayout);
-        urgencyValueText = findViewById(R.id.urgencyValueText);
-        vibrationLayout = findViewById(R.id.vibrationLayout);
-        vibrationSwitch = findViewById(R.id.vibrationSwitch);
-        dateRow = findViewById(R.id.dateRow);
-        dateValue = findViewById(R.id.dateValue);
+        // clearLabelButton = findViewById(R.id.clearLabelButton);
+        // urgencyLayout = findViewById(R.id.urgencyLayout);
+        // urgencyValueText = findViewById(R.id.urgencyValueText);
+        // vibrationLayout = findViewById(R.id.vibrationLayout);
+        // vibrationSwitch = findViewById(R.id.vibrationSwitch);
+        // dateRow = findViewById(R.id.dateRow);
+        // dateValue = findViewById(R.id.dateValue);
         addTaskTitle = findViewById(R.id.addTaskTitle);
 
         // Change title to "Edit Task"

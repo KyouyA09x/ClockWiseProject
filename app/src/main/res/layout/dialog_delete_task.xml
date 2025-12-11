@@ -3,7 +3,7 @@
     android:layout_width="300dp"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/dialog_background"
+    android:background="?attr/cardBackgroundColor"
     android:padding="24dp"
     android:gravity="center">
 

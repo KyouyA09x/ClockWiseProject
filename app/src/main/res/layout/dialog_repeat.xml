@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/dialog_background"
+    android:background="?attr/cardBackgroundColor"
     android:padding="24dp">
 
     <CheckBox android:id="@+id/sundayCheckBox" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sunday"/>
@@ -27,7 +27,7 @@
             android:layout_weight="1"
             android:text="Cancel"
             android:background="?android:attr/selectableItemBackground"
-            android:textColor="@android:color/black"/>
+            android:textColor="?attr/textColorPrimary"/>
 
         <Button
             android:id="@+id/dialogOkButton"
@@ -36,7 +36,7 @@
             android:layout_weight="1"
             android:text="OK"
             android:background="?android:attr/selectableItemBackground"
-            android:textColor="@android:color/black"/>
+            android:textColor="?attr/textColorPrimary"/>
 
     </LinearLayout>
 

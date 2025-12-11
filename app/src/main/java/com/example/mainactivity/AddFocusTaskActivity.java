@@ -57,6 +57,9 @@ public class AddFocusTaskActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeHelper.applyTheme(this);
+
+        setTheme(ThemeHelper.getThemeResource(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_focus_task);
 
@@ -134,13 +137,13 @@ public class AddFocusTaskActivity extends AppCompatActivity {
         endAmPmPicker = findViewById(R.id.endAmPmPicker);
 
         labelEditText = findViewById(R.id.labelEditText);
-        clearLabelButton = findViewById(R.id.clearLabelButton);
-        dateRow = findViewById(R.id.dateRow);
-        dateValue = findViewById(R.id.dateValue);
-        urgencyLayout = findViewById(R.id.urgencyLayout);
-        urgencyValueText = findViewById(R.id.urgencyValueText);
-        vibrationLayout = findViewById(R.id.vibrationLayout);
-        vibrationSwitch = findViewById(R.id.vibrationSwitch);
+        // clearLabelButton = findViewById(R.id.clearLabelButton);
+        // dateRow = findViewById(R.id.dateRow);
+        // dateValue = findViewById(R.id.dateValue);
+        // urgencyLayout = findViewById(R.id.urgencyLayout);
+        // urgencyValueText = findViewById(R.id.urgencyValueText);
+        // vibrationLayout = findViewById(R.id.vibrationLayout);
+        // vibrationSwitch = findViewById(R.id.vibrationSwitch);
 
         updateDateLabel();
     }
