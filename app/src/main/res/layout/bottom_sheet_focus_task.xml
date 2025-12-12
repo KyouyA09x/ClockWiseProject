@@ -59,12 +59,29 @@
             android:paddingHorizontal="@dimen/spacing_lg">
 
             <!-- Task Name -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Session Name"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Give your deep work session a memorable name"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="@dimen/spacing_sm" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/taskNameInputLayout"
                 style="@style/Widget.Material3.TextInputLayout.FilledBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Task name"
+                android:hint="e.g., Write report, Study math"
                 android:layout_marginBottom="@dimen/spacing_lg"
                 app:boxBackgroundColor="?attr/colorSurfaceVariant"
                 app:hintTextColor="?attr/colorOnSurfaceVariant">
@@ -102,95 +119,119 @@
                 android:drawableTint="?attr/colorPrimary"
                 android:layout_marginBottom="@dimen/spacing_lg" />
 
-            <!-- Start Time Picker -->
+            <!-- Start Time -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Start Time"
                 android:textAppearance="?attr/textAppearanceLabelLarge"
                 android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="When will you begin your focused work?"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginBottom="@dimen/spacing_sm" />
 
             <LinearLayout
-                android:id="@+id/startTimePickerLayout"
+                android:id="@+id/startTimeRow"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:orientation="horizontal"
-                android:gravity="center"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="@dimen/spacing_md"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:layout_marginBottom="@dimen/spacing_lg">
 
-                <NumberPicker
-                    android:id="@+id/startHourPicker"
-                    android:layout_width="70dp"
-                    android:layout_height="120dp"
-                    android:theme="@style/NumberPickerTheme" />
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_clock"
+                    android:contentDescription="@string/clock_text"
+                    app:tint="?attr/colorPrimary"
+                    android:layout_marginEnd="@dimen/spacing_md" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/startTimeDisplay"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text=":"
-                    android:textSize="24sp"
+                    android:layout_weight="1"
+                    android:text="9:00 AM"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
                     android:textColor="?attr/colorOnSurface"
-                    android:layout_marginHorizontal="4dp" />
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
-                <NumberPicker
-                    android:id="@+id/startMinutePicker"
-                    android:layout_width="70dp"
-                    android:layout_height="120dp"
-                    android:theme="@style/NumberPickerTheme" />
-
-                <NumberPicker
-                    android:id="@+id/startAmPmPicker"
-                    android:layout_width="70dp"
-                    android:layout_height="120dp"
-                    android:layout_marginStart="@dimen/spacing_sm"
-                    android:theme="@style/NumberPickerTheme" />
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_arrow_forward"
+                    android:contentDescription="@string/edit_desc"
+                    app:tint="?attr/colorOnSurfaceVariant" />
 
             </LinearLayout>
 
-            <!-- End Time Picker -->
+            <!-- End Time -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="End Time"
                 android:textAppearance="?attr/textAppearanceLabelLarge"
                 android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="When will you complete this session?"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginBottom="@dimen/spacing_sm" />
 
             <LinearLayout
-                android:id="@+id/endTimePickerLayout"
+                android:id="@+id/endTimeRow"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:orientation="horizontal"
-                android:gravity="center"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="@dimen/spacing_md"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:layout_marginBottom="@dimen/spacing_lg">
 
-                <NumberPicker
-                    android:id="@+id/endHourPicker"
-                    android:layout_width="70dp"
-                    android:layout_height="120dp"
-                    android:theme="@style/NumberPickerTheme" />
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_clock"
+                    android:contentDescription="@string/clock_text"
+                    app:tint="?attr/colorPrimary"
+                    android:layout_marginEnd="@dimen/spacing_md" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/endTimeDisplay"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text=":"
-                    android:textSize="24sp"
+                    android:layout_weight="1"
+                    android:text="10:00 AM"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
                     android:textColor="?attr/colorOnSurface"
-                    android:layout_marginHorizontal="4dp" />
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
-                <NumberPicker
-                    android:id="@+id/endMinutePicker"
-                    android:layout_width="70dp"
-                    android:layout_height="120dp"
-                    android:theme="@style/NumberPickerTheme" />
-
-                <NumberPicker
-                    android:id="@+id/endAmPmPicker"
-                    android:layout_width="70dp"
-                    android:layout_height="120dp"
-                    android:layout_marginStart="@dimen/spacing_sm"
-                    android:theme="@style/NumberPickerTheme" />
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_arrow_forward"
+                    android:contentDescription="@string/edit_desc"
+                    app:tint="?attr/colorOnSurfaceVariant" />
 
             </LinearLayout>
 
@@ -198,9 +239,18 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Priority"
+                android:text="Priority Level"
                 android:textAppearance="?attr/textAppearanceLabelLarge"
                 android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="How important is this session to you?"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginBottom="@dimen/spacing_sm" />
 
             <com.google.android.material.chip.ChipGroup
@@ -262,6 +312,24 @@
 
             </com.google.android.material.chip.ChipGroup>
 
+            <!-- Notifications Header -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Notifications"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stay on track with timely reminders"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="@dimen/spacing_sm" />
+
             <!-- Vibration -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -279,14 +347,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Vibration"
+                        android:text="Vibrate"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         android:textColor="?attr/colorOnSurface" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Vibrate on alarm"
+                        android:text="Add haptic feedback to alerts"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginTop="2dp" />
@@ -307,7 +375,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="@dimen/spacing_lg">
+                android:layout_marginBottom="@dimen/spacing_md">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -318,14 +386,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Set Alarm"
+                        android:text="Enable Alerts"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         android:textColor="?attr/colorOnSurface" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Notify at start and end time"
+                        android:text="Get notified at start and end"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginTop="2dp" />
@@ -339,6 +407,42 @@
                     android:checked="true" />
 
             </LinearLayout>
+
+            <!-- Motivational Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                app:cardBackgroundColor="?attr/colorPrimaryContainer"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/spacing_md"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💪"
+                        android:textSize="32sp"
+                        android:layout_marginEnd="@dimen/spacing_md" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Focus is the art of knowing what to ignore. Stay committed!"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnPrimaryContainer"
+                        android:lineSpacingExtra="2dp" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Delete Button (shown only in edit mode) -->
             <com.google.android.material.button.MaterialButton
