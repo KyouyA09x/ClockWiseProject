@@ -40,14 +40,20 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
     private boolean isEditMode = false;
     private Task editingTask = null;
 
+    // Time values
+    private int startHour = 9;
+    private int startMinute = 0;
+    private String startAmPm = "AM";
+    private int endHour = 10;
+    private int endMinute = 0;
+    private String endAmPm = "AM";
+
     // Views
     private TextInputEditText taskNameEditText;
-    private NumberPicker startHourPicker;
-    private NumberPicker startMinutePicker;
-    private NumberPicker startAmPmPicker;
-    private NumberPicker endHourPicker;
-    private NumberPicker endMinutePicker;
-    private NumberPicker endAmPmPicker;
+    private View startTimeRow;
+    private View endTimeRow;
+    private TextView startTimeDisplay;
+    private TextView endTimeDisplay;
     private ChipGroup priorityChipGroup;
     private Chip priorityNone, priorityLow, priorityMedium, priorityHigh;
     private MaterialSwitch vibrationSwitch;
@@ -111,7 +117,6 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         }
 
         initViews(view);
-        setupTimePickers();
         setupClickListeners();
 
         if (isEditMode && editingTask != null) {
@@ -124,13 +129,10 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         closeButton = view.findViewById(R.id.closeButton);
         taskNameEditText = view.findViewById(R.id.taskNameEditText);
         
-        startHourPicker = view.findViewById(R.id.startHourPicker);
-        startMinutePicker = view.findViewById(R.id.startMinutePicker);
-        startAmPmPicker = view.findViewById(R.id.startAmPmPicker);
-        
-        endHourPicker = view.findViewById(R.id.endHourPicker);
-        endMinutePicker = view.findViewById(R.id.endMinutePicker);
-        endAmPmPicker = view.findViewById(R.id.endAmPmPicker);
+        startTimeRow = view.findViewById(R.id.startTimeRow);
+        endTimeRow = view.findViewById(R.id.endTimeRow);
+        startTimeDisplay = view.findViewById(R.id.startTimeDisplay);
+        endTimeDisplay = view.findViewById(R.id.endTimeDisplay);
         
         priorityChipGroup = view.findViewById(R.id.priorityChipGroup);
         priorityNone = view.findViewById(R.id.priorityNone);
@@ -144,40 +146,24 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         deleteButton = view.findViewById(R.id.deleteButton);
         dateText = view.findViewById(R.id.dateText);
 
-        // Update date display
+        // Initialize time displays
+        updateStartTimeDisplay();
+        updateEndTimeDisplay();
         updateDateLabel();
     }
 
-    private void setupTimePickers() {
-        // Start time picker setup
-        startHourPicker.setMinValue(1);
-        startHourPicker.setMaxValue(12);
-        startHourPicker.setValue(9); // Default to 9 AM
+    private void updateStartTimeDisplay() {
+        String timeText = String.format("%d:%02d %s", startHour, startMinute, startAmPm);
+        if (startTimeDisplay != null) {
+            startTimeDisplay.setText(timeText);
+        }
+    }
 
-        startMinutePicker.setMinValue(0);
-        startMinutePicker.setMaxValue(59);
-        startMinutePicker.setFormatter(i -> String.format("%02d", i));
-        startMinutePicker.setValue(0);
-
-        startAmPmPicker.setMinValue(0);
-        startAmPmPicker.setMaxValue(1);
-        startAmPmPicker.setDisplayedValues(new String[]{"AM", "PM"});
-        startAmPmPicker.setValue(0); // AM
-
-        // End time picker setup
-        endHourPicker.setMinValue(1);
-        endHourPicker.setMaxValue(12);
-        endHourPicker.setValue(10); // Default to 10 AM (1 hour later)
-
-        endMinutePicker.setMinValue(0);
-        endMinutePicker.setMaxValue(59);
-        endMinutePicker.setFormatter(i -> String.format("%02d", i));
-        endMinutePicker.setValue(0);
-
-        endAmPmPicker.setMinValue(0);
-        endAmPmPicker.setMaxValue(1);
-        endAmPmPicker.setDisplayedValues(new String[]{"AM", "PM"});
-        endAmPmPicker.setValue(0); // AM
+    private void updateEndTimeDisplay() {
+        String timeText = String.format("%d:%02d %s", endHour, endMinute, endAmPm);
+        if (endTimeDisplay != null) {
+            endTimeDisplay.setText(timeText);
+        }
     }
 
     private void setupClickListeners() {
@@ -186,6 +172,10 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         saveButton.setOnClickListener(v -> saveTask());
 
         deleteButton.setOnClickListener(v -> showDeleteConfirmation());
+
+        startTimeRow.setOnClickListener(v -> showStartTimePicker());
+
+        endTimeRow.setOnClickListener(v -> showEndTimePicker());
 
         if (dateText != null) {
             dateText.setOnClickListener(v -> showDatePicker());
@@ -213,21 +203,23 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
     }
 
     private void populateFieldsForEditing() {
-        titleText.setText("Edit Focus Task");
+        titleText.setText("Edit Focus Session");
         saveButton.setText("Update");
         deleteButton.setVisibility(View.VISIBLE);
 
         taskNameEditText.setText(editingTask.name);
         
         // Set start time
-        startHourPicker.setValue(editingTask.hour);
-        startMinutePicker.setValue(editingTask.minute);
-        startAmPmPicker.setValue(editingTask.amPm != null && editingTask.amPm.equals("PM") ? 1 : 0);
+        startHour = editingTask.hour;
+        startMinute = editingTask.minute;
+        startAmPm = editingTask.amPm != null ? editingTask.amPm : "AM";
+        updateStartTimeDisplay();
 
         // Set end time
-        endHourPicker.setValue(editingTask.endHour);
-        endMinutePicker.setValue(editingTask.endMinute);
-        endAmPmPicker.setValue(editingTask.endAmPm != null && editingTask.endAmPm.equals("PM") ? 1 : 0);
+        endHour = editingTask.endHour;
+        endMinute = editingTask.endMinute;
+        endAmPm = editingTask.endAmPm != null ? editingTask.endAmPm : "AM";
+        updateEndTimeDisplay();
 
         // Set priority chip
         if (editingTask.urgency != null) {
@@ -267,24 +259,14 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         String taskName = taskNameEditText.getText() != null ? taskNameEditText.getText().toString().trim() : "";
 
         if (taskName.isEmpty()) {
-            Toast.makeText(requireContext(), "Please enter a task name", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Please name your focus session 📝", Toast.LENGTH_SHORT).show();
             taskNameEditText.requestFocus();
             return;
         }
 
-        // Get start time
-        int startHour = startHourPicker.getValue();
-        int startMinute = startMinutePicker.getValue();
-        String startAmPm = startAmPmPicker.getDisplayedValues()[startAmPmPicker.getValue()];
-
-        // Get end time
-        int endHour = endHourPicker.getValue();
-        int endMinute = endMinutePicker.getValue();
-        String endAmPm = endAmPmPicker.getDisplayedValues()[endAmPmPicker.getValue()];
-
         // Validate time range
         if (!isValidTimeRange(startHour, startMinute, startAmPm, endHour, endMinute, endAmPm)) {
-            Toast.makeText(requireContext(), "End time must be after start time", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "⏰ End time must be after start time", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -325,7 +307,7 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
                 AlarmHelper.scheduleFocusTaskAlarms(requireContext(), editingTask);
             }
 
-            Toast.makeText(requireContext(), "Focus Task updated!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "🎯 Focus session updated! Let's crush it!", Toast.LENGTH_SHORT).show();
         } else {
             // Create new Focus Task
             Task focusTask = new Task(taskName, startHour, startMinute, startAmPm,
@@ -342,7 +324,7 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
                 AlarmHelper.scheduleFocusTaskAlarms(requireContext(), focusTask);
             }
 
-            Toast.makeText(requireContext(), "Focus Task saved!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "🎯 Focus session created! You've got this!", Toast.LENGTH_SHORT).show();
         }
 
         if (listener != null) {
@@ -390,10 +372,80 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         }
     }
 
+    private void showStartTimePicker() {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_time_picker, null);
+        
+        NumberPicker hourPicker = dialogView.findViewById(R.id.hourPicker);
+        NumberPicker minutePicker = dialogView.findViewById(R.id.minutePicker);
+        NumberPicker amPmPicker = dialogView.findViewById(R.id.amPmPicker);
+        
+        // Setup pickers
+        hourPicker.setMinValue(1);
+        hourPicker.setMaxValue(12);
+        hourPicker.setValue(startHour);
+        
+        minutePicker.setMinValue(0);
+        minutePicker.setMaxValue(59);
+        minutePicker.setFormatter(i -> String.format("%02d", i));
+        minutePicker.setValue(startMinute);
+        
+        amPmPicker.setMinValue(0);
+        amPmPicker.setMaxValue(1);
+        amPmPicker.setDisplayedValues(new String[]{"AM", "PM"});
+        amPmPicker.setValue(startAmPm.equals("PM") ? 1 : 0);
+        
+        builder.setView(dialogView)
+               .setTitle("⏰ When do you start?")
+               .setPositiveButton("Set", (dialog, which) -> {
+                   startHour = hourPicker.getValue();
+                   startMinute = minutePicker.getValue();
+                   startAmPm = amPmPicker.getDisplayedValues()[amPmPicker.getValue()];
+                   updateStartTimeDisplay();
+               })
+               .setNegativeButton("Cancel", null)
+               .show();
+    }
+
+    private void showEndTimePicker() {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_time_picker, null);
+        
+        NumberPicker hourPicker = dialogView.findViewById(R.id.hourPicker);
+        NumberPicker minutePicker = dialogView.findViewById(R.id.minutePicker);
+        NumberPicker amPmPicker = dialogView.findViewById(R.id.amPmPicker);
+        
+        // Setup pickers
+        hourPicker.setMinValue(1);
+        hourPicker.setMaxValue(12);
+        hourPicker.setValue(endHour);
+        
+        minutePicker.setMinValue(0);
+        minutePicker.setMaxValue(59);
+        minutePicker.setFormatter(i -> String.format("%02d", i));
+        minutePicker.setValue(endMinute);
+        
+        amPmPicker.setMinValue(0);
+        amPmPicker.setMaxValue(1);
+        amPmPicker.setDisplayedValues(new String[]{"AM", "PM"});
+        amPmPicker.setValue(endAmPm.equals("PM") ? 1 : 0);
+        
+        builder.setView(dialogView)
+               .setTitle("⏰ When do you finish?")
+               .setPositiveButton("Set", (dialog, which) -> {
+                   endHour = hourPicker.getValue();
+                   endMinute = minutePicker.getValue();
+                   endAmPm = amPmPicker.getDisplayedValues()[amPmPicker.getValue()];
+                   updateEndTimeDisplay();
+               })
+               .setNegativeButton("Cancel", null)
+               .show();
+    }
+
     private void showDeleteConfirmation() {
         new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle("Delete Focus Task")
-                .setMessage("Are you sure you want to delete this focus task?")
+                .setTitle("Delete Focus Session")
+                .setMessage("Are you sure you want to delete this focus session?")
                 .setPositiveButton("Delete", (dialog, which) -> deleteTask())
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -407,7 +459,7 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
             // Delete from database
             taskRepository.deleteTask(editingTask);
             
-            Toast.makeText(requireContext(), "Focus Task deleted", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Focus session deleted", Toast.LENGTH_SHORT).show();
             
             if (listener != null) {
                 listener.onTaskSaved();

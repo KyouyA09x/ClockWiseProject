@@ -4,13 +4,10 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
-import android.app.DatePickerDialog;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.TextView;
@@ -26,23 +23,30 @@ public class EditFocusTaskActivity extends AppCompatActivity {
 
     private Button cancelButton;
     private Button saveButton;
-    private NumberPicker startHourPicker, startMinutePicker, startAmPmPicker;
-    private NumberPicker endHourPicker, endMinutePicker, endAmPmPicker;
+    
+    // Time display views
+    private LinearLayout startTimeRow;
+    private LinearLayout endTimeRow;
+    private TextView startTimeDisplay;
+    private TextView endTimeDisplay;
+    
+    // Time values
+    private int startHour = 9;
+    private int startMinute = 0;
+    private String startAmPm = "AM";
+    private int endHour = 10;
+    private int endMinute = 0;
+    private String endAmPm = "AM";
+    
     private EditText labelEditText;
-    private ImageButton clearLabelButton;
-    private LinearLayout urgencyLayout;
-    private TextView urgencyValueText;
-    private LinearLayout vibrationLayout;
-    private SwitchCompat vibrationSwitch;
-    private LinearLayout dateRow;
-    private TextView dateValue;
-    private TextView addTaskTitle;
+    private TextView repeatDaysText;
+    private SwitchCompat alarmSwitch;
+    private boolean[] selectedDays = new boolean[7];
 
     private Calendar selectedDate = Calendar.getInstance();
     private String selectedUrgency = "None";
     private TaskRepository taskRepository;
     private Task existingTask;
-    private int taskId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +60,7 @@ public class EditFocusTaskActivity extends AppCompatActivity {
         taskRepository.initialize(this);
 
         // Get task ID from intent
-        taskId = getIntent().getIntExtra("task_id", -1);
+        int taskId = getIntent().getIntExtra("task_id", -1);
         if (taskId == -1) {
             Toast.makeText(this, "Error: Task not found", Toast.LENGTH_SHORT).show();
             finish();
@@ -72,61 +76,37 @@ public class EditFocusTaskActivity extends AppCompatActivity {
         }
 
         initViews();
+        setupClickListeners();
         populateWithExistingTask();
-        setupListeners();
     }
 
     private void initViews() {
         cancelButton = findViewById(R.id.cancelButton);
         saveButton = findViewById(R.id.saveButton);
 
-        startHourPicker = findViewById(R.id.startHourPicker);
-        startMinutePicker = findViewById(R.id.startMinutePicker);
-        startAmPmPicker = findViewById(R.id.startAmPmPicker);
+        startTimeRow = findViewById(R.id.startTimeRow);
+        endTimeRow = findViewById(R.id.endTimeRow);
+        startTimeDisplay = findViewById(R.id.startTimeDisplay);
+        endTimeDisplay = findViewById(R.id.endTimeDisplay);
 
-        endHourPicker = findViewById(R.id.endHourPicker);
-        endMinutePicker = findViewById(R.id.endMinutePicker);
-        endAmPmPicker = findViewById(R.id.endAmPmPicker);
+        labelEditText = findViewById(R.id.taskNameEditText);
+        repeatDaysText = findViewById(R.id.repeatDaysText);
+        alarmSwitch = findViewById(R.id.alarmSwitch);
 
-        labelEditText = findViewById(R.id.labelEditText);
-        clearLabelButton = findViewById(R.id.clearLabelButton);
-        // urgencyLayout = findViewById(R.id.urgencyLayout);
-        // urgencyValueText = findViewById(R.id.urgencyValueText);
-        // vibrationLayout = findViewById(R.id.vibrationLayout);
-        // vibrationSwitch = findViewById(R.id.vibrationSwitch);
-        // dateRow = findViewById(R.id.dateRow);
-        // dateValue = findViewById(R.id.dateValue);
-        addTaskTitle = findViewById(R.id.addTaskTitle);
-
-        // Change title to "Edit Focus Task"
-        if (addTaskTitle != null) {
-            addTaskTitle.setText("Edit Focus Task");
-        }
-
-        // Setup pickers
-        setupTimePickers();
+        // Initialize time displays
+        updateStartTimeDisplay();
+        updateEndTimeDisplay();
+        updateRepeatText();
     }
 
-    private void setupTimePickers() {
-        // Start time pickers
-        startHourPicker.setMinValue(1);
-        startHourPicker.setMaxValue(12);
-        startMinutePicker.setMinValue(0);
-        startMinutePicker.setMaxValue(59);
-        startMinutePicker.setFormatter(i -> String.format("%02d", i));
-        startAmPmPicker.setMinValue(0);
-        startAmPmPicker.setMaxValue(1);
-        startAmPmPicker.setDisplayedValues(new String[]{"AM", "PM"});
-
-        // End time pickers
-        endHourPicker.setMinValue(1);
-        endHourPicker.setMaxValue(12);
-        endMinutePicker.setMinValue(0);
-        endMinutePicker.setMaxValue(59);
-        endMinutePicker.setFormatter(i -> String.format("%02d", i));
-        endAmPmPicker.setMinValue(0);
-        endAmPmPicker.setMaxValue(1);
-        endAmPmPicker.setDisplayedValues(new String[]{"AM", "PM"});
+    private void updateStartTimeDisplay() {
+        String timeText = String.format(Locale.getDefault(), "%d:%02d %s", startHour, startMinute, startAmPm);
+        startTimeDisplay.setText(timeText);
+    }
+    
+    private void updateEndTimeDisplay() {
+        String timeText = String.format(Locale.getDefault(), "%d:%02d %s", endHour, endMinute, endAmPm);
+        endTimeDisplay.setText(timeText);
     }
 
     private void populateWithExistingTask() {
@@ -134,21 +114,28 @@ public class EditFocusTaskActivity extends AppCompatActivity {
         labelEditText.setText(existingTask.name);
 
         // Set start time
-        startHourPicker.setValue(existingTask.hour);
-        startMinutePicker.setValue(existingTask.minute);
-        startAmPmPicker.setValue(existingTask.amPm != null && existingTask.amPm.equals("PM") ? 1 : 0);
+        startHour = existingTask.hour;
+        startMinute = existingTask.minute;
+        startAmPm = existingTask.amPm != null ? existingTask.amPm : "AM";
+        updateStartTimeDisplay();
 
         // Set end time
-        endHourPicker.setValue(existingTask.endHour);
-        endMinutePicker.setValue(existingTask.endMinute);
-        endAmPmPicker.setValue(existingTask.endAmPm != null && existingTask.endAmPm.equals("PM") ? 1 : 0);
+        endHour = existingTask.endHour;
+        endMinute = existingTask.endMinute;
+        endAmPm = existingTask.endAmPm != null ? existingTask.endAmPm : "AM";
+        updateEndTimeDisplay();
 
         // Set urgency
         selectedUrgency = existingTask.urgency != null ? existingTask.urgency : "None";
-        urgencyValueText.setText(selectedUrgency);
 
-        // Set vibration
-        vibrationSwitch.setChecked(existingTask.vibrationEnabled);
+        // Set repeat days
+        if (existingTask.selectedDays != null) {
+            selectedDays = existingTask.selectedDays.clone();
+            updateRepeatText();
+        }
+
+        // Set alarm
+        alarmSwitch.setChecked(existingTask.isAlarmOn);
 
         // Set date
         if (existingTask.date != null) {
@@ -162,46 +149,51 @@ public class EditFocusTaskActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
-        updateDateLabel();
     }
 
-    private void setupListeners() {
+    private void setupClickListeners() {
         cancelButton.setOnClickListener(v -> finish());
 
         saveButton.setOnClickListener(v -> saveTask());
 
-        dateRow.setOnClickListener(v -> showDatePicker());
+        startTimeRow.setOnClickListener(v -> showStartTimePicker());
 
-        urgencyLayout.setOnClickListener(v -> showUrgencyDialog());
+        endTimeRow.setOnClickListener(v -> showEndTimePicker());
 
-        vibrationLayout.setOnClickListener(v -> vibrationSwitch.toggle());
+        repeatDaysText.setOnClickListener(v -> showRepeatDialog());
 
-        vibrationSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            Toast.makeText(this, "Vibration is " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
-        });
-
-        clearLabelButton.setOnClickListener(v -> labelEditText.setText(""));
+        alarmSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> 
+            Toast.makeText(this, isChecked ? "🔔 Alerts enabled - we'll keep you on track!" : "🔕 Alerts disabled", Toast.LENGTH_SHORT).show()
+        );
     }
 
     private void saveTask() {
-        String taskName = labelEditText.getText().toString();
+        String taskName = labelEditText.getText().toString().trim();
+
         if (taskName.isEmpty()) {
-            Toast.makeText(this, "Please enter a task name", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please name your focus session 📝", Toast.LENGTH_SHORT).show();
+            labelEditText.requestFocus();
             return;
         }
 
-        int startHour = startHourPicker.getValue();
-        int startMinute = startMinutePicker.getValue();
-        String startAmPm = startAmPmPicker.getDisplayedValues()[startAmPmPicker.getValue()];
-
-        int endHour = endHourPicker.getValue();
-        int endMinute = endMinutePicker.getValue();
-        String endAmPm = endAmPmPicker.getDisplayedValues()[endAmPmPicker.getValue()];
-
         // Validate time range
         if (!isValidTimeRange(startHour, startMinute, startAmPm, endHour, endMinute, endAmPm)) {
-            Toast.makeText(this, "End time must be after start time", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "⏰ End time must be after start time", Toast.LENGTH_SHORT).show();
             return;
+        }
+
+        // Set date
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String dateStr = sdf.format(selectedDate.getTime());
+
+        // Determine time category based on start time
+        String timeCategory;
+        if (startAmPm.equals("AM")) {
+            timeCategory = "morning";
+        } else if (startHour == 12 || (startHour >= 1 && startHour < 6)) {
+            timeCategory = "afternoon";
+        } else {
+            timeCategory = "night";
         }
 
         // Cancel old alarms first
@@ -216,30 +208,19 @@ public class EditFocusTaskActivity extends AppCompatActivity {
         existingTask.endMinute = endMinute;
         existingTask.endAmPm = endAmPm;
         existingTask.urgency = selectedUrgency;
-        existingTask.vibrationEnabled = vibrationSwitch.isChecked();
+        existingTask.date = dateStr;
+        existingTask.timeCategory = timeCategory;
+        existingTask.selectedDays = selectedDays;
+        existingTask.isAlarmOn = alarmSwitch.isChecked();
 
-        // Update date
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        existingTask.date = sdf.format(selectedDate.getTime());
-
-        // Update time category
-        if (startAmPm.equals("AM")) {
-            existingTask.timeCategory = "morning";
-        } else if (startHour == 12 || (startHour >= 1 && startHour < 6)) {
-            existingTask.timeCategory = "afternoon";
-        } else {
-            existingTask.timeCategory = "night";
-        }
-
-        // Save to database
         taskRepository.updateTask(existingTask);
 
-        // Reschedule alarms if enabled
+        // Schedule new alarms if enabled
         if (existingTask.isAlarmOn) {
             AlarmHelper.scheduleFocusTaskAlarms(this, existingTask);
         }
 
-        Toast.makeText(this, "Focus Task updated!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "🎯 Focus session updated! Let's crush it!", Toast.LENGTH_SHORT).show();
         setResult(RESULT_OK);
         finish();
     }
@@ -259,51 +240,108 @@ public class EditFocusTaskActivity extends AppCompatActivity {
         }
     }
 
-    private void showDatePicker() {
-        DatePickerDialog datePickerDialog = new DatePickerDialog(
-                this,
-                (view, year, month, dayOfMonth) -> {
-                    selectedDate.set(Calendar.YEAR, year);
-                    selectedDate.set(Calendar.MONTH, month);
-                    selectedDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                    updateDateLabel();
-                },
-                selectedDate.get(Calendar.YEAR),
-                selectedDate.get(Calendar.MONTH),
-                selectedDate.get(Calendar.DAY_OF_MONTH)
-        );
-        datePickerDialog.show();
-    }
-
-    private void updateDateLabel() {
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy", Locale.getDefault());
-        dateValue.setText(sdf.format(selectedDate.getTime()));
-    }
-
-    private void showUrgencyDialog() {
+    private void showStartTimePicker() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = this.getLayoutInflater();
-        View customTitleView = inflater.inflate(R.layout.dialog_custom_title, null);
-        TextView dialogTitle = customTitleView.findViewById(R.id.dialogTitle);
-        dialogTitle.setText("Priority");
-        ImageButton dialogCancelButton = customTitleView.findViewById(R.id.dialogCancelButton);
-        builder.setCustomTitle(customTitleView);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_time_picker, null);
+        
+        NumberPicker hourPicker = dialogView.findViewById(R.id.hourPicker);
+        NumberPicker minutePicker = dialogView.findViewById(R.id.minutePicker);
+        NumberPicker amPmPicker = dialogView.findViewById(R.id.amPmPicker);
+        
+        // Setup pickers
+        hourPicker.setMinValue(1);
+        hourPicker.setMaxValue(12);
+        hourPicker.setValue(startHour);
+        
+        minutePicker.setMinValue(0);
+        minutePicker.setMaxValue(59);
+        minutePicker.setFormatter(i -> String.format(Locale.getDefault(), "%02d", i));
+        minutePicker.setValue(startMinute);
+        
+        amPmPicker.setMinValue(0);
+        amPmPicker.setMaxValue(1);
+        amPmPicker.setDisplayedValues(new String[]{"AM", "PM"});
+        amPmPicker.setValue(startAmPm.equals("PM") ? 1 : 0);
+        
+        builder.setView(dialogView)
+               .setTitle("⏰ When do you start?")
+               .setPositiveButton("Set", (dialog, which) -> {
+                   startHour = hourPicker.getValue();
+                   startMinute = minutePicker.getValue();
+                   startAmPm = amPmPicker.getDisplayedValues()[amPmPicker.getValue()];
+                   updateStartTimeDisplay();
+               })
+               .setNegativeButton("Cancel", null)
+               .show();
+    }
+    
+    private void showEndTimePicker() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_time_picker, null);
+        
+        NumberPicker hourPicker = dialogView.findViewById(R.id.hourPicker);
+        NumberPicker minutePicker = dialogView.findViewById(R.id.minutePicker);
+        NumberPicker amPmPicker = dialogView.findViewById(R.id.amPmPicker);
+        
+        // Setup pickers
+        hourPicker.setMinValue(1);
+        hourPicker.setMaxValue(12);
+        hourPicker.setValue(endHour);
+        
+        minutePicker.setMinValue(0);
+        minutePicker.setMaxValue(59);
+        minutePicker.setFormatter(i -> String.format(Locale.getDefault(), "%02d", i));
+        minutePicker.setValue(endMinute);
+        
+        amPmPicker.setMinValue(0);
+        amPmPicker.setMaxValue(1);
+        amPmPicker.setDisplayedValues(new String[]{"AM", "PM"});
+        amPmPicker.setValue(endAmPm.equals("PM") ? 1 : 0);
+        
+        builder.setView(dialogView)
+               .setTitle("⏰ When do you finish?")
+               .setPositiveButton("Set", (dialog, which) -> {
+                   endHour = hourPicker.getValue();
+                   endMinute = minutePicker.getValue();
+                   endAmPm = amPmPicker.getDisplayedValues()[amPmPicker.getValue()];
+                   updateEndTimeDisplay();
+               })
+               .setNegativeButton("Cancel", null)
+               .show();
+    }
+    
+    private void showRepeatDialog() {
+        String[] daysOfWeek = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+        
+        new AlertDialog.Builder(this)
+                .setTitle("🔁 Choose your focus days")
+                .setMultiChoiceItems(daysOfWeek, selectedDays, (dialog, which, isChecked) -> 
+                    selectedDays[which] = isChecked
+                )
+                .setPositiveButton("Done", (dialog, which) -> updateRepeatText())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+    
+    private void updateRepeatText() {
+        String[] daysShort = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+        java.util.ArrayList<String> selectedDayNames = new java.util.ArrayList<>();
+        int selectedCount = 0;
 
-        String[] urgencyLevels = {"None", "Low", "Medium", "High"};
-        builder.setItems(urgencyLevels, (dialog, which) -> {
-            selectedUrgency = urgencyLevels[which];
-            urgencyValueText.setText(selectedUrgency);
-
-            // Auto-enable vibration for high priority
-            if (selectedUrgency.equals("High")) {
-                vibrationSwitch.setChecked(true);
+        for (int i = 0; i < selectedDays.length; i++) {
+            if (selectedDays[i]) {
+                selectedDayNames.add(daysShort[i]);
+                selectedCount++;
             }
-        });
+        }
 
-        AlertDialog dialog = builder.create();
-        dialogCancelButton.setOnClickListener(v -> dialog.dismiss());
-        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
-        dialog.show();
+        if (selectedCount == 7) {
+            repeatDaysText.setText("Every day");
+        } else if (selectedCount == 0) {
+            repeatDaysText.setText("Never");
+        } else {
+            repeatDaysText.setText(String.join(", ", selectedDayNames));
+        }
     }
 }
 

@@ -43,11 +43,17 @@ public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
     private MaterialToolbar topBar;
-    private NavigationView navigationView;
-    private ExtendedFloatingActionButton fabAddTask;
+    private com.google.android.material.navigation.NavigationView navigationView;
+    private com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton fabAddTask;
     private View progressTracker;
     private View emptyStateCard;
     private View tasksContainerCard;
+    private View upcomingFocusCard;
+    private LinearLayout upcomingFocusTasksContainer;
+    private TextView upcomingCount;
+    private com.google.android.material.button.MaterialButton viewAllUpcomingButton;
+    private LinearLayout focusTasksSection;
+    private LinearLayout focusTasksContainer;
     private LinearLayout morningTasksContainer;
     private LinearLayout afternoonTasksContainer;
     private LinearLayout nightTasksContainer;
@@ -58,17 +64,18 @@ public class MainActivity extends AppCompatActivity {
     private TextView taskCountText;
     private LinearProgressIndicator progressBar;
     private TextView completionText;
+    private android.view.MenuItem calendarMenuItem;
 
     private TaskRepository taskRepository;
     private ArrayList<Task> completedTasksToday = new ArrayList<>();
     private boolean isReceiverRegistered = false;
 
-    private BroadcastReceiver taskCompletionReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver taskCompletionReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             // Refresh task list immediately when a task is completed
             taskRepository.refreshTasks();
-            updateTaskLists();
+            refreshAllFragments();
         }
     };
 
@@ -85,19 +92,27 @@ public class MainActivity extends AppCompatActivity {
         topBar = findViewById(R.id.topBar);
         navigationView = findViewById(R.id.navigationView);
         fabAddTask = findViewById(R.id.fabAddTask);
-        progressTracker = findViewById(R.id.progressTracker);
-        emptyStateCard = findViewById(R.id.emptyStateCard);
-        tasksContainerCard = findViewById(R.id.tasksContainerCard);
-        morningTasksContainer = findViewById(R.id.morningTasksContainer);
-        afternoonTasksContainer = findViewById(R.id.afternoonTasksContainer);
-        nightTasksContainer = findViewById(R.id.nightTasksContainer);
-        emptyTasksText = findViewById(R.id.emptyTasksText);
-        morningTasksHeader = findViewById(R.id.morningTasksHeader);
-        afternoonTasksHeader = findViewById(R.id.afternoonTasksHeader);
-        nightTasksHeader = findViewById(R.id.nightTasksHeader);
-        taskCountText = findViewById(R.id.taskCountText);
-        progressBar = findViewById(R.id.progressBar);
-        completionText = findViewById(R.id.completionText);
+
+        // Setup ViewPager2 and TabLayout
+        androidx.viewpager2.widget.ViewPager2 viewPager = findViewById(R.id.viewPager);
+        com.google.android.material.tabs.TabLayout tabLayout = findViewById(R.id.tabLayout);
+
+        TasksViewPagerAdapter adapter = new TasksViewPagerAdapter(this);
+        viewPager.setAdapter(adapter);
+
+        // Link TabLayout with ViewPager2
+        new com.google.android.material.tabs.TabLayoutMediator(tabLayout, viewPager,
+                (tab, position) -> {
+                    switch (position) {
+                        case 0:
+                            tab.setText("📋 Current Tasks");
+                            break;
+                        case 1:
+                            tab.setText("📅 Upcoming");
+                            break;
+                    }
+                }
+        ).attach();
 
         // Disable edge swiping - only open via hamburger button
         if (drawerLayout != null) {
@@ -111,7 +126,9 @@ public class MainActivity extends AppCompatActivity {
         requestNotificationPermission();
 
         // FAB - shows task type chooser
-        fabAddTask.setOnClickListener(v -> showTaskTypeChooser());
+        if (fabAddTask != null) {
+            fabAddTask.setOnClickListener(v -> showTaskTypeChooser());
+        }
 
         // Setup toolbar navigation
         if (topBar != null) {
@@ -153,12 +170,34 @@ public class MainActivity extends AppCompatActivity {
         // Set up navigation drawer
         setupNavigationDrawer();
 
-        // Progress tracker - shows completed tasks for today
-        if (progressTracker != null) {
-            progressTracker.setOnClickListener(v -> showCompletedTasksDialog());
-        }
+        // Setup navigation drawer
+        setupNavigationDrawer();
+    }
 
-        updateTaskLists();
+    private void refreshAllFragments() {
+        // Refresh fragments when activity resumes
+        for (androidx.fragment.app.Fragment fragment : getSupportFragmentManager().getFragments()) {
+            if (fragment instanceof CurrentTasksFragment) {
+                ((CurrentTasksFragment) fragment).refreshTasks();
+            } else if (fragment instanceof UpcomingTasksFragment) {
+                ((UpcomingTasksFragment) fragment).refreshTasks();
+            }
+        }
+    }
+
+    public void showCompletedDialog() {
+        showCompletedTasksDialog();
+    }
+    
+    public void triggerShowCompletedTasksDialog() {
+        showCompletedTasksDialog();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        taskRepository.refreshTasks();
+        refreshAllFragments();
     }
 
     private void showTaskTypeChooser() {
@@ -197,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
         }
         bottomSheet.setOnTaskSavedListener(() -> {
             taskRepository.refreshTasks();
-            updateTaskLists();
+            refreshAllFragments();
         });
         bottomSheet.show(getSupportFragmentManager(), "AddReminderBottomSheet");
     }
@@ -211,142 +250,301 @@ public class MainActivity extends AppCompatActivity {
         }
         bottomSheet.setOnTaskSavedListener(() -> {
             taskRepository.refreshTasks();
-            updateTaskLists();
+            refreshAllFragments();
         });
         bottomSheet.show(getSupportFragmentManager(), "AddFocusTaskBottomSheet");
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Refresh tasks from database
-        taskRepository.refreshTasks();
-        updateTaskLists();
+    private View createFocusTaskView(final Task task) {
+        if (task == null) return new View(this);
+        
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View taskView = inflater.inflate(R.layout.focus_task_item, null, false);
 
-        // Register receiver for task completion (only if not already registered)
-        if (!isReceiverRegistered) {
-            try {
-                IntentFilter filter = new IntentFilter(ACTION_TASK_COMPLETED);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    registerReceiver(taskCompletionReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
-                } else {
-                    registerReceiver(taskCompletionReceiver, filter);
+        // Set layout params
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        int marginHorizontal = (int) (16 * getResources().getDisplayMetrics().density);
+        int marginVertical = (int) (12 * getResources().getDisplayMetrics().density);
+        layoutParams.setMargins(marginHorizontal, marginVertical, marginHorizontal, marginVertical);
+        taskView.setLayoutParams(layoutParams);
+
+        // Get views
+        TextView taskNameTextView = taskView.findViewById(R.id.taskName);
+        TextView taskTimeTextView = taskView.findViewById(R.id.taskTime);
+        TextView fullDateText = taskView.findViewById(R.id.fullDateText);
+        TextView timeRangeText = taskView.findViewById(R.id.timeRangeText);
+        TextView repeatDaysText = taskView.findViewById(R.id.repeatDaysText);
+        TextView priorityText = taskView.findViewById(R.id.priorityText);
+        TextView alarmStatusText = taskView.findViewById(R.id.alarmStatusText);
+        android.widget.ImageView expandIcon = taskView.findViewById(R.id.expandIcon);
+        
+        if (taskNameTextView == null || taskTimeTextView == null) return taskView;
+        android.widget.ImageView priorityIcon = taskView.findViewById(R.id.priorityIcon);
+        View expandableDetails = taskView.findViewById(R.id.expandableDetails);
+        View repeatSection = taskView.findViewById(R.id.repeatSection);
+        View prioritySection = taskView.findViewById(R.id.prioritySection);
+        SwitchCompat taskSwitch = taskView.findViewById(R.id.taskSwitch);
+        final View taskContent = taskView.findViewById(R.id.taskContent);
+
+        // Set basic info
+        taskNameTextView.setText(task.name);
+        String timeRange = String.format(java.util.Locale.getDefault(), "%d:%02d %s → %d:%02d %s",
+                task.hour, task.minute, task.amPm != null ? task.amPm : "AM",
+                task.endHour, task.endMinute, task.endAmPm != null ? task.endAmPm : "AM");
+        taskTimeTextView.setText(timeRange);
+
+        // Set verbose date information
+        try {
+            java.text.SimpleDateFormat inputFormat = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+            java.text.SimpleDateFormat outputFormat = new java.text.SimpleDateFormat("EEEE, MMMM d, yyyy", java.util.Locale.getDefault());
+            java.util.Date date = inputFormat.parse(task.date);
+            if (date != null && fullDateText != null) {
+                fullDateText.setText(outputFormat.format(date));
+            }
+        } catch (Exception e) {
+            if (fullDateText != null) fullDateText.setText(task.date);
+        }
+
+        // Calculate duration
+        int startMinutes = convertTo24Hour(task.hour, task.amPm) * 60 + task.minute;
+        int endMinutes = convertTo24Hour(task.endHour, task.endAmPm) * 60 + task.endMinute;
+        int durationMinutes = endMinutes - startMinutes;
+        int hours = durationMinutes / 60;
+        int minutes = durationMinutes % 60;
+        String duration = hours > 0 ? String.format(java.util.Locale.getDefault(), "%d hour%s", hours, hours > 1 ? "s" : "") : "";
+        if (minutes > 0) {
+            duration += (hours > 0 ? " " : "") + String.format(java.util.Locale.getDefault(), "%d min", minutes);
+        }
+        if (timeRangeText != null) {
+            timeRangeText.setText(timeRange + " (" + duration + ")");
+        }
+
+        // Set repeat days
+        if (task.selectedDays != null && repeatDaysText != null && repeatSection != null) {
+            ArrayList<String> selectedDayNames = new ArrayList<>();
+            String[] daysOfWeek = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+            for (int i = 0; i < task.selectedDays.length; i++) {
+                if (task.selectedDays[i]) {
+                    selectedDayNames.add(daysOfWeek[i]);
                 }
-                isReceiverRegistered = true;
-            } catch (Exception e) {
-                android.util.Log.e("MainActivity", "Error registering receiver", e);
             }
+            if (!selectedDayNames.isEmpty()) {
+                repeatSection.setVisibility(View.VISIBLE);
+                repeatDaysText.setText("Repeats: " + String.join(", ", selectedDayNames));
+            }
+        }
+
+        // Set priority
+        if (task.urgency != null && !task.urgency.equals("None") && prioritySection != null && priorityText != null && priorityIcon != null) {
+            prioritySection.setVisibility(View.VISIBLE);
+            priorityText.setText("Priority: " + task.urgency);
+            switch (task.urgency.toLowerCase()) {
+                case "high":
+                    priorityIcon.setImageResource(R.drawable.ic_priority_high);
+                    priorityIcon.setColorFilter(androidx.core.content.ContextCompat.getColor(this, R.color.error));
+                    break;
+                case "medium":
+                    priorityIcon.setImageResource(R.drawable.ic_priority_medium);
+                    priorityIcon.setColorFilter(androidx.core.content.ContextCompat.getColor(this, R.color.warning));
+                    break;
+                case "low":
+                    priorityIcon.setImageResource(R.drawable.ic_priority_low);
+                    priorityIcon.setColorFilter(androidx.core.content.ContextCompat.getColor(this, R.color.success));
+                    break;
+            }
+        }
+
+        // Set alarm status
+        if (alarmStatusText != null) {
+            alarmStatusText.setText(task.isAlarmOn ? "Notifications enabled" : "Notifications disabled");
+        }
+
+        // Handle expand/collapse with smooth animation
+        final boolean[] isExpanded = {false};
+        if (taskContent != null && expandableDetails != null && expandIcon != null) {
+            taskContent.setOnClickListener(v -> {
+                if (isExpanded[0]) {
+                    // Collapse
+                    android.view.ViewGroup.LayoutParams params = expandableDetails.getLayoutParams();
+                    android.animation.ValueAnimator animator = android.animation.ValueAnimator.ofInt(expandableDetails.getHeight(), 0);
+                    animator.addUpdateListener(animation -> {
+                        params.height = (int) animation.getAnimatedValue();
+                        expandableDetails.setLayoutParams(params);
+                    });
+                    animator.addListener(new android.animation.AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(android.animation.Animator animation) {
+                            expandableDetails.setVisibility(View.GONE);
+                        }
+                    });
+                    animator.setDuration(300);
+                    animator.start();
+                    expandIcon.animate().rotation(90).setDuration(300).start();
+                    isExpanded[0] = false;
+                } else {
+                    // Expand
+                    expandableDetails.setVisibility(View.VISIBLE);
+                    expandableDetails.measure(
+                            View.MeasureSpec.makeMeasureSpec(((View)expandableDetails.getParent()).getWidth(), View.MeasureSpec.EXACTLY),
+                            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                    );
+                    int targetHeight = expandableDetails.getMeasuredHeight();
+                    android.view.ViewGroup.LayoutParams params = expandableDetails.getLayoutParams();
+                    params.height = 0;
+                    expandableDetails.setLayoutParams(params);
+                    android.animation.ValueAnimator animator = android.animation.ValueAnimator.ofInt(0, targetHeight);
+                    animator.addUpdateListener(animation -> {
+                        params.height = (int) animation.getAnimatedValue();
+                        expandableDetails.setLayoutParams(params);
+                    });
+                    animator.setDuration(300);
+                    animator.start();
+                    expandIcon.animate().rotation(270).setDuration(300).start();
+                    isExpanded[0] = true;
+                }
+            });
+        }
+
+        // Delete button
+        com.google.android.material.button.MaterialButton deleteButton = taskView.findViewById(R.id.deleteButton);
+        if (deleteButton != null) {
+            deleteButton.setOnClickListener(v -> {
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Delete Focus Session")
+                    .setMessage("Are you sure you want to delete \"" + task.name + "\"?")
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        AlarmHelper.cancelFocusTaskAlarms(this, task);
+                        taskRepository.deleteTask(task);
+                        taskRepository.refreshTasks();
+                        refreshAllFragments();
+                        Toast.makeText(this, "Focus session deleted", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            });
+        }
+
+        // Handle task switch
+        if (taskSwitch != null) {
+            taskSwitch.setChecked(task.isAlarmOn);
+            taskSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                task.isAlarmOn = isChecked;
+                taskRepository.updateTask(task);
+                if (alarmStatusText != null) {
+                    alarmStatusText.setText(isChecked ? "Notifications enabled" : "Notifications disabled");
+                }
+                if (isChecked) {
+                    AlarmHelper.scheduleFocusTaskAlarms(this, task);
+                    Toast.makeText(this, "🔔 Alerts enabled for " + task.name, Toast.LENGTH_SHORT).show();
+                } else {
+                    AlarmHelper.cancelFocusTaskAlarms(this, task);
+                    Toast.makeText(this, "🔕 Alerts disabled for " + task.name, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        return taskView;
+    }
+
+    private int convertTo24Hour(int hour, String amPm) {
+        if (amPm != null && amPm.equals("AM")) {
+            return hour == 12 ? 0 : hour;
+        } else {
+            return hour == 12 ? 12 : hour + 12;
         }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        // Unregister receiver to prevent leaks (only if registered)
-        if (isReceiverRegistered) {
+    private View createUpcomingFocusTaskView(final Task task) {
+        if (task == null) return new View(this);
+        
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View taskView = inflater.inflate(R.layout.task_item, null, false);
+
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        int margin = (int) (8 * getResources().getDisplayMetrics().density);
+        layoutParams.setMargins(margin, margin, margin, margin);
+        taskView.setLayoutParams(layoutParams);
+
+        TextView taskNameTextView = taskView.findViewById(R.id.taskName);
+        TextView taskTimeTextView = taskView.findViewById(R.id.taskTime);
+        android.widget.ImageView taskTypeIcon = taskView.findViewById(R.id.taskTypeIcon);
+        View taskContent = taskView.findViewById(R.id.taskContent);
+        View normalModeLayout = taskView.findViewById(R.id.normalModeLayout);
+        View editModeLayout = taskView.findViewById(R.id.editModeLayout);
+
+        if (normalModeLayout != null) normalModeLayout.setVisibility(View.GONE);
+        if (editModeLayout != null) editModeLayout.setVisibility(View.GONE);
+
+        if (taskNameTextView != null) taskNameTextView.setText(task.name);
+
+        // Show date and time for upcoming tasks
+        if (taskTimeTextView != null) {
             try {
-                unregisterReceiver(taskCompletionReceiver);
-                isReceiverRegistered = false;
+                java.text.SimpleDateFormat inputFormat = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                java.text.SimpleDateFormat outputFormat = new java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault());
+                java.util.Date date = inputFormat.parse(task.date);
+                String dateStr = date != null ? outputFormat.format(date) : task.date;
+                String timeRange = String.format(java.util.Locale.getDefault(), "%s • %d:%02d %s",
+                        dateStr, task.hour, task.minute, task.amPm != null ? task.amPm : "AM");
+                taskTimeTextView.setText(timeRange);
             } catch (Exception e) {
-                android.util.Log.e("MainActivity", "Error unregistering receiver", e);
+                taskTimeTextView.setText(String.format(java.util.Locale.getDefault(), "%d:%02d %s",
+                        task.hour, task.minute, task.amPm != null ? task.amPm : "AM"));
             }
         }
+
+        if (taskTypeIcon != null) taskTypeIcon.setImageResource(R.drawable.ic_focus_task);
+
+        if (taskContent != null) {
+            taskContent.setBackgroundResource(R.drawable.task_background_none);
+            taskContent.setOnClickListener(v -> {
+                // Open edit activity
+                Intent intent = new Intent(this, EditFocusTaskActivity.class);
+                intent.putExtra("task_id", task.id);
+                startActivity(intent);
+            });
+        }
+
+        return taskView;
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if ((requestCode == ADD_TASK_REQUEST || requestCode == EDIT_TASK_REQUEST) && resultCode == RESULT_OK) {
-            // Refresh tasks from database
-            taskRepository.refreshTasks();
-            updateTaskLists();
-        }
-    }
-
-    private void updateTaskLists() {
-        ArrayList<Task> morningTasks = taskRepository.morningTasks;
-        ArrayList<Task> afternoonTasks = taskRepository.afternoonTasks;
-        ArrayList<Task> nightTasks = taskRepository.nightTasks;
-
-        sortTasks(morningTasks);
-        sortTasks(afternoonTasks);
-        sortTasks(nightTasks);
-
-        morningTasksContainer.removeAllViews();
-        afternoonTasksContainer.removeAllViews();
-        nightTasksContainer.removeAllViews();
-
-        // Get Today's Date to filter
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-        String todayDate = sdf.format(new java.util.Date());
-
-        int totalTasks = 0;
-        int completedTasks = 0;
-        boolean hasTasksForToday = false;
-
-        // Check Morning - ONLY show INCOMPLETE tasks (completed tasks go to History)
-        for (Task task : morningTasks) {
-            // FILTER: ONLY SHOW IF DATE MATCHES TODAY AND TASK IS NOT COMPLETE
-            if (task.date != null && task.date.equals(todayDate) && !task.isComplete) {
-                morningTasksContainer.addView(createTaskView(task));
-                totalTasks++;
-                hasTasksForToday = true;
-            } else if (task.date != null && task.date.equals(todayDate) && task.isComplete) {
-                // Count completed tasks for progress but don't display them
-                completedTasks++;
-                totalTasks++;
+    private void updateCalendarBadge(int count) {
+        if (topBar != null && topBar.getMenu() != null) {
+            android.view.MenuItem calendarItem = topBar.getMenu().findItem(R.id.action_calendar);
+            if (calendarItem != null) {
+                if (count > 0) {
+                    // Create badge drawable
+                    android.graphics.drawable.LayerDrawable badge = (android.graphics.drawable.LayerDrawable) 
+                            ContextCompat.getDrawable(this, R.drawable.notification_badge);
+                    
+                    // Combine calendar icon with badge
+                    android.graphics.drawable.Drawable calendarIcon = ContextCompat.getDrawable(this, R.drawable.ic_calendar);
+                    android.graphics.drawable.Drawable[] layers = {calendarIcon, badge};
+                    android.graphics.drawable.LayerDrawable layerDrawable = new android.graphics.drawable.LayerDrawable(layers);
+                    
+                    // Position badge at top-right
+                    layerDrawable.setLayerGravity(1, android.view.Gravity.TOP | android.view.Gravity.END);
+                    layerDrawable.setLayerInsetTop(1, 0);
+                    layerDrawable.setLayerInsetEnd(1, 0);
+                    
+                    calendarItem.setIcon(layerDrawable);
+                } else {
+                    // No badge - just show calendar icon
+                    calendarItem.setIcon(R.drawable.ic_calendar);
+                }
             }
-        }
-        // Check Afternoon - ONLY show INCOMPLETE tasks
-        for (Task task : afternoonTasks) {
-            if (task.date != null && task.date.equals(todayDate) && !task.isComplete) {
-                afternoonTasksContainer.addView(createTaskView(task));
-                totalTasks++;
-                hasTasksForToday = true;
-            } else if (task.date != null && task.date.equals(todayDate) && task.isComplete) {
-                completedTasks++;
-                totalTasks++;
-            }
-        }
-        // Check Night - ONLY show INCOMPLETE tasks
-        for (Task task : nightTasks) {
-            if (task.date != null && task.date.equals(todayDate) && !task.isComplete) {
-                nightTasksContainer.addView(createTaskView(task));
-                totalTasks++;
-                hasTasksForToday = true;
-            } else if (task.date != null && task.date.equals(todayDate) && task.isComplete) {
-                completedTasks++;
-                totalTasks++;
-            }
-        }
-
-        taskCountText.setText("Task " + completedTasks + "/" + totalTasks);
-        if(totalTasks > 0) {
-            int progress = (completedTasks * 100) / totalTasks;
-            progressBar.setProgress(progress);
-            completionText.setText(progress + "% completed");
-        } else {
-            progressBar.setProgress(0);
-            completionText.setText("0% completed");
-        }
-
-        if (!hasTasksForToday) {
-            if (emptyStateCard != null) emptyStateCard.setVisibility(View.VISIBLE);
-            if (tasksContainerCard != null) tasksContainerCard.setVisibility(View.GONE);
-            morningTasksHeader.setVisibility(View.GONE);
-            afternoonTasksHeader.setVisibility(View.GONE);
-            nightTasksHeader.setVisibility(View.GONE);
-        } else {
-            if (emptyStateCard != null) emptyStateCard.setVisibility(View.GONE);
-            if (tasksContainerCard != null) tasksContainerCard.setVisibility(View.VISIBLE);
-            morningTasksHeader.setVisibility(morningTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
-            afternoonTasksHeader.setVisibility(afternoonTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
-            nightTasksHeader.setVisibility(nightTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
         }
     }
 
     private View createTaskView(final Task task) {
+        if (task == null) return new View(this);
+        
         LayoutInflater inflater = LayoutInflater.from(this);
         View taskView = inflater.inflate(R.layout.task_item, null, false);
 
@@ -416,6 +614,24 @@ public class MainActivity extends AppCompatActivity {
 
         // Make task clickable for editing
         taskContent.setOnClickListener(v -> openTaskForEditing(task));
+
+        // Delete button
+        com.google.android.material.button.MaterialButton deleteButton = taskView.findViewById(R.id.deleteButton);
+        if (deleteButton != null) {
+            deleteButton.setOnClickListener(v -> {
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Delete Task")
+                    .setMessage("Are you sure you want to delete \"" + task.name + "\"?")
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        taskRepository.deleteTask(task);
+                        taskRepository.refreshTasks();
+                        refreshAllFragments();
+                        Toast.makeText(this, "Task deleted", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            });
+        }
 
         taskSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             task.isAlarmOn = isChecked;

@@ -86,7 +86,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
-            <!-- Normal Mode: Material Switch -->
+            <!-- Normal Mode: Material Switch + Delete Button -->
             <LinearLayout
                 android:id="@+id/normalModeLayout"
                 android:layout_width="wrap_content"
@@ -94,6 +94,16 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:visibility="visible">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/deleteButton"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="@dimen/spacing_xs"
+                    app:icon="@drawable/ic_delete"
+                    app:iconTint="@color/error"
+                    android:contentDescription="Delete Task" />
 
                 <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/taskSwitch"
