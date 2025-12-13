@@ -2,14 +2,10 @@ package com.example.mainactivity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
@@ -21,77 +17,39 @@ import android.graphics.Paint;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
-import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int ADD_TASK_REQUEST = 1;
-    private static final int EDIT_TASK_REQUEST = 2;
     public static final String ACTION_TASK_COMPLETED = "com.example.mainactivity.TASK_COMPLETED";
 
     private DrawerLayout drawerLayout;
     private MaterialToolbar topBar;
     private com.google.android.material.navigation.NavigationView navigationView;
-    private com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton fabAddTask;
-    private View progressTracker;
-    private View emptyStateCard;
-    private View tasksContainerCard;
-    private View upcomingFocusCard;
-    private LinearLayout upcomingFocusTasksContainer;
-    private TextView upcomingCount;
-    private com.google.android.material.button.MaterialButton viewAllUpcomingButton;
-    private LinearLayout focusTasksSection;
-    private LinearLayout focusTasksContainer;
-    private LinearLayout morningTasksContainer;
-    private LinearLayout afternoonTasksContainer;
-    private LinearLayout nightTasksContainer;
-    private TextView emptyTasksText;
-    private TextView morningTasksHeader;
-    private TextView afternoonTasksHeader;
-    private TextView nightTasksHeader;
-    private TextView taskCountText;
-    private LinearProgressIndicator progressBar;
-    private TextView completionText;
-    private android.view.MenuItem calendarMenuItem;
 
     private TaskRepository taskRepository;
-    private ArrayList<Task> completedTasksToday = new ArrayList<>();
-    private boolean isReceiverRegistered = false;
-
-    private final BroadcastReceiver taskCompletionReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // Refresh task list immediately when a task is completed
-            taskRepository.refreshTasks();
-            refreshAllFragments();
-        }
-    };
+    private final ArrayList<Task> completedTasksToday = new ArrayList<>();
 
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         ThemeHelper.applyTheme(this);
         setTheme(ThemeHelper.getThemeResource(this));
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         // Initialize views
         drawerLayout = findViewById(R.id.drawerLayout);
         topBar = findViewById(R.id.topBar);
         navigationView = findViewById(R.id.navigationView);
-        fabAddTask = findViewById(R.id.fabAddTask);
 
         // Setup ViewPager2 and TabLayout
         androidx.viewpager2.widget.ViewPager2 viewPager = findViewById(R.id.viewPager);
@@ -126,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         requestNotificationPermission();
 
         // FAB - shows task type chooser
+        com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton fabAddTask = findViewById(R.id.fabAddTask);
         if (fabAddTask != null) {
             fabAddTask.setOnClickListener(v -> showTaskTypeChooser());
         }
@@ -172,6 +131,19 @@ public class MainActivity extends AppCompatActivity {
 
         // Setup navigation drawer
         setupNavigationDrawer();
+
+        // Handle back button press
+        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                } else {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
     }
 
     private void refreshAllFragments() {
@@ -279,8 +251,7 @@ public class MainActivity extends AppCompatActivity {
         TextView repeatDaysText = taskView.findViewById(R.id.repeatDaysText);
         TextView priorityText = taskView.findViewById(R.id.priorityText);
         TextView alarmStatusText = taskView.findViewById(R.id.alarmStatusText);
-        android.widget.ImageView expandIcon = taskView.findViewById(R.id.expandIcon);
-        
+
         if (taskNameTextView == null || taskTimeTextView == null) return taskView;
         android.widget.ImageView priorityIcon = taskView.findViewById(R.id.priorityIcon);
         View expandableDetails = taskView.findViewById(R.id.expandableDetails);
@@ -364,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Handle expand/collapse with smooth animation
         final boolean[] isExpanded = {false};
-        if (taskContent != null && expandableDetails != null && expandIcon != null) {
+        if (taskContent != null && expandableDetails != null) {
             taskContent.setOnClickListener(v -> {
                 if (isExpanded[0]) {
                     // Collapse
@@ -382,7 +353,6 @@ public class MainActivity extends AppCompatActivity {
                     });
                     animator.setDuration(300);
                     animator.start();
-                    expandIcon.animate().rotation(90).setDuration(300).start();
                     isExpanded[0] = false;
                 } else {
                     // Expand
@@ -402,7 +372,6 @@ public class MainActivity extends AppCompatActivity {
                     });
                     animator.setDuration(300);
                     animator.start();
-                    expandIcon.animate().rotation(270).setDuration(300).start();
                     isExpanded[0] = true;
                 }
             });
@@ -595,12 +564,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Show time range for Focus Tasks, single time for Reminders
         if (task.isFocusTask()) {
-            String timeRange = String.format("%d:%02d %s → %d:%02d %s",
+            String timeRange = String.format(java.util.Locale.getDefault(), "%d:%02d %s → %d:%02d %s",
                     task.hour, task.minute, task.amPm != null ? task.amPm : "AM",
                     task.endHour, task.endMinute, task.endAmPm != null ? task.endAmPm : "AM");
             taskTimeTextView.setText(timeRange);
         } else {
-            taskTimeTextView.setText(String.format("%d:%02d %s", task.hour, task.minute, task.amPm != null ? task.amPm : "AM"));
+            taskTimeTextView.setText(String.format(java.util.Locale.getDefault(), "%d:%02d %s", task.hour, task.minute, task.amPm != null ? task.amPm : "AM"));
         }
         taskSwitch.setChecked(task.isAlarmOn);
 
@@ -731,14 +700,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    public void onBackPressed() {
-        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
 
     private void showCompletedTasksDialog() {
         // Create and show a dialog to display completed tasks for today
@@ -817,12 +778,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Show time range for Focus Tasks, single time for Reminders
         if (task.isFocusTask()) {
-            String timeRange = String.format("%d:%02d %s → %d:%02d %s",
+            String timeRange = String.format(java.util.Locale.getDefault(), "%d:%02d %s → %d:%02d %s",
                     task.hour, task.minute, task.amPm != null ? task.amPm : "AM",
                     task.endHour, task.endMinute, task.endAmPm != null ? task.endAmPm : "AM");
             taskTimeTextView.setText(timeRange);
         } else {
-            taskTimeTextView.setText(String.format("%d:%02d %s", task.hour, task.minute, task.amPm != null ? task.amPm : "AM"));
+            taskTimeTextView.setText(String.format(java.util.Locale.getDefault(), "%d:%02d %s", task.hour, task.minute, task.amPm != null ? task.amPm : "AM"));
         }
 
 

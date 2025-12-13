@@ -13,9 +13,9 @@ public class HistoryActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         ThemeHelper.applyTheme(this);
         setTheme(ThemeHelper.getThemeResource(this));
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history_months);
 
         backButton = findViewById(R.id.backButton);

@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:text="Wise"
                 android:textSize="34sp"
-                android:textColor="?attr/textColorSecondary"
+                android:textColor="@color/on_surface_variant_light"
                 android:fontFamily="serif" />
 
         </LinearLayout>
