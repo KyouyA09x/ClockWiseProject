@@ -31,9 +31,9 @@ public class CalendarActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         ThemeHelper.applyTheme(this);
         setTheme(ThemeHelper.getThemeResource(this));
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
 
         taskRepository = TaskRepository.getInstance();

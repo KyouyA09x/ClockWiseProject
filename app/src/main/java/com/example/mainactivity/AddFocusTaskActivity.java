@@ -57,10 +57,9 @@ public class AddFocusTaskActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        ThemeHelper.applyTheme(this);
-
-        setTheme(ThemeHelper.getThemeResource(this));
         super.onCreate(savedInstanceState);
+        ThemeHelper.applyTheme(this);
+        setTheme(ThemeHelper.getThemeResource(this));
         setContentView(R.layout.activity_add_focus_task);
 
         taskRepository = TaskRepository.getInstance();

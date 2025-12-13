@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
@@ -39,6 +40,7 @@ public class Task implements Parcelable {
         this.endAmPm = "AM";
     }
 
+    @Ignore
     public Task(String name, int hour, int minute, String amPm, String urgency, boolean[] selectedDays) {
         this.name = name;
         this.hour = hour;
@@ -58,6 +60,7 @@ public class Task implements Parcelable {
     }
 
     // Constructor for Focus Task
+    @Ignore
     public Task(String name, int startHour, int startMinute, String startAmPm,
                 int endHour, int endMinute, String endAmPm, String urgency) {
         this.name = name;
@@ -77,6 +80,7 @@ public class Task implements Parcelable {
         this.extendedMinutes = 0;
     }
 
+    @Ignore
     protected Task(Parcel in) {
         id = in.readInt();
         name = in.readString();

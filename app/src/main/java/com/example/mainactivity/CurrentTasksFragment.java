@@ -284,8 +284,15 @@ public class CurrentTasksFragment extends Fragment {
             intent.putExtra("task_id", task.id);
             startActivity(intent);
         } else {
-            // Open reminder editor - will implement bottom sheet
-            Toast.makeText(getContext(), "Edit: " + task.name, Toast.LENGTH_SHORT).show();
+            // Open reminder editor using bottom sheet
+            if (getActivity() != null) {
+                AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstance(task);
+                bottomSheet.setOnTaskSavedListener(() -> {
+                    taskRepository.refreshTasks();
+                    refreshTasks();
+                });
+                bottomSheet.show(getActivity().getSupportFragmentManager(), "AddReminderBottomSheet");
+            }
         }
     }
 

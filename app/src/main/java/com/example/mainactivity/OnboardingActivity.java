@@ -46,10 +46,16 @@ public class OnboardingActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Apply theme before onCreate
-        ThemeHelper.applyTheme(this);
-        setTheme(ThemeHelper.getThemeResource(this));
         super.onCreate(savedInstanceState);
+
+        try {
+            // Apply theme before setContentView
+            ThemeHelper.applyTheme(this);
+            setTheme(ThemeHelper.getThemeResource(this));
+        } catch (Exception e) {
+            // If theme application fails, continue with default theme
+            e.printStackTrace();
+        }
 
         // Check if onboarding was already completed and permissions are still granted
         if (isOnboardingComplete() && areAllPermissionsGranted()) {
@@ -84,9 +90,15 @@ public class OnboardingActivity extends AppCompatActivity {
         LinearLayout alarmRow = findViewById(R.id.alarmPermissionRow);
         LinearLayout batteryRow = findViewById(R.id.batteryPermissionRow);
 
-        notificationRow.setOnClickListener(v -> requestNotificationPermission());
-        alarmRow.setOnClickListener(v -> requestAlarmPermission());
-        batteryRow.setOnClickListener(v -> requestBatteryOptimization());
+        if (notificationRow != null) {
+            notificationRow.setOnClickListener(v -> requestNotificationPermission());
+        }
+        if (alarmRow != null) {
+            alarmRow.setOnClickListener(v -> requestAlarmPermission());
+        }
+        if (batteryRow != null) {
+            batteryRow.setOnClickListener(v -> requestBatteryOptimization());
+        }
     }
 
     private void setupClickListeners() {
@@ -126,27 +138,41 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
-        // Update checkboxes
-        notificationCheck.setImageResource(notificationPermissionGranted ?
-                android.R.drawable.checkbox_on_background : android.R.drawable.checkbox_off_background);
-        alarmCheck.setImageResource(alarmPermissionGranted ?
-                android.R.drawable.checkbox_on_background : android.R.drawable.checkbox_off_background);
-        batteryCheck.setImageResource(batteryOptimizationDisabled ?
-                android.R.drawable.checkbox_on_background : android.R.drawable.checkbox_off_background);
+        // Update checkboxes with null checks
+        if (notificationCheck != null) {
+            notificationCheck.setImageResource(notificationPermissionGranted ?
+                    android.R.drawable.checkbox_on_background : android.R.drawable.checkbox_off_background);
+        }
+        if (alarmCheck != null) {
+            alarmCheck.setImageResource(alarmPermissionGranted ?
+                    android.R.drawable.checkbox_on_background : android.R.drawable.checkbox_off_background);
+        }
+        if (batteryCheck != null) {
+            batteryCheck.setImageResource(batteryOptimizationDisabled ?
+                    android.R.drawable.checkbox_on_background : android.R.drawable.checkbox_off_background);
+        }
 
-        // Update button text and status
+        // Update button text and status with null checks
         if (areAllPermissionsGranted()) {
-            grantPermissionsButton.setText("Continue to App");
-            grantPermissionsButton.setBackgroundTintList(
-                    ContextCompat.getColorStateList(this, android.R.color.holo_green_dark));
-            statusText.setText("All permissions granted! Tap to continue.");
-            statusText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark));
+            if (grantPermissionsButton != null) {
+                grantPermissionsButton.setText("Continue to App");
+                grantPermissionsButton.setBackgroundTintList(
+                        ContextCompat.getColorStateList(this, android.R.color.holo_green_dark));
+            }
+            if (statusText != null) {
+                statusText.setText("All permissions granted! Tap to continue.");
+                statusText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark));
+            }
         } else {
-            grantPermissionsButton.setText("Grant Permissions");
-            grantPermissionsButton.setBackgroundTintList(
-                    ContextCompat.getColorStateList(this, android.R.color.holo_blue_dark));
-            statusText.setText("All permissions are required to use the app");
-            statusText.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
+            if (grantPermissionsButton != null) {
+                grantPermissionsButton.setText("Grant Permissions");
+                grantPermissionsButton.setBackgroundTintList(
+                        ContextCompat.getColorStateList(this, android.R.color.holo_blue_dark));
+            }
+            if (statusText != null) {
+                statusText.setText("All permissions are required to use the app");
+                statusText.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
+            }
         }
     }
 
