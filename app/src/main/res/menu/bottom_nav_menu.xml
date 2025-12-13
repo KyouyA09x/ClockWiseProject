@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_tasks"
+        android:icon="@drawable/ic_reminder"
+        android:title="Tasks" />
+    <item
+        android:id="@+id/navigation_notepad"
+        android:icon="@drawable/ic_notepad"
+        android:title="Notepad" />
+</menu>

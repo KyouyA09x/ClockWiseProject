@@ -59,6 +59,7 @@ public class CalendarActivity extends AppCompatActivity {
 
         tasksRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new CalendarTaskAdapter(new ArrayList<>());
+        adapter.setOnTaskDeletedListener(() -> loadTasksForDate(selectedDate));
         tasksRecyclerView.setAdapter(adapter);
     }
 

@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private MaterialToolbar topBar;
     private com.google.android.material.navigation.NavigationView navigationView;
+    private com.google.android.material.bottomnavigation.BottomNavigationView bottomNavigation;
     private com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton fabAddTask;
     private View progressTracker;
     private View emptyStateCard;
@@ -91,28 +92,27 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         topBar = findViewById(R.id.topBar);
         navigationView = findViewById(R.id.navigationView);
-        fabAddTask = findViewById(R.id.fabAddTask);
+        bottomNavigation = findViewById(R.id.bottomNavigation);
 
-        // Setup ViewPager2 and TabLayout
-        androidx.viewpager2.widget.ViewPager2 viewPager = findViewById(R.id.viewPager);
-        com.google.android.material.tabs.TabLayout tabLayout = findViewById(R.id.tabLayout);
-
-        TasksViewPagerAdapter adapter = new TasksViewPagerAdapter(this);
-        viewPager.setAdapter(adapter);
-
-        // Link TabLayout with ViewPager2
-        new com.google.android.material.tabs.TabLayoutMediator(tabLayout, viewPager,
-                (tab, position) -> {
-                    switch (position) {
-                        case 0:
-                            tab.setText("📋 Current Tasks");
-                            break;
-                        case 1:
-                            tab.setText("📅 Upcoming");
-                            break;
-                    }
+        // Setup bottom navigation
+        if (bottomNavigation != null) {
+            bottomNavigation.setOnItemSelectedListener(item -> {
+                int itemId = item.getItemId();
+                if (itemId == R.id.navigation_tasks) {
+                    loadFragment(new TasksContainerFragment());
+                    return true;
+                } else if (itemId == R.id.navigation_notepad) {
+                    loadFragment(new NotepadFragment());
+                    return true;
                 }
-        ).attach();
+                return false;
+            });
+        }
+
+        // Load default fragment (Tasks)
+        if (savedInstanceState == null) {
+            loadFragment(new TasksContainerFragment());
+        }
 
         // Disable edge swiping - only open via hamburger button
         if (drawerLayout != null) {
@@ -177,12 +177,20 @@ public class MainActivity extends AppCompatActivity {
     private void refreshAllFragments() {
         // Refresh fragments when activity resumes
         for (androidx.fragment.app.Fragment fragment : getSupportFragmentManager().getFragments()) {
-            if (fragment instanceof CurrentTasksFragment) {
+            if (fragment instanceof TasksContainerFragment) {
+                ((TasksContainerFragment) fragment).refreshTasks();
+            } else if (fragment instanceof CurrentTasksFragment) {
                 ((CurrentTasksFragment) fragment).refreshTasks();
             } else if (fragment instanceof UpcomingTasksFragment) {
                 ((UpcomingTasksFragment) fragment).refreshTasks();
             }
         }
+    }
+
+    private void loadFragment(androidx.fragment.app.Fragment fragment) {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .commit();
     }
 
     public void showCompletedDialog() {
@@ -200,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
         refreshAllFragments();
     }
 
-    private void showTaskTypeChooser() {
+    public void showTaskTypeChooser() {
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_task_type_chooser, null);
         builder.setView(dialogView);
@@ -245,6 +253,17 @@ public class MainActivity extends AppCompatActivity {
         AddFocusTaskBottomSheet bottomSheet;
         if (taskToEdit != null) {
             bottomSheet = AddFocusTaskBottomSheet.newInstance(taskToEdit);
+            // Check if this is a quick task (has today's date pre-set)
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+            String today = sdf.format(new java.util.Date());
+            if (taskToEdit.date != null && taskToEdit.date.equals(today) && taskToEdit.id == 0) {
+                // It's a new task with today's date - mark as quick task
+                Bundle args = new Bundle();
+                args.putParcelable("TASK", taskToEdit);
+                args.putBoolean("QUICK_TASK", true);
+                bottomSheet = new AddFocusTaskBottomSheet();
+                bottomSheet.setArguments(args);
+            }
         } else {
             bottomSheet = AddFocusTaskBottomSheet.newInstance();
         }
@@ -253,6 +272,91 @@ public class MainActivity extends AppCompatActivity {
             refreshAllFragments();
         });
         bottomSheet.show(getSupportFragmentManager(), "AddFocusTaskBottomSheet");
+    }
+
+    public void showQuickTaskBottomSheet() {
+        // Show Material dialog for task type selection with better styling
+        String[] taskTypes = {"⏰  Reminder", "🎯  Focus Task"};
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                .setTitle("Quick Task")
+                .setItems(taskTypes, (dialog, which) -> {
+                    if (which == 0) {
+                        // Create quick reminder with today's date
+                        Task quickTask = new Task();
+                        quickTask.taskType = "reminder";
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                        quickTask.date = sdf.format(new java.util.Date());
+                        quickTask.hour = 9;
+                        quickTask.minute = 0;
+                        quickTask.amPm = "AM";
+                        quickTask.isAlarmOn = true;
+                        quickTask.urgency = "None";
+                        quickTask.selectedDays = new boolean[7];
+                        
+                        showReminderBottomSheet(quickTask);
+                    } else if (which == 1) {
+                        // Create quick focus task with today's date
+                        Task quickTask = new Task();
+                        quickTask.taskType = "focus";
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                        quickTask.date = sdf.format(new java.util.Date());
+                        quickTask.hour = 9;
+                        quickTask.minute = 0;
+                        quickTask.amPm = "AM";
+                        quickTask.endHour = 10;
+                        quickTask.endMinute = 0;
+                        quickTask.endAmPm = "AM";
+                        quickTask.isAlarmOn = true;
+                        quickTask.urgency = "None";
+                        quickTask.selectedDays = new boolean[7];
+                        
+                        showFocusTaskBottomSheet(quickTask);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    public void openQuickTaskInNotepad() {
+        // Switch to notepad tab
+        if (bottomNavigation != null) {
+            bottomNavigation.setSelectedItemId(R.id.navigation_notepad);
+        }
+
+        // Create a new note with "Quick Task" template
+        Note quickNote = new Note();
+        quickNote.title = "Quick Task";
+        quickNote.description = "";
+
+        // Show add note dialog after fragment transition
+        new android.os.Handler().postDelayed(() -> {
+            for (androidx.fragment.app.Fragment fragment : getSupportFragmentManager().getFragments()) {
+                if (fragment instanceof NotepadFragment && fragment.isVisible()) {
+                    AddNoteDialog dialog = new AddNoteDialog(this, quickNote, () -> {
+                        ((NotepadFragment) fragment).refreshNotes();
+                    });
+                    dialog.show();
+                    break;
+                }
+            }
+        }, 300); // Small delay to allow fragment transition
+    }
+
+    public void showNotepadToConvertToTask() {
+        // Switch to notepad tab
+        if (bottomNavigation != null) {
+            bottomNavigation.setSelectedItemId(R.id.navigation_notepad);
+        }
+        
+        // Enable selection mode in notepad after fragment transition
+        new android.os.Handler().postDelayed(() -> {
+            for (androidx.fragment.app.Fragment fragment : getSupportFragmentManager().getFragments()) {
+                if (fragment instanceof NotepadFragment && fragment.isVisible()) {
+                    ((NotepadFragment) fragment).enableSelectionMode();
+                    break;
+                }
+            }
+        }, 300);
     }
 
     private View createFocusTaskView(final Task task) {

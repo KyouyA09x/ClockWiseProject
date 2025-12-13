@@ -63,7 +63,18 @@
             android:background="@drawable/rounded_corner_background"
             android:backgroundTint="?attr/cardBackgroundColor"
             android:paddingHorizontal="10dp"
-            android:paddingVertical="4dp" />
+            android:paddingVertical="4dp"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Delete Button -->
+        <ImageButton
+            android:id="@+id/deleteButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_delete"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Delete task"
+            app:tint="?attr/colorError" />
 
     </LinearLayout>
 

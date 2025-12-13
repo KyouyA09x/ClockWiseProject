@@ -38,6 +38,7 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
 
     // Edit mode
     private boolean isEditMode = false;
+    private boolean isQuickTask = false;
     private Task editingTask = null;
 
     // Time values
@@ -90,7 +91,20 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
 
         if (getArguments() != null) {
             isEditMode = getArguments().getBoolean("EDIT_MODE", false);
+            isQuickTask = getArguments().getBoolean("QUICK_TASK", false);
             editingTask = getArguments().getParcelable("TASK");
+            
+            // If it's a quick task or edit mode with task data, load the task
+            if (editingTask != null) {
+                if (editingTask.date != null && !editingTask.date.isEmpty()) {
+                    try {
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                        selectedDate.setTime(sdf.parse(editingTask.date));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
     }
 
@@ -178,7 +192,12 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         endTimeRow.setOnClickListener(v -> showEndTimePicker());
 
         if (dateText != null) {
-            dateText.setOnClickListener(v -> showDatePicker());
+            if (isQuickTask) {
+                // Hide date picker for quick tasks - date is locked to today
+                dateText.setVisibility(View.GONE);
+            } else {
+                dateText.setOnClickListener(v -> showDatePicker());
+            }
         }
 
         // Priority chip selection

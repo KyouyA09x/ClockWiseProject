@@ -13,9 +13,18 @@ import java.util.List;
 public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapter.TaskViewHolder> {
 
     private List<Task> tasks;
+    private OnTaskDeletedListener deleteListener;
+
+    public interface OnTaskDeletedListener {
+        void onTaskDeleted();
+    }
 
     public CalendarTaskAdapter(List<Task> tasks) {
         this.tasks = tasks;
+    }
+
+    public void setOnTaskDeletedListener(OnTaskDeletedListener listener) {
+        this.deleteListener = listener;
     }
 
     public void updateTasks(List<Task> newTasks) {
@@ -34,7 +43,7 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         Task task = tasks.get(position);
-        holder.bind(task);
+        holder.bind(task, this.deleteListener);
     }
 
     @Override
@@ -47,6 +56,7 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
         private final TextView taskTime;
         private final TextView taskType;
         private final View urgencyIndicator;
+        private final android.widget.ImageButton deleteButton;
 
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -54,9 +64,10 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
             taskTime = itemView.findViewById(R.id.taskTime);
             taskType = itemView.findViewById(R.id.taskType);
             urgencyIndicator = itemView.findViewById(R.id.urgencyIndicator);
+            deleteButton = itemView.findViewById(R.id.deleteButton);
         }
 
-        public void bind(Task task) {
+        public void bind(Task task, OnTaskDeletedListener listener) {
             taskName.setText(task.name);
 
             if (task.isFocusTask()) {
@@ -87,6 +98,24 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
                 default:
                     urgencyIndicator.setBackgroundResource(R.drawable.green_circle);
                     break;
+            }
+
+            // Delete button click
+            if (deleteButton != null) {
+                deleteButton.setOnClickListener(v -> {
+                    new com.google.android.material.dialog.MaterialAlertDialogBuilder(itemView.getContext())
+                            .setTitle("Delete Task")
+                            .setMessage("Are you sure you want to delete \"" + task.name + "\"?")
+                            .setPositiveButton("Delete", (dialog, which) -> {
+                                TaskRepository.getInstance().deleteTask(task);
+                                android.widget.Toast.makeText(itemView.getContext(), "Task deleted", android.widget.Toast.LENGTH_SHORT).show();
+                                if (listener != null) {
+                                    listener.onTaskDeleted();
+                                }
+                            })
+                            .setNegativeButton("Cancel", null)
+                            .show();
+                });
             }
         }
     }
