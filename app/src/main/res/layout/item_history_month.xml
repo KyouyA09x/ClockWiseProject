@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="?attr/colorSurfaceVariant"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Month Header -->
+        <LinearLayout
+            android:id="@+id/monthHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp"
+            android:background="?attr/selectableItemBackground">
+
+            <TextView
+                android:id="@+id/monthName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="January"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/taskCountChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5 tasks"
+                android:textSize="12sp"
+                app:chipBackgroundColor="?attr/colorPrimary"
+                android:textColor="?attr/colorOnPrimary"
+                app:chipMinHeight="24dp"
+                app:chipCornerRadius="12dp"
+                app:chipIconVisible="false"
+                app:closeIconVisible="false"
+                app:ensureMinTouchTargetSize="false" />
+
+            <ImageView
+                android:id="@+id/expandIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="8dp"
+                android:src="@drawable/ic_chevron_right"
+                android:rotation="90"
+                app:tint="?attr/colorOnSurfaceVariant"
+                android:contentDescription="Expand" />
+
+        </LinearLayout>
+
+        <!-- Task List Container (expandable) -->
+        <LinearLayout
+            android:id="@+id/tasksContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="16dp"
+            android:visibility="visible" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

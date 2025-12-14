@@ -79,43 +79,146 @@ public class AlarmReceiver extends BroadcastReceiver {
             taskTime = "";
         }
 
-        // Mark task as complete IMMEDIATELY when alarm fires
+        // Get task details but DON'T mark as complete - let user decide via popup
+        Task currentTask = null;
+        String taskNote = null;
+        String priority = null;
         try {
             TaskRepository repository = TaskRepository.getInstance();
             if (repository != null) {
                 repository.initialize(context);
-                Task task = repository.getTaskById(taskId);
-                if (task != null && !task.isComplete) {
-                    task.isComplete = true;
-                    task.isAlarmOn = false;
-                    repository.updateTask(task);
-
-                    // Send broadcast to refresh MainActivity immediately
-                    try {
-                        Intent broadcastIntent = new Intent(MainActivity.ACTION_TASK_COMPLETED);
-                        context.sendBroadcast(broadcastIntent);
-                    } catch (Exception e) {
-                        // Ignore broadcast errors
-                    }
+                currentTask = repository.getTaskById(taskId);
+                if (currentTask != null) {
+                    priority = currentTask.urgency;
+                    taskNote = currentTask.noteContent;
                 }
             }
         } catch (Exception e) {
-            // Log error but don't crash
-            android.util.Log.e("AlarmReceiver", "Error updating task: " + e.getMessage());
+            android.util.Log.e("AlarmReceiver", "Error getting task: " + e.getMessage());
         }
 
         try {
-            createNotificationChannel(context);
-
-            // Show appropriate notification based on task type
-            if ("focus".equals(taskType)) {
-                showFocusTaskNotification(context, taskId, taskName, taskTime, endTime, alarmType, vibrationEnabled);
+            // Check Android version
+            // Android 15+ (API 35+): Use overlay service for pure popup (no app opening)
+            // Android 14 and below: Full-screen intent notification
+            if (Build.VERSION.SDK_INT >= 35) {
+                // Android 15+ - use overlay service for pure popup overlay
+                android.util.Log.d("AlarmReceiver", "Android 15+ detected, using overlay service");
+                if (OverlayNotificationService.canDrawOverlays(context)) {
+                    showOverlayPopup(context, taskId, taskName, taskNote, priority, taskType, currentTask);
+                } else {
+                    // Fallback to notification if overlay permission not granted
+                    android.util.Log.d("AlarmReceiver", "Overlay permission not granted, using notification");
+                    showFullScreenNotification(context, taskId, taskName, taskNote, priority, taskType, currentTask);
+                }
             } else {
-                showNotification(context, taskId, taskName, taskTime, vibrationEnabled);
+                // Android 14 and below - use full-screen intent notification
+                android.util.Log.d("AlarmReceiver", "Android 14 or below detected, using notification");
+                showFullScreenNotification(context, taskId, taskName, taskNote, priority, taskType, currentTask);
             }
         } catch (Exception e) {
-            // Log error but don't crash
-            android.util.Log.e("AlarmReceiver", "Error showing notification: " + e.getMessage());
+            android.util.Log.e("AlarmReceiver", "Error showing popup: " + e.getMessage());
+            // Ultimate fallback - try notification anyway
+            try {
+                showFullScreenNotification(context, taskId, taskName, taskNote, priority, taskType, currentTask);
+            } catch (Exception e2) {
+                android.util.Log.e("AlarmReceiver", "Fallback notification also failed: " + e2.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Shows a pure overlay popup for Android 15+ using OverlayNotificationService.
+     * This creates a floating popup without opening an activity.
+     */
+    private void showOverlayPopup(Context context, int taskId, String taskName,
+                                   String taskNote, String priority, String taskType,
+                                   Task currentTask) {
+        Intent serviceIntent = new Intent(context, OverlayNotificationService.class);
+        serviceIntent.putExtra(OverlayNotificationService.EXTRA_TASK_ID, taskId);
+        serviceIntent.putExtra(OverlayNotificationService.EXTRA_TASK_NAME, taskName);
+        serviceIntent.putExtra(OverlayNotificationService.EXTRA_TASK_NOTE, taskNote);
+        serviceIntent.putExtra(OverlayNotificationService.EXTRA_PRIORITY, priority);
+        serviceIntent.putExtra(OverlayNotificationService.EXTRA_TASK_TYPE, taskType);
+        serviceIntent.putExtra(OverlayNotificationService.EXTRA_TASK_HOUR, currentTask != null ? currentTask.hour : 0);
+        serviceIntent.putExtra(OverlayNotificationService.EXTRA_TASK_MINUTE, currentTask != null ? currentTask.minute : 0);
+        serviceIntent.putExtra(OverlayNotificationService.EXTRA_TASK_AMPM, currentTask != null ? currentTask.amPm : "AM");
+        serviceIntent.putExtra(OverlayNotificationService.EXTRA_END_HOUR, currentTask != null ? currentTask.endHour : 0);
+        serviceIntent.putExtra(OverlayNotificationService.EXTRA_END_MINUTE, currentTask != null ? currentTask.endMinute : 0);
+        serviceIntent.putExtra(OverlayNotificationService.EXTRA_END_AMPM, currentTask != null ? currentTask.endAmPm : "AM");
+        
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent);
+            } else {
+                context.startService(serviceIntent);
+            }
+            android.util.Log.d("AlarmReceiver", "Overlay service started successfully");
+        } catch (Exception e) {
+            android.util.Log.e("AlarmReceiver", "Overlay service failed: " + e.getMessage());
+            // Fallback to notification
+            showFullScreenNotification(context, taskId, taskName, taskNote, priority, taskType, currentTask);
+        }
+    }
+
+    /**
+     * Shows a full-screen intent notification that will launch the popup activity.
+     * This is required for Android 10+ due to background activity start restrictions.
+     */
+    private void showFullScreenNotification(Context context, int taskId, String taskName, 
+                                             String taskNote, String priority, String taskType,
+                                             Task currentTask) {
+        createNotificationChannel(context);
+        
+        // Create the popup intent
+        Intent popupIntent = new Intent(context, PopupNotificationActivity.class);
+        popupIntent.putExtra(PopupNotificationActivity.EXTRA_TASK_ID, taskId);
+        popupIntent.putExtra(PopupNotificationActivity.EXTRA_TASK_NAME, taskName);
+        popupIntent.putExtra(PopupNotificationActivity.EXTRA_TASK_NOTE, taskNote);
+        popupIntent.putExtra(PopupNotificationActivity.EXTRA_PRIORITY, priority);
+        popupIntent.putExtra(PopupNotificationActivity.EXTRA_TASK_TYPE, taskType);
+        popupIntent.putExtra(PopupNotificationActivity.EXTRA_TASK_HOUR, currentTask != null ? currentTask.hour : 0);
+        popupIntent.putExtra(PopupNotificationActivity.EXTRA_TASK_MINUTE, currentTask != null ? currentTask.minute : 0);
+        popupIntent.putExtra(PopupNotificationActivity.EXTRA_TASK_AMPM, currentTask != null ? currentTask.amPm : "AM");
+        popupIntent.putExtra(PopupNotificationActivity.EXTRA_END_HOUR, currentTask != null ? currentTask.endHour : 0);
+        popupIntent.putExtra(PopupNotificationActivity.EXTRA_END_MINUTE, currentTask != null ? currentTask.endMinute : 0);
+        popupIntent.putExtra(PopupNotificationActivity.EXTRA_END_AMPM, currentTask != null ? currentTask.endAmPm : "AM");
+        popupIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | 
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                            Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS |
+                            Intent.FLAG_ACTIVITY_NO_HISTORY);
+        
+        PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(
+            context,
+            taskId,
+            popupIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        
+        // Build notification with full-screen intent
+        String contentTitle = "focus".equals(taskType) ? "🎯 " + taskName : "📋 " + taskName;
+        String contentText = "focus".equals(taskType) ? "Focus session time! Tap to view" : "Task reminder - Tap to view";
+        
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle(contentTitle)
+            .setContentText(contentText)
+            .setPriority(NotificationCompat.PRIORITY_MAX) // MAX priority for heads-up
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setAutoCancel(true) // Dismiss when tapped
+            .setOngoing(false)
+            .setFullScreenIntent(fullScreenPendingIntent, true) // This launches the activity when screen is off
+            .setContentIntent(fullScreenPendingIntent) // This handles tap when screen is on
+            .setDefaults(NotificationCompat.DEFAULT_ALL); // Sound, vibration, lights
+        
+        // Show the notification
+        // If screen is off/locked: full-screen intent launches the popup automatically
+        // If screen is on: notification appears, tapping it opens the popup
+        NotificationManager notificationManager = 
+            (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (notificationManager != null) {
+            notificationManager.notify(taskId, builder.build());
         }
     }
 

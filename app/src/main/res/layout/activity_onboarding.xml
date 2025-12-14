@@ -1,227 +1,293 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light"
-    android:padding="24dp"
+    android:orientation="vertical"
     tools:context=".OnboardingActivity">
 
-    <!-- App Icon/Logo -->
-    <ImageView
-        android:id="@+id/appIcon"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="60dp"
-        android:src="@mipmap/ic_launcher"
-        android:contentDescription="App Logo" />
-
-    <!-- Welcome Title -->
-    <TextView
-        android:id="@+id/welcomeTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/appIcon"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="24dp"
-        android:text="Welcome to ClockWise"
-        android:textColor="#000000"
-        android:textSize="28sp"
-        android:textStyle="bold" />
-
-    <!-- Description -->
-    <TextView
-        android:id="@+id/welcomeDescription"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/welcomeTitle"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:text="To ensure you never miss a task reminder, we need your permission to send notifications and run in the background."
-        android:textColor="?attr/textColorSecondary"
-        android:textSize="16sp" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
-    <!-- Permissions Container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- App Icon/Logo -->
+            <ImageView
+                android:id="@+id/appIcon"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="40dp"
+                android:src="@mipmap/ic_launcher"
+                android:contentDescription="App Logo" />
+
+            <!-- Welcome Title -->
+            <TextView
+                android:id="@+id/welcomeTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="24dp"
+                android:text="Welcome to ClockWise"
+                android:textColor="#000000"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <!-- Description -->
+            <TextView
+                android:id="@+id/welcomeDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:text="To ensure you never miss a task reminder, we need your permission to send notifications and run in the background."
+                android:textColor="?attr/textColorSecondary"
+                android:textSize="16sp" />
+
+            <!-- Permissions Container -->
+            <LinearLayout
+                android:id="@+id/permissionsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:orientation="vertical">
+
+                <!-- Notification Permission -->
+                <LinearLayout
+                    android:id="@+id/notificationPermissionRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/options_background"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@android:drawable/ic_popup_reminder"
+                        android:contentDescription="Notification Icon" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Notifications"
+                            android:textColor="#000000"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Required to remind you about tasks"
+                            android:textColor="?attr/textColorSecondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/notificationCheck"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/checkbox_off_background"
+                        android:contentDescription="Permission Status" />
+                </LinearLayout>
+
+                <!-- Alarm Permission -->
+                <LinearLayout
+                    android:id="@+id/alarmPermissionRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/options_background"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@android:drawable/ic_lock_idle_alarm"
+                        android:contentDescription="Alarm Icon" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Exact Alarms"
+                            android:textColor="#000000"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Required for precise task timing"
+                            android:textColor="?attr/textColorSecondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/alarmCheck"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/checkbox_off_background"
+                        android:contentDescription="Permission Status" />
+                </LinearLayout>
+
+                <!-- Battery Optimization -->
+                <LinearLayout
+                    android:id="@+id/batteryPermissionRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/options_background"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@android:drawable/ic_lock_idle_charging"
+                        android:contentDescription="Battery Icon" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Background Running"
+                            android:textColor="#000000"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Required to send alerts even when app is closed"
+                            android:textColor="?attr/textColorSecondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/batteryCheck"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/checkbox_off_background"
+                        android:contentDescription="Permission Status" />
+                </LinearLayout>
+
+                <!-- Overlay Permission -->
+                <LinearLayout
+                    android:id="@+id/overlayPermissionRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/options_background"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@android:drawable/ic_dialog_info"
+                        android:contentDescription="Overlay Icon" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Display Over Apps"
+                            android:textColor="#000000"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="For popup task notifications"
+                            android:textColor="?attr/textColorSecondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/overlayCheck"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/checkbox_off_background"
+                        android:contentDescription="Permission Status" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Bottom section - always visible -->
     <LinearLayout
-        android:id="@+id/permissionsContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/welcomeDescription"
-        android:layout_marginTop="32dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:background="@color/background_light">
 
-        <!-- Notification Permission -->
-        <LinearLayout
-            android:id="@+id/notificationPermissionRow"
+        <!-- Grant Permissions Button -->
+        <Button
+            android:id="@+id/grantPermissionsButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/rounded_corner_background"
+            android:backgroundTint="#4CAF50"
+            android:text="Grant Permissions"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textAllCaps="false" />
+
+        <!-- Status Text -->
+        <TextView
+            android:id="@+id/statusText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/options_background"
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="12dp">
-
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@android:drawable/ic_popup_reminder"
-                android:contentDescription="Notification Icon" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Notifications"
-                    android:textColor="#000000"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Required to remind you about tasks"
-                    android:textColor="?attr/textColorSecondary"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <ImageView
-                android:id="@+id/notificationCheck"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/checkbox_off_background"
-                android:contentDescription="Permission Status" />
-        </LinearLayout>
-
-        <!-- Alarm Permission -->
-        <LinearLayout
-            android:id="@+id/alarmPermissionRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/options_background"
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="12dp">
-
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@android:drawable/ic_lock_idle_alarm"
-                android:contentDescription="Alarm Icon" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Exact Alarms"
-                    android:textColor="#000000"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Required for precise task timing"
-                    android:textColor="?attr/textColorSecondary"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <ImageView
-                android:id="@+id/alarmCheck"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/checkbox_off_background"
-                android:contentDescription="Permission Status" />
-        </LinearLayout>
-
-        <!-- Battery Optimization -->
-        <LinearLayout
-            android:id="@+id/batteryPermissionRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/options_background"
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="12dp">
-
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@android:drawable/ic_lock_idle_charging"
-                android:contentDescription="Battery Icon" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Background Running"
-                    android:textColor="#000000"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Required to send alerts even when app is closed"
-                    android:textColor="?attr/textColorSecondary"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <ImageView
-                android:id="@+id/batteryCheck"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/checkbox_off_background"
-                android:contentDescription="Permission Status" />
-        </LinearLayout>
+            android:gravity="center"
+            android:text="All permissions are required to use the app"
+            android:textColor="?attr/textColorSecondary"
+            android:textSize="14sp" />
 
     </LinearLayout>
 
-    <!-- Grant Permissions Button -->
-    <Button
-        android:id="@+id/grantPermissionsButton"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_above="@id/statusText"
-        android:layout_marginBottom="16dp"
-        android:background="@drawable/rounded_corner_background"
-        android:backgroundTint="#4CAF50"
-        android:text="Grant Permissions"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:textAllCaps="false" />
-
-    <!-- Status Text -->
-    <TextView
-        android:id="@+id/statusText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="24dp"
-        android:gravity="center"
-        android:text="All permissions are required to use the app"
-        android:textColor="?attr/textColorSecondary"
-        android:textSize="14sp" />
-
-</RelativeLayout>
-
+</LinearLayout>

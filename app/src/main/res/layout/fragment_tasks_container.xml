@@ -2,21 +2,24 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/tasksContainerRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/backgroundColor">
 
     <LinearLayout
+        android:id="@+id/tasksContainerLinear"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Tab Navigation for Current/Upcoming -->
+        <!-- Tab Navigation for Current/Upcoming - Fixed at top, never scrolls -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tasksTabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/colorSurface"
+            android:elevation="4dp"
             app:tabMode="fixed"
             app:tabGravity="fill"
             app:tabIndicatorColor="?attr/colorPrimary"
@@ -31,37 +34,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:paddingBottom="8dp" />
+            android:clipToPadding="false" />
 
     </LinearLayout>
-
-    <!-- Extended FAB for Adding Tasks -->
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/fabAddTask"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:text="Add Task"
-        android:textColor="?attr/colorOnPrimary"
-        app:backgroundTint="?attr/colorPrimary"
-        app:icon="@drawable/ic_add_fab"
-        app:iconTint="?attr/colorOnPrimary"
-        app:shapeAppearance="?attr/shapeAppearanceLargeComponent" />
-
-    <!-- Extended FAB for Quick Task (positioned below Add Task FAB) -->
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/fabQuickTask"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="@dimen/fab_margin"
-        android:layout_marginBottom="88dp"
-        android:text="Quick Task"
-        android:textColor="?attr/colorOnPrimary"
-        app:backgroundTint="?attr/colorSecondary"
-        app:icon="@drawable/ic_edit"
-        app:iconTint="?attr/colorOnPrimary"
-        app:shapeAppearance="?attr/shapeAppearanceLargeComponent" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

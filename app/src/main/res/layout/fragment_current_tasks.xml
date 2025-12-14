@@ -8,12 +8,14 @@
     android:background="?attr/backgroundColor">
 
     <LinearLayout
+        android:id="@+id/currentTasksContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="@dimen/screen_margin_horizontal"
         android:paddingTop="@dimen/spacing_md"
-        android:paddingBottom="88dp">
+        android:paddingBottom="200dp"
+        android:clipToPadding="false">
 
         <!-- Progress Card -->
         <com.google.android.material.card.MaterialCardView
@@ -113,7 +115,7 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Focus Tasks Section -->
+        <!-- Focus Sessions Section -->
         <LinearLayout
             android:id="@+id/focusTasksSection"
             android:layout_width="match_parent"

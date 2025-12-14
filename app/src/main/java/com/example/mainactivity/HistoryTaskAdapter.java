@@ -58,10 +58,10 @@ public class HistoryTaskAdapter extends RecyclerView.Adapter<HistoryTaskAdapter.
 
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
-            taskName = itemView.findViewById(R.id.taskName);
-            taskTime = itemView.findViewById(R.id.taskTime);
-            taskDate = itemView.findViewById(R.id.taskDate);
-            urgencyIndicator = itemView.findViewById(R.id.urgencyIndicator);
+            taskName = itemView.findViewById(R.id.historyTaskName);
+            taskTime = itemView.findViewById(R.id.historyTaskTime);
+            taskDate = itemView.findViewById(R.id.historyTaskDate);
+            urgencyIndicator = itemView.findViewById(R.id.priorityIndicator);
             deleteButton = itemView.findViewById(R.id.deleteButton);
         }
 

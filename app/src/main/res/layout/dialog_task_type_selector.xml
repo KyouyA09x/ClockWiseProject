@@ -4,46 +4,63 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/spacing_lg"
+    android:layout_margin="16dp"
     app:cardBackgroundColor="?attr/colorSurface"
-    app:cardCornerRadius="@dimen/dialog_corner_radius"
-    app:cardElevation="8dp">
+    app:cardCornerRadius="28dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="@dimen/dialog_padding">
+        android:padding="24dp">
 
-        <!-- Title -->
-        <TextView
+        <!-- Header -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Choose Task Type"
-            android:textAppearance="?attr/textAppearanceHeadlineSmall"
-            android:textColor="?attr/colorOnSurface"
-            android:gravity="center"
-            android:layout_marginBottom="@dimen/spacing_sm" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
+            
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_reminder"
+                android:contentDescription="@string/app_name"
+                app:tint="?attr/colorPrimary"
+                android:layout_marginEnd="12dp" />
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Configure Note Type"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textColor="?attr/colorOnSurface" />
+        </LinearLayout>
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="What would you like to set?"
+            android:text="What would you like to create?"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:gravity="center"
-            android:layout_marginBottom="@dimen/spacing_lg" />
+            android:layout_marginBottom="20dp" />
 
-        <!-- Reminder Option -->
+        <!-- Task Type Options -->
+        
+        <!-- None -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/reminderOption"
+            android:id="@+id/taskTypeNone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/spacing_md"
+            android:layout_marginBottom="8dp"
             android:clickable="true"
             android:focusable="true"
             app:cardBackgroundColor="?attr/colorSurfaceVariant"
-            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
             app:rippleColor="?attr/colorPrimary">
 
@@ -51,23 +68,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="@dimen/spacing_md"
+                android:padding="16dp"
                 android:gravity="center_vertical">
 
                 <com.google.android.material.card.MaterialCardView
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    app:cardBackgroundColor="@color/success"
-                    app:cardCornerRadius="16dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    app:cardBackgroundColor="@color/text_secondary"
+                    app:cardCornerRadius="12dp"
                     app:cardElevation="0dp">
 
                     <ImageView
-                        android:layout_width="@dimen/icon_size_lg"
-                        android:layout_height="@dimen/icon_size_lg"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_reminder"
+                        android:src="@drawable/ic_edit"
                         app:tint="@color/white"
-                        android:contentDescription="Reminder" />
+                        android:contentDescription="@string/app_name" />
 
                 </com.google.android.material.card.MaterialCardView>
 
@@ -75,13 +92,84 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="@dimen/spacing_md">
+                    android:layout_marginStart="16dp"
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Task"
+                        android:text="Just a Note"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textColor="?attr/colorOnSurface" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No time-based alerts"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="@string/app_name" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Reminder -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/taskTypeReminder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:rippleColor="?attr/colorPrimary">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    app:cardBackgroundColor="@color/success"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_reminder"
+                        app:tint="@color/white"
+                        android:contentDescription="@string/app_name" />
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⏰ Task"
                         android:textAppearance="?attr/textAppearanceTitleMedium"
                         android:textColor="?attr/colorOnSurface" />
 
@@ -90,31 +178,31 @@
                         android:layout_height="wrap_content"
                         android:text="Quick task with reminder"
                         android:textAppearance="?attr/textAppearanceBodySmall"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:layout_marginTop="@dimen/spacing_xs" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                 </LinearLayout>
 
                 <ImageView
-                    android:layout_width="@dimen/icon_size_md"
-                    android:layout_height="@dimen/icon_size_md"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:src="@drawable/ic_chevron_right"
                     app:tint="?attr/colorOnSurfaceVariant"
-                    android:contentDescription="Go" />
+                    android:contentDescription="@string/app_name" />
 
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Focus Session Option -->
+        <!-- Focus Session -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/focusTaskOption"
+            android:id="@+id/taskTypeFocus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
             android:clickable="true"
             android:focusable="true"
             app:cardBackgroundColor="?attr/colorSurfaceVariant"
-            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
             app:rippleColor="?attr/colorPrimary">
 
@@ -122,23 +210,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="@dimen/spacing_md"
+                android:padding="16dp"
                 android:gravity="center_vertical">
 
                 <com.google.android.material.card.MaterialCardView
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    app:cardBackgroundColor="?attr/colorPrimary"
-                    app:cardCornerRadius="16dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    app:cardBackgroundColor="@color/primary"
+                    app:cardCornerRadius="12dp"
                     app:cardElevation="0dp">
 
                     <ImageView
-                        android:layout_width="@dimen/icon_size_lg"
-                        android:layout_height="@dimen/icon_size_lg"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_focus"
-                        app:tint="?attr/colorOnPrimary"
-                        android:contentDescription="Focus Task" />
+                        app:tint="@color/white"
+                        android:contentDescription="@string/app_name" />
 
                 </com.google.android.material.card.MaterialCardView>
 
@@ -146,108 +234,44 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="@dimen/spacing_md">
+                    android:layout_marginStart="16dp"
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Focus Session"
+                        android:text="🎯 Focus Session"
                         android:textAppearance="?attr/textAppearanceTitleMedium"
                         android:textColor="?attr/colorOnSurface" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Time-boxed deep work block"
+                        android:text="Deep work time block"
                         android:textAppearance="?attr/textAppearanceBodySmall"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:layout_marginTop="@dimen/spacing_xs" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                 </LinearLayout>
 
                 <ImageView
-                    android:layout_width="@dimen/icon_size_md"
-                    android:layout_height="wrap_content"
-                    android:contentDescription="Go"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:src="@drawable/ic_chevron_right"
-                    app:tint="?attr/colorOnSurfaceVariant" />
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="@string/app_name" />
 
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Quick Note Option -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/quickNoteOption"
+        <!-- Cancel Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/cancelButton"
+            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:clickable="true"
-            android:focusable="true"
-            app:cardBackgroundColor="?attr/colorSurfaceVariant"
-            app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="0dp"
-            app:rippleColor="?attr/colorPrimary">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="@dimen/spacing_md"
-                android:gravity="center_vertical">
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    app:cardBackgroundColor="@color/warning"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp">
-
-                    <ImageView
-                        android:layout_width="@dimen/icon_size_lg"
-                        android:layout_height="@dimen/icon_size_lg"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_notepad"
-                        app:tint="@color/white"
-                        android:contentDescription="Quick Note" />
-
-                </com.google.android.material.card.MaterialCardView>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="@dimen/spacing_md">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Quick Note"
-                        android:textAppearance="?attr/textAppearanceTitleMedium"
-                        android:textColor="?attr/colorOnSurface" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Jot down a quick note"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:layout_marginTop="@dimen/spacing_xs" />
-
-                </LinearLayout>
-
-                <ImageView
-                    android:layout_width="@dimen/icon_size_md"
-                    android:layout_height="wrap_content"
-                    android:contentDescription="Go"
-                    android:src="@drawable/ic_chevron_right"
-                    app:tint="?attr/colorOnSurfaceVariant" />
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
+            android:text="Cancel"
+            android:textColor="?attr/colorOnSurfaceVariant" />
 
     </LinearLayout>
 

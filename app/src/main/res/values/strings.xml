@@ -17,9 +17,9 @@
     <string name="clear_label">Clear text</string>
     <string name="close">Close</string>
 
-    <!-- Focus Task strings -->
-    <string name="focus_task_title">Focus Task</string>
-    <string name="reminder_title">Reminder</string>
+    <!-- Focus Session strings -->
+    <string name="focus_task_title">Focus Session</string>
+    <string name="reminder_title">Task</string>
     <string name="choose_task_type">Choose Task Type</string>
     <string name="focus_task_hint">What are you going to focus on?</string>
     <string name="keep_going">Keep Going</string>

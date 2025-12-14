@@ -25,7 +25,13 @@ public class AddNoteDialog extends Dialog {
     private MaterialButton priorityButton;
     private MaterialButton saveButton;
     private MaterialButton cancelButton;
+    private MaterialButton addChecklistItemButton;
     private TextView dateDisplay;
+    
+    // Task scheduling views
+    private android.view.View taskScheduleSection;
+    private MaterialButton taskDateButton;
+    private MaterialButton taskTimeButton;
 
     private Note currentNote;
     private NoteDao noteDao;
@@ -41,6 +47,12 @@ public class AddNoteDialog extends Dialog {
     private boolean isChecklist = false;
     private String priority = "None";
     private String taskType = "None"; // "None", "Reminder", "Focus Task"
+    
+    // Task scheduling properties
+    private String taskDate;
+    private int taskHour = 9;
+    private int taskMinute = 0;
+    private String taskAmPm = "AM";
 
     public interface OnNoteSavedListener {
         void onNoteSaved();
@@ -109,9 +121,22 @@ public class AddNoteDialog extends Dialog {
         saveButton = findViewById(R.id.saveButton);
         cancelButton = findViewById(R.id.cancelButton);
         
+        // Task scheduling views
+        taskScheduleSection = findViewById(R.id.taskScheduleSection);
+        taskDateButton = findViewById(R.id.taskDateButton);
+        taskTimeButton = findViewById(R.id.taskTimeButton);
+        
+        // Initialize task date to today
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+        taskDate = sdf.format(new java.util.Date());
+        
         // Set current date
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("EEEE, MMMM d, yyyy", java.util.Locale.getDefault());
-        dateDisplay.setText(sdf.format(new java.util.Date()));
+        java.text.SimpleDateFormat displaySdf = new java.text.SimpleDateFormat("EEEE, MMMM d, yyyy", java.util.Locale.getDefault());
+        dateDisplay.setText(displaySdf.format(new java.util.Date()));
+        
+        // Initialize checklist button
+        addChecklistItemButton = findViewById(R.id.addChecklistItemButton);
+        updateChecklistButtonVisibility();
     }
 
     private void setupListeners() {
@@ -120,30 +145,144 @@ public class AddNoteDialog extends Dialog {
         taskTypeButton.setOnClickListener(v -> showTaskTypeDialog());
 
         priorityButton.setOnClickListener(v -> showPriorityDialog());
+        
+        // Checklist item button
+        if (addChecklistItemButton != null) {
+            addChecklistItemButton.setOnClickListener(v -> insertChecklistItem());
+        }
+        
+        // Task scheduling listeners
+        if (taskDateButton != null) {
+            taskDateButton.setOnClickListener(v -> showDatePicker());
+        }
+        if (taskTimeButton != null) {
+            taskTimeButton.setOnClickListener(v -> showTimePicker());
+        }
 
         saveButton.setOnClickListener(v -> saveNote());
         cancelButton.setOnClickListener(v -> dismiss());
     }
+    
+    private void showDatePicker() {
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        android.app.DatePickerDialog datePickerDialog = new android.app.DatePickerDialog(
+                getContext(),
+                (view, year, month, dayOfMonth) -> {
+                    java.util.Calendar selectedDate = java.util.Calendar.getInstance();
+                    selectedDate.set(year, month, dayOfMonth);
+                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                    taskDate = sdf.format(selectedDate.getTime());
+                    updateTaskDateButton();
+                },
+                calendar.get(java.util.Calendar.YEAR),
+                calendar.get(java.util.Calendar.MONTH),
+                calendar.get(java.util.Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        datePickerDialog.show();
+    }
+    
+    private void showTimePicker() {
+        int currentHour = taskHour;
+        if (taskAmPm.equals("PM") && currentHour != 12) {
+            currentHour += 12;
+        } else if (taskAmPm.equals("AM") && currentHour == 12) {
+            currentHour = 0;
+        }
+        
+        android.app.TimePickerDialog timePickerDialog = new android.app.TimePickerDialog(
+                getContext(),
+                (view, hourOfDay, minute) -> {
+                    taskMinute = minute;
+                    if (hourOfDay == 0) {
+                        taskHour = 12;
+                        taskAmPm = "AM";
+                    } else if (hourOfDay < 12) {
+                        taskHour = hourOfDay;
+                        taskAmPm = "AM";
+                    } else if (hourOfDay == 12) {
+                        taskHour = 12;
+                        taskAmPm = "PM";
+                    } else {
+                        taskHour = hourOfDay - 12;
+                        taskAmPm = "PM";
+                    }
+                    updateTaskTimeButton();
+                },
+                currentHour,
+                taskMinute,
+                false
+        );
+        timePickerDialog.show();
+    }
+    
+    private void updateTaskDateButton() {
+        if (taskDateButton == null) return;
+        try {
+            java.text.SimpleDateFormat inputFormat = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+            java.text.SimpleDateFormat outputFormat = new java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault());
+            java.util.Date date = inputFormat.parse(taskDate);
+            
+            // Check if it's today
+            java.text.SimpleDateFormat todayFormat = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+            String today = todayFormat.format(new java.util.Date());
+            
+            if (taskDate.equals(today)) {
+                taskDateButton.setText("📅 Today");
+            } else {
+                taskDateButton.setText("📅 " + outputFormat.format(date));
+            }
+        } catch (Exception e) {
+            taskDateButton.setText("📅 " + taskDate);
+        }
+    }
+    
+    private void updateTaskTimeButton() {
+        if (taskTimeButton == null) return;
+        taskTimeButton.setText(String.format(java.util.Locale.getDefault(), "🕐 %d:%02d %s", taskHour, taskMinute, taskAmPm));
+    }
 
     private void showPriorityDialog() {
-        String[] priorities = {"None", "Low", "Medium", "High"};
-        int currentIndex = 0;
-        for (int i = 0; i < priorities.length; i++) {
-            if (priorities[i].equals(priority)) {
-                currentIndex = i;
-                break;
-            }
+        Dialog priorityDialog = new Dialog(getContext());
+        priorityDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        priorityDialog.setContentView(R.layout.dialog_priority_selector);
+        
+        if (priorityDialog.getWindow() != null) {
+            priorityDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            priorityDialog.getWindow().setLayout(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            );
         }
 
-        new MaterialAlertDialogBuilder(getContext())
-                .setTitle("Select Priority")
-                .setSingleChoiceItems(priorities, currentIndex, (dialog, which) -> {
-                    priority = priorities[which];
-                    updatePriorityButton();
-                    dialog.dismiss();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        // Setup click listeners for each priority option
+        priorityDialog.findViewById(R.id.priorityNone).setOnClickListener(v -> {
+            priority = "None";
+            updatePriorityButton();
+            priorityDialog.dismiss();
+        });
+
+        priorityDialog.findViewById(R.id.priorityLow).setOnClickListener(v -> {
+            priority = "Low";
+            updatePriorityButton();
+            priorityDialog.dismiss();
+        });
+
+        priorityDialog.findViewById(R.id.priorityMedium).setOnClickListener(v -> {
+            priority = "Medium";
+            updatePriorityButton();
+            priorityDialog.dismiss();
+        });
+
+        priorityDialog.findViewById(R.id.priorityHigh).setOnClickListener(v -> {
+            priority = "High";
+            updatePriorityButton();
+            priorityDialog.dismiss();
+        });
+
+        priorityDialog.findViewById(R.id.cancelButton).setOnClickListener(v -> priorityDialog.dismiss());
+
+        priorityDialog.show();
     }
 
     private void updatePriorityButton() {
@@ -165,42 +304,65 @@ public class AddNoteDialog extends Dialog {
     }
 
     private void showTaskTypeDialog() {
-        String[] taskTypes = {"None", "⏰ Reminder", "🎯 Focus Task"};
-        int currentIndex = 0;
-        if (taskType.equals("Reminder")) currentIndex = 1;
-        else if (taskType.equals("Focus Task")) currentIndex = 2;
+        Dialog taskTypeDialog = new Dialog(getContext());
+        taskTypeDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        taskTypeDialog.setContentView(R.layout.dialog_task_type_selector);
+        
+        if (taskTypeDialog.getWindow() != null) {
+            taskTypeDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            taskTypeDialog.getWindow().setLayout(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
 
-        new MaterialAlertDialogBuilder(getContext())
-                .setTitle("Configure as Task")
-                .setSingleChoiceItems(taskTypes, currentIndex, (dialog, which) -> {
-                    switch (which) {
-                        case 0:
-                            taskType = "None";
-                            break;
-                        case 1:
-                            taskType = "Reminder";
-                            break;
-                        case 2:
-                            taskType = "Focus Task";
-                            break;
-                    }
-                    updateTaskTypeButton();
-                    dialog.dismiss();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        // Setup click listeners for each task type option
+        taskTypeDialog.findViewById(R.id.taskTypeNone).setOnClickListener(v -> {
+            taskType = "None";
+            updateTaskTypeButton();
+            taskTypeDialog.dismiss();
+        });
+
+        taskTypeDialog.findViewById(R.id.taskTypeReminder).setOnClickListener(v -> {
+            taskType = "Reminder";
+            updateTaskTypeButton();
+            taskTypeDialog.dismiss();
+        });
+
+        taskTypeDialog.findViewById(R.id.taskTypeFocus).setOnClickListener(v -> {
+            taskType = "Focus Task";
+            updateTaskTypeButton();
+            taskTypeDialog.dismiss();
+        });
+
+        taskTypeDialog.findViewById(R.id.cancelButton).setOnClickListener(v -> taskTypeDialog.dismiss());
+
+        taskTypeDialog.show();
     }
 
     private void updateTaskTypeButton() {
         if (taskType.equals("None")) {
-            taskTypeButton.setText("Task Type: None");
-            taskTypeButton.setIconResource(R.drawable.ic_reminder);
+            taskTypeButton.setText("Note Type: Just a Note");
+            taskTypeButton.setIconResource(R.drawable.ic_edit);
+            if (taskScheduleSection != null) {
+                taskScheduleSection.setVisibility(android.view.View.GONE);
+            }
         } else if (taskType.equals("Reminder")) {
-            taskTypeButton.setText("Task Type: ⏰ Reminder");
+            taskTypeButton.setText("Note Type: ⏰ Task");
             taskTypeButton.setIconResource(R.drawable.ic_reminder);
+            if (taskScheduleSection != null) {
+                taskScheduleSection.setVisibility(android.view.View.VISIBLE);
+                updateTaskDateButton();
+                updateTaskTimeButton();
+            }
         } else {
-            taskTypeButton.setText("Task Type: 🎯 Focus Task");
+            taskTypeButton.setText("Note Type: 🎯 Focus Task");
             taskTypeButton.setIconResource(R.drawable.ic_focus);
+            if (taskScheduleSection != null) {
+                taskScheduleSection.setVisibility(android.view.View.VISIBLE);
+                updateTaskDateButton();
+                updateTaskTimeButton();
+            }
         }
     }
 
@@ -208,6 +370,15 @@ public class AddNoteDialog extends Dialog {
         Dialog formatDialog = new Dialog(getContext());
         formatDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         formatDialog.setContentView(R.layout.dialog_text_format);
+        
+        // Set dialog to be full width with proper styling
+        if (formatDialog.getWindow() != null) {
+            formatDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            formatDialog.getWindow().setLayout(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
 
         // Initialize views
         android.widget.Spinner fontFamilySpinner = formatDialog.findViewById(R.id.fontFamilySpinner);
@@ -233,6 +404,7 @@ public class AddNoteDialog extends Dialog {
                 isChecklist = !isChecklist;
                 checklistToggle.setText(isChecklist ? "Checklist" : "Plain Text");
                 checklistToggle.setIconResource(isChecklist ? R.drawable.ic_reminder : R.drawable.ic_edit);
+                updateChecklistButtonVisibility();
             });
         }
 
@@ -466,6 +638,11 @@ public class AddNoteDialog extends Dialog {
             return;
         }
 
+        // If Task type is selected, create both a Note and a Task
+        if (!taskType.equals("None")) {
+            createTaskFromNote(title, description);
+        }
+
         if (currentNote == null) {
             // Create new note
             currentNote = new Note();
@@ -483,6 +660,7 @@ public class AddNoteDialog extends Dialog {
         currentNote.isChecklist = isChecklist;
         currentNote.priority = priority;
         currentNote.taskType = taskType;
+        currentNote.isConvertedToTask = !taskType.equals("None");
 
         if (currentNote.id == 0) {
             noteDao.insert(currentNote);
@@ -495,5 +673,106 @@ public class AddNoteDialog extends Dialog {
         }
 
         dismiss();
+    }
+    
+    private void createTaskFromNote(String title, String description) {
+        Task task = new Task();
+        task.name = title.isEmpty() ? "Task from Note" : title;
+        task.taskType = taskType.equals("Focus Task") ? "focus" : "reminder";
+        task.date = taskDate;
+        task.hour = taskHour;
+        task.minute = taskMinute;
+        task.amPm = taskAmPm;
+        task.isAlarmOn = true;
+        task.urgency = priority;
+        task.selectedDays = new boolean[7];
+        task.vibrationEnabled = false;
+        
+        // Set note content for context when task notifies
+        task.noteContent = description;
+        
+        // For focus tasks, set default end time (1 hour later)
+        if (taskType.equals("Focus Task")) {
+            int endHour24 = taskHour;
+            if (taskAmPm.equals("PM") && taskHour != 12) {
+                endHour24 += 12;
+            } else if (taskAmPm.equals("AM") && taskHour == 12) {
+                endHour24 = 0;
+            }
+            endHour24 += 1; // Add 1 hour
+            
+            if (endHour24 >= 24) {
+                endHour24 = 23;
+                task.endMinute = 59;
+            } else {
+                task.endMinute = taskMinute;
+            }
+            
+            if (endHour24 == 0) {
+                task.endHour = 12;
+                task.endAmPm = "AM";
+            } else if (endHour24 < 12) {
+                task.endHour = endHour24;
+                task.endAmPm = "AM";
+            } else if (endHour24 == 12) {
+                task.endHour = 12;
+                task.endAmPm = "PM";
+            } else {
+                task.endHour = endHour24 - 12;
+                task.endAmPm = "PM";
+            }
+        }
+        
+        // Determine time category
+        int hour24 = taskHour;
+        if (taskAmPm.equals("PM") && taskHour != 12) {
+            hour24 += 12;
+        } else if (taskAmPm.equals("AM") && taskHour == 12) {
+            hour24 = 0;
+        }
+        
+        if (hour24 < 12) {
+            task.timeCategory = "morning";
+        } else if (hour24 < 17) {
+            task.timeCategory = "afternoon";
+        } else {
+            task.timeCategory = "night";
+        }
+        
+        // Insert task and schedule alarm
+        TaskRepository repository = TaskRepository.getInstance();
+        repository.initialize(getContext());
+        repository.addTask(task);
+        
+        // Schedule alarm
+        if (taskType.equals("Focus Task")) {
+            AlarmHelper.scheduleFocusTaskAlarms(getContext(), task);
+        } else {
+            AlarmHelper.scheduleTaskAlarm(getContext(), task);
+        }
+    }
+    private void updateChecklistButtonVisibility() {
+        if (addChecklistItemButton != null) {
+            addChecklistItemButton.setVisibility(isChecklist ? android.view.View.VISIBLE : android.view.View.GONE);
+        }
+    }
+    private void insertChecklistItem() {
+        if (noteDescriptionInput == null) return;
+        String currentText = noteDescriptionInput.getText() != null ? 
+            noteDescriptionInput.getText().toString() : "";
+        int cursorPosition = noteDescriptionInput.getSelectionStart();
+        String checklistPrefix = "[ ] ";
+        StringBuilder newText = new StringBuilder(currentText);
+        if (cursorPosition > 0 && cursorPosition <= currentText.length() && 
+            currentText.charAt(cursorPosition - 1) != '\n') {
+            newText.insert(cursorPosition, "\n" + checklistPrefix);
+            cursorPosition += checklistPrefix.length() + 1;
+        } else {
+            newText.insert(cursorPosition, checklistPrefix);
+            cursorPosition += checklistPrefix.length();
+        }
+        noteDescriptionInput.setText(newText.toString());
+        noteDescriptionInput.setSelection(cursorPosition);
+        noteDescriptionInput.requestFocus();
     }
 }

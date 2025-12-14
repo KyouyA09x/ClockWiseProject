@@ -30,6 +30,7 @@ public class OnboardingActivity extends AppCompatActivity {
     private static final int NOTIFICATION_PERMISSION_CODE = 100;
     private static final int ALARM_PERMISSION_CODE = 101;
     private static final int BATTERY_OPTIMIZATION_CODE = 102;
+    private static final int OVERLAY_PERMISSION_CODE = 103;
 
     private static final String PREFS_NAME = "ClockWisePrefs";
     private static final String KEY_ONBOARDING_COMPLETE = "onboarding_complete";
@@ -37,24 +38,25 @@ public class OnboardingActivity extends AppCompatActivity {
     private ImageView notificationCheck;
     private ImageView alarmCheck;
     private ImageView batteryCheck;
+    private ImageView overlayCheck;
     private Button grantPermissionsButton;
     private TextView statusText;
 
     private boolean notificationPermissionGranted = false;
     private boolean alarmPermissionGranted = false;
     private boolean batteryOptimizationDisabled = false;
+    private boolean overlayPermissionGranted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        try {
-            // Apply theme before setContentView
-            ThemeHelper.applyTheme(this);
-            setTheme(ThemeHelper.getThemeResource(this));
-        } catch (Exception e) {
-            // If theme application fails, continue with default theme
-            e.printStackTrace();
+        // Always refresh permission status first
+        refreshPermissionStatus();
+        
+        // If onboarding was completed but permissions were revoked, reset onboarding
+        if (isOnboardingComplete() && !areAllPermissionsGranted()) {
+            resetOnboarding();
         }
 
         // Check if onboarding was already completed and permissions are still granted
@@ -70,6 +72,42 @@ public class OnboardingActivity extends AppCompatActivity {
         checkCurrentPermissions();
         setupClickListeners();
     }
+    
+    private void refreshPermissionStatus() {
+        // Check notification permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            notificationPermissionGranted = ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+        } else {
+            notificationPermissionGranted = true;
+        }
+
+        // Check exact alarm permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            alarmPermissionGranted = alarmManager != null && alarmManager.canScheduleExactAlarms();
+        } else {
+            alarmPermissionGranted = true;
+        }
+
+        // Check battery optimization
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        if (powerManager != null) {
+            batteryOptimizationDisabled = powerManager.isIgnoringBatteryOptimizations(getPackageName());
+        }
+
+        // Check overlay permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            overlayPermissionGranted = Settings.canDrawOverlays(this);
+        } else {
+            overlayPermissionGranted = true;
+        }
+    }
+    
+    private void resetOnboarding() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETE, false).apply();
+    }
 
     @Override
     protected void onResume() {
@@ -83,12 +121,14 @@ public class OnboardingActivity extends AppCompatActivity {
         notificationCheck = findViewById(R.id.notificationCheck);
         alarmCheck = findViewById(R.id.alarmCheck);
         batteryCheck = findViewById(R.id.batteryCheck);
+        overlayCheck = findViewById(R.id.overlayCheck);
         grantPermissionsButton = findViewById(R.id.grantPermissionsButton);
         statusText = findViewById(R.id.statusText);
 
         LinearLayout notificationRow = findViewById(R.id.notificationPermissionRow);
         LinearLayout alarmRow = findViewById(R.id.alarmPermissionRow);
         LinearLayout batteryRow = findViewById(R.id.batteryPermissionRow);
+        LinearLayout overlayRow = findViewById(R.id.overlayPermissionRow);
 
         if (notificationRow != null) {
             notificationRow.setOnClickListener(v -> requestNotificationPermission());
@@ -98,6 +138,9 @@ public class OnboardingActivity extends AppCompatActivity {
         }
         if (batteryRow != null) {
             batteryRow.setOnClickListener(v -> requestBatteryOptimization());
+        }
+        if (overlayRow != null) {
+            overlayRow.setOnClickListener(v -> requestOverlayPermission());
         }
     }
 
@@ -151,6 +194,10 @@ public class OnboardingActivity extends AppCompatActivity {
             batteryCheck.setImageResource(batteryOptimizationDisabled ?
                     android.R.drawable.checkbox_on_background : android.R.drawable.checkbox_off_background);
         }
+        if (overlayCheck != null) {
+            overlayCheck.setImageResource(overlayPermissionGranted ?
+                    android.R.drawable.checkbox_on_background : android.R.drawable.checkbox_off_background);
+        }
 
         // Update button text and status with null checks
         if (areAllPermissionsGranted()) {
@@ -177,7 +224,7 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     private boolean areAllPermissionsGranted() {
-        return notificationPermissionGranted && alarmPermissionGranted && batteryOptimizationDisabled;
+        return notificationPermissionGranted && alarmPermissionGranted && batteryOptimizationDisabled && overlayPermissionGranted;
     }
 
     private void requestNextMissingPermission() {
@@ -187,6 +234,8 @@ public class OnboardingActivity extends AppCompatActivity {
             requestAlarmPermission();
         } else if (!batteryOptimizationDisabled) {
             requestBatteryOptimization();
+        } else if (!overlayPermissionGranted) {
+            requestOverlayPermission();
         }
     }
 
@@ -245,6 +294,26 @@ public class OnboardingActivity extends AppCompatActivity {
                     });
         } else {
             batteryOptimizationDisabled = true;
+            updateUI();
+        }
+    }
+
+    private void requestOverlayPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.canDrawOverlays(this)) {
+                showPermissionRationale("Display Over Apps",
+                        "This allows ClockWise to show popup notifications when tasks are due, even over other apps.",
+                        () -> {
+                            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                            intent.setData(Uri.parse("package:" + getPackageName()));
+                            startActivityForResult(intent, OVERLAY_PERMISSION_CODE);
+                        });
+            } else {
+                overlayPermissionGranted = true;
+                updateUI();
+            }
+        } else {
+            overlayPermissionGranted = true;
             updateUI();
         }
     }

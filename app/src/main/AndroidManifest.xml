@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.mainactivity">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Permissions for notifications and alarms -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -9,10 +8,15 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <!-- Permissions for background running -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- Permission for overlay notifications (draw over apps) -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:name=".ClockWiseApplication"
@@ -53,6 +57,18 @@
         <activity android:name=".HistoryMonthDetailActivity" />
         <activity android:name=".CalendarActivity" />
         <activity android:name=".SettingsActivity" />
+        
+        <!-- Popup Notification Activity for fullscreen popup alerts -->
+        <activity
+            android:name=".PopupNotificationActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Popup.Transparent"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:taskAffinity=""
+            android:noHistory="true" />
 
         <!-- Alarm Receiver for task notifications -->
         <receiver
@@ -68,6 +84,16 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <!-- Overlay Notification Service for popup notifications -->
+        <service
+            android:name=".OverlayNotificationService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property 
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Display overlay popup notifications for task reminders" />
+        </service>
     </application>
 
 </manifest>

@@ -1,138 +1,268 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:maxHeight="800dp">
+    android:layout_margin="@dimen/spacing_md"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardCornerRadius="28dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
+
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:maxHeight="700dp"
+    android:fillViewport="true"
+    android:scrollbars="vertical"
+    android:fadeScrollbars="false">
 
 <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="?attr/colorSurface"
-    android:padding="@dimen/spacing_lg">
+    android:padding="24dp">
 
-    <!-- Title -->
-    <TextView
+    <!-- Header with icon -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+        
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_edit"
+            android:contentDescription="@string/app_name"
+            app:tint="?attr/colorPrimary"
+            android:layout_marginEnd="12dp" />
+        
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Create Note"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:textColor="?attr/colorOnSurface" />
+    </LinearLayout>
+
+    <!-- Date Display with icon -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Note"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall"
-        android:textColor="?attr/colorOnSurface"
-        android:layout_marginBottom="@dimen/spacing_xs" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="20dp">
+        
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_reminder"
+            android:contentDescription="@string/app_name"
+            app:tint="?attr/colorOnSurfaceVariant"
+            android:layout_marginEnd="8dp" />
+        
+        <TextView
+            android:id="@+id/noteDateDisplay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+    </LinearLayout>
 
-    <!-- Date Display -->
-    <TextView
-        android:id="@+id/noteDateDisplay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        android:layout_marginBottom="@dimen/spacing_md" />
-
-    <!-- Note Title Input -->
+    <!-- Note Title Input with Material 3 style -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/noteTitleLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Title"
+        android:hint="Note title"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         app:boxBackgroundMode="outline"
         app:boxStrokeColor="?attr/colorPrimary"
-        android:layout_marginBottom="@dimen/spacing_md">
+        app:boxStrokeWidth="2dp"
+        app:hintTextColor="?attr/colorPrimary"
+        app:startIconDrawable="@drawable/ic_edit"
+        app:startIconTint="?attr/colorPrimary"
+        android:layout_marginBottom="16dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/noteTitleInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
+            android:inputType="textCapSentences"
             android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="?attr/colorOnSurface" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Note Description Input -->
+    <!-- Note Description Input with Material 3 style -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/noteDescriptionLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Description"
+        android:hint="Write your note here..."
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         app:boxBackgroundMode="outline"
         app:boxStrokeColor="?attr/colorPrimary"
-        android:layout_marginBottom="@dimen/spacing_md">
+        app:boxStrokeWidth="2dp"
+        app:hintTextColor="?attr/colorPrimary"
+        app:counterEnabled="true"
+        app:counterMaxLength="5000"
+        app:helperText="Supports rich text formatting"
+        app:helperTextTextColor="?attr/colorOnSurfaceVariant"
+        android:layout_marginBottom="20dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/noteDescriptionInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textMultiLine"
-            android:minLines="5"
-            android:maxLines="10"
+            android:inputType="textMultiLine|textCapSentences"
+            android:minLines="6"
+            android:maxLines="12"
             android:gravity="top|start"
             android:scrollbars="vertical"
-            android:textColor="?attr/colorOnSurface" />
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:lineSpacingExtra="4dp"
+            android:paddingTop="12dp" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Format Options Label -->
+    <!-- Checklist Quick Add Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/addChecklistItemButton"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="☐ Add Checklist Item"
+        android:textColor="?attr/colorPrimary"
+        android:layout_marginBottom="12dp"
+        android:visibility="gone" />
+
+    <!-- Options Section with divider -->
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:dividerColor="?attr/colorOutline" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Text Formatting"
+        android:text="Note Options"
         android:textAppearance="?attr/textAppearanceTitleMedium"
-        android:textColor="?attr/colorOnSurface"
-        android:layout_marginBottom="@dimen/spacing_sm" />
+        android:textColor="?attr/colorPrimary"
+        android:layout_marginBottom="12dp" />
 
-    <!-- Text Format Button -->
+    <!-- Enhanced buttons with better styling -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/textFormatButton"
-        style="@style/Widget.Material3.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.OutlinedButton.Icon"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Text Format Options"
+        android:layout_height="56dp"
+        android:text="✨ Text Formatting"
+        android:textAlignment="viewStart"
         app:icon="@drawable/ic_edit"
         app:iconGravity="start"
-        android:layout_marginBottom="@dimen/spacing_sm" />
+        app:iconTint="?attr/colorPrimary"
+        app:strokeColor="?attr/colorOutline"
+        android:layout_marginBottom="8dp" />
 
-    <!-- Task Type Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/taskTypeButton"
-        style="@style/Widget.Material3.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.OutlinedButton.Icon"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="📋 Note Type: Just a Note"
+        android:textAlignment="viewStart"
+        app:icon="@drawable/ic_edit"
+        app:iconGravity="start"
+        app:iconTint="?attr/colorPrimary"
+        app:strokeColor="?attr/colorOutline"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Task Scheduling Section (shown when Task type is selected) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/taskScheduleSection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Task Type: None"
-        app:icon="@drawable/ic_reminder"
-        app:iconGravity="start"
-        android:layout_marginBottom="@dimen/spacing_sm" />
+        android:visibility="gone"
+        app:cardBackgroundColor="?attr/colorSurfaceVariant"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        android:layout_marginBottom="12dp">
 
-    <!-- Priority Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/checklistButton"
-        style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Convert to Checklist"
-        app:icon="@drawable/ic_reminder"
-        app:iconGravity="start"
-        android:layout_marginBottom="@dimen/spacing_sm" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-    <!-- Priority Button -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⏰ Schedule Task"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginBottom="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/taskDateButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="📅 Today"
+                    android:textSize="12sp"
+                    app:strokeColor="?attr/colorOutline"
+                    android:layout_marginEnd="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/taskTimeButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🕐 9:00 AM"
+                    android:textSize="12sp"
+                    app:strokeColor="?attr/colorOutline" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/priorityButton"
-        style="@style/Widget.Material3.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.OutlinedButton.Icon"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Priority: None"
+        android:layout_height="56dp"
+        android:text="🎯 Priority: None"
+        android:textAlignment="viewStart"
         app:icon="@drawable/ic_priority_low"
         app:iconGravity="start"
-        android:layout_marginBottom="@dimen/spacing_md" />
+        app:iconTint="?attr/colorPrimary"
+        app:strokeColor="?attr/colorOutline"
+        android:layout_marginBottom="20dp" />
 
-    <!-- Action Buttons -->
+    <!-- Action Buttons with modern layout -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="end">
+        android:gravity="end"
+        android:paddingTop="8dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/cancelButton"
@@ -140,17 +270,26 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Cancel"
-            android:layout_marginEnd="@dimen/spacing_sm" />
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:minWidth="88dp"
+            android:layout_marginEnd="8dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/saveButton"
+            style="@style/Widget.Material3.Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Save"
-            app:backgroundTint="?attr/colorPrimary" />
+            android:text="Save Note"
+            android:minWidth="120dp"
+            app:icon="@drawable/ic_add_fab"
+            app:iconGravity="textStart"
+            app:backgroundTint="?attr/colorPrimary"
+            app:cornerRadius="20dp" />
 
     </LinearLayout>
 
 </LinearLayout>
 
 </ScrollView>
+
+</com.google.android.material.card.MaterialCardView>

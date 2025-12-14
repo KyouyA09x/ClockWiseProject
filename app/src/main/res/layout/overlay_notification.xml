@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="@android:color/transparent">
+
+    <!-- Overlay Card - Squircle design with Material 3 -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/overlayCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="@color/surface_light"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="8dp"
+        app:strokeWidth="3dp"
+        app:strokeColor="@color/priority_border_none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Header with icon and task type badge -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <!-- Notification Icon -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    app:cardBackgroundColor="@color/blue_primary"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_reminder"
+                        app:tint="@color/white" />
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="ClockWise"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary"
+                    android:textStyle="bold" />
+
+                <!-- Task Type Badge -->
+                <TextView
+                    android:id="@+id/overlayTaskType"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⏰ Task"
+                    android:textSize="12sp"
+                    android:textColor="@color/blue_primary"
+                    android:background="@drawable/rounded_corner_background"
+                    android:backgroundTint="@color/blue_light"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp" />
+
+            </LinearLayout>
+
+            <!-- Task Name -->
+            <TextView
+                android:id="@+id/overlayTaskName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Task Name"
+                android:textSize="20sp"
+                android:textColor="@color/on_surface_light"
+                android:textStyle="bold"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Task Note/Context -->
+            <TextView
+                android:id="@+id/overlayTaskNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Note content goes here..."
+                android:textSize="14sp"
+                android:textColor="@color/on_surface_variant_light"
+                android:maxLines="3"
+                android:ellipsize="end"
+                android:visibility="gone"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_corner_background"
+                android:backgroundTint="@color/surface_variant_light"
+                android:padding="12dp" />
+
+            <!-- Action Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="end"
+                android:layout_marginTop="8dp">
+
+                <!-- Snooze Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/overlaySnoozeButton"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="Snooze 10m"
+                    android:textColor="@color/text_secondary"
+                    app:icon="@drawable/ic_snooze"
+                    app:iconTint="@color/text_secondary"
+                    app:iconGravity="textStart"
+                    android:layout_marginEnd="8dp" />
+
+                <!-- Got It Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/overlayGotItButton"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="Got it!"
+                    app:backgroundTint="@color/blue_primary"
+                    app:cornerRadius="24dp"
+                    app:icon="@drawable/ic_check"
+                    app:iconTint="@color/white"
+                    app:iconGravity="textStart" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</FrameLayout>

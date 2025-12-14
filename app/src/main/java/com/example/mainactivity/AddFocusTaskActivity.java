@@ -1,19 +1,13 @@
 package com.example.mainactivity;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
-import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.TextView;
@@ -23,7 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class AddFocusTaskActivity extends AppCompatActivity {
+public class AddFocusTaskActivity extends BaseThemedActivity {
 
     private Button cancelButton;
     private Button saveButton;
@@ -58,8 +52,6 @@ public class AddFocusTaskActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ThemeHelper.applyTheme(this);
-        setTheme(ThemeHelper.getThemeResource(this));
         setContentView(R.layout.activity_add_focus_task);
 
         taskRepository = TaskRepository.getInstance();

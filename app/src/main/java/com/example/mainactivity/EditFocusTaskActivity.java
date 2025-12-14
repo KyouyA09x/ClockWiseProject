@@ -51,8 +51,6 @@ public class EditFocusTaskActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ThemeHelper.applyTheme(this);
-        setTheme(ThemeHelper.getThemeResource(this));
         setContentView(R.layout.activity_add_focus_task);
 
         taskRepository = TaskRepository.getInstance();

@@ -33,6 +33,7 @@ public class Task implements Parcelable {
     String endAmPm;
     boolean isFocusTaskActive; // Tracks if focus session is ongoing
     int extendedMinutes; // Total minutes extended via "Keep Going"
+    String noteContent; // Note content for context when task notifies the user
 
     // Required empty constructor for Room
     public Task() {
@@ -100,6 +101,7 @@ public class Task implements Parcelable {
         endAmPm = in.readString();
         isFocusTaskActive = in.readByte() != 0;
         extendedMinutes = in.readInt();
+        noteContent = in.readString();
     }
 
     public static final Creator<Task> CREATOR = new Creator<Task>() {
@@ -139,6 +141,7 @@ public class Task implements Parcelable {
         dest.writeString(endAmPm);
         dest.writeByte((byte) (isFocusTaskActive ? 1 : 0));
         dest.writeInt(extendedMinutes);
+        dest.writeString(noteContent);
     }
 
     // Helper method to get formatted start time

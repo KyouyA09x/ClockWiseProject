@@ -5,13 +5,11 @@ import android.os.Bundle;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.MaterialColors;
 
-public class SettingsActivity extends AppCompatActivity {
+public class SettingsActivity extends BaseThemedActivity {
 
     private MaterialCardView lightModeButton;
     private MaterialCardView darkModeButton;
@@ -29,11 +27,8 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ThemeHelper.applyTheme(this);
-        setTheme(ThemeHelper.getThemeResource(this));
         setContentView(R.layout.activity_settings);
 
-        // Setup toolbar
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         if (toolbar != null) {
             toolbar.setNavigationOnClickListener(v -> finish());
@@ -42,9 +37,9 @@ public class SettingsActivity extends AppCompatActivity {
         initViews();
         updateThemeModeUI();
         updateThemeColorUI();
-        
-        // Set up listeners AFTER setting initial UI state to prevent immediate recreation
         setupListeners();
+        setupTestDataButtons();
+        setupNotificationPreviewButtons();
         isInitializing = false;
     }
 
@@ -67,6 +62,7 @@ public class SettingsActivity extends AppCompatActivity {
                 int currentMode = ThemeHelper.getThemeMode(this);
                 if (currentMode != ThemeHelper.MODE_LIGHT) {
                     ThemeHelper.setThemeMode(this, ThemeHelper.MODE_LIGHT);
+                    notifyThemeChanged();
                     recreate();
                 }
             });
@@ -77,6 +73,7 @@ public class SettingsActivity extends AppCompatActivity {
                 int currentMode = ThemeHelper.getThemeMode(this);
                 if (currentMode != ThemeHelper.MODE_DARK) {
                     ThemeHelper.setThemeMode(this, ThemeHelper.MODE_DARK);
+                    notifyThemeChanged();
                     recreate();
                 }
             });
@@ -87,6 +84,7 @@ public class SettingsActivity extends AppCompatActivity {
                 int currentMode = ThemeHelper.getThemeMode(this);
                 if (currentMode != ThemeHelper.MODE_AUTO) {
                     ThemeHelper.setThemeMode(this, ThemeHelper.MODE_AUTO);
+                    notifyThemeChanged();
                     recreate();
                 }
             });
@@ -94,7 +92,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         if (themeColorGroup != null) {
             themeColorGroup.setOnCheckedChangeListener((group, checkedId) -> {
-                // Don't recreate during initial setup
                 if (isInitializing) return;
                 
                 String currentColor = ThemeHelper.getThemeColor(this);
@@ -112,9 +109,9 @@ public class SettingsActivity extends AppCompatActivity {
                     newColor = ThemeHelper.COLOR_DEFAULT;
                 }
                 
-                // Only recreate if the color actually changed
                 if (!currentColor.equals(newColor)) {
                     ThemeHelper.setThemeColor(this, newColor);
+                    notifyThemeChanged();
                     recreate();
                 }
             });
@@ -123,17 +120,13 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void updateThemeModeUI() {
         int mode = ThemeHelper.getThemeMode(this);
-
-        // Get theme colors
         int outlineColor = MaterialColors.getColor(this, android.R.attr.colorControlNormal, getColor(R.color.outline_light));
         int primaryColor = MaterialColors.getColor(this, androidx.appcompat.R.attr.colorPrimary, getColor(R.color.blue_primary));
 
-        // Reset all stroke colors
         if (lightModeButton != null) lightModeButton.setStrokeColor(ColorStateList.valueOf(outlineColor));
         if (darkModeButton != null) darkModeButton.setStrokeColor(ColorStateList.valueOf(outlineColor));
         if (autoModeButton != null) autoModeButton.setStrokeColor(ColorStateList.valueOf(outlineColor));
 
-        // Highlight selected with primary color stroke
         switch (mode) {
             case ThemeHelper.MODE_LIGHT:
                 if (lightModeButton != null) lightModeButton.setStrokeColor(ColorStateList.valueOf(primaryColor));
@@ -150,7 +143,6 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void updateThemeColorUI() {
         String color = ThemeHelper.getThemeColor(this);
-
         if (themeColorGroup == null) return;
 
         switch (color) {
@@ -171,5 +163,145 @@ public class SettingsActivity extends AppCompatActivity {
                 if (radioDefault != null) radioDefault.setChecked(true);
                 break;
         }
+    }
+
+    private void setupTestDataButtons() {
+        com.google.android.material.button.MaterialButton populateButton = 
+            findViewById(R.id.populateTestDataButton);
+        com.google.android.material.button.MaterialButton clearButton = 
+            findViewById(R.id.clearAllDataButton);
+
+        if (populateButton != null) {
+            populateButton.setOnClickListener(v -> 
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                    .setTitle("Populate Test Data")
+                    .setMessage("This will add sample tasks, focus sessions, and notes to test the app. Continue?")
+                    .setPositiveButton("Populate", (dialog, which) -> {
+                        TestDataGenerator generator = new TestDataGenerator(this);
+                        generator.populateTestData();
+                        android.widget.Toast.makeText(this, 
+                            "Test data populated successfully!", 
+                            android.widget.Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            );
+        }
+
+        if (clearButton != null) {
+            clearButton.setOnClickListener(v -> 
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                    .setTitle("Clear All Data")
+                    .setMessage("⚠️ This will permanently delete ALL tasks and notes. This action cannot be undone. Continue?")
+                    .setPositiveButton("Delete All", (dialog, which) -> {
+                        TestDataGenerator generator = new TestDataGenerator(this);
+                        generator.clearAllData();
+                        android.widget.Toast.makeText(this, 
+                            "All data cleared!", 
+                            android.widget.Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            );
+        }
+    }
+    
+    private void setupNotificationPreviewButtons() {
+        com.google.android.material.button.MaterialButton previewTaskButton = 
+            findViewById(R.id.previewTaskPopupButton);
+        com.google.android.material.button.MaterialButton previewFocusButton = 
+            findViewById(R.id.previewFocusPopupButton);
+        com.google.android.material.button.MaterialButton previewQuickInfoButton = 
+            findViewById(R.id.previewQuickInfoPopupButton);
+        
+        if (previewTaskButton != null) {
+            previewTaskButton.setOnClickListener(v -> {
+                // Use overlay for A15+, activity for A14 and below
+                if (android.os.Build.VERSION.SDK_INT >= 35 && OverlayNotificationService.canDrawOverlays(this)) {
+                    OverlayNotificationService.showNotificationWithTime(
+                        this, -1, "Review Project Proposal",
+                        "This is a preview of how your task notification will appear!",
+                        "High", "reminder", 10, 30, "AM", 0, 0, "AM"
+                    );
+                } else {
+                    PopupNotificationActivity.show(
+                        this, -1, "Review Project Proposal",
+                        "This is a preview of how your task notification will appear!",
+                        "High", "reminder", 10, 30, "AM", 0, 0, "AM"
+                    );
+                }
+            });
+        }
+        
+        if (previewFocusButton != null) {
+            previewFocusButton.setOnClickListener(v -> {
+                // Use overlay for A15+, activity for A14 and below
+                if (android.os.Build.VERSION.SDK_INT >= 35 && OverlayNotificationService.canDrawOverlays(this)) {
+                    OverlayNotificationService.showNotificationWithTime(
+                        this, -2, "Deep Work: Project Planning",
+                        "Focus session preview with timer and controls!",
+                        "High", "focus", 2, 0, "PM", 4, 0, "PM"
+                    );
+                } else {
+                    PopupNotificationActivity.show(
+                        this, -2, "Deep Work: Project Planning",
+                        "Focus session preview with timer and controls!",
+                        "High", "focus", 2, 0, "PM", 4, 0, "PM"
+                    );
+                }
+            });
+        }
+        
+        if (previewQuickInfoButton != null) {
+            previewQuickInfoButton.setOnClickListener(this::showPreviewQuickInfoPopup);
+        }
+    }
+    
+    private void showPreviewQuickInfoPopup(android.view.View anchorView) {
+        android.widget.PopupWindow popupWindow = new android.widget.PopupWindow(this);
+        android.view.View popupView = getLayoutInflater().inflate(R.layout.popup_quick_info, null);
+        popupWindow.setContentView(popupView);
+        
+        popupWindow.setWidth(android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        popupWindow.setHeight(android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        popupWindow.setFocusable(true);
+        popupWindow.setOutsideTouchable(true);
+        popupWindow.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        popupWindow.setElevation(24f);
+        popupWindow.setAnimationStyle(android.R.style.Animation_Dialog);
+        
+        android.widget.TextView titleText = popupView.findViewById(R.id.quickInfoTitle);
+        android.widget.TextView typeText = popupView.findViewById(R.id.quickInfoType);
+        android.widget.TextView dateText = popupView.findViewById(R.id.quickInfoDate);
+        android.widget.TextView timeText = popupView.findViewById(R.id.quickInfoTime);
+        android.widget.TextView durationText = popupView.findViewById(R.id.quickInfoDuration);
+        android.view.View durationRow = popupView.findViewById(R.id.durationRow);
+        android.widget.ImageView typeIcon = popupView.findViewById(R.id.typeIcon);
+        com.google.android.material.card.MaterialCardView iconContainer = popupView.findViewById(R.id.typeIconContainer);
+        
+        if (titleText != null) titleText.setText("Review Project Proposal");
+        if (typeText != null) {
+            typeText.setText("Focus Session");
+            typeText.setTextColor(getColor(R.color.primary));
+        }
+        if (dateText != null) {
+            java.text.SimpleDateFormat displayFormat = new java.text.SimpleDateFormat("EEEE, MMMM d, yyyy", java.util.Locale.getDefault());
+            dateText.setText(displayFormat.format(new java.util.Date()));
+        }
+        if (timeText != null) {
+            timeText.setText("3:00 PM → 5:00 PM");
+        }
+        if (durationRow != null && durationText != null) {
+            durationRow.setVisibility(android.view.View.VISIBLE);
+            durationText.setText("2 hours");
+        }
+        if (typeIcon != null) {
+            typeIcon.setImageResource(R.drawable.ic_focus);
+        }
+        if (iconContainer != null) {
+            iconContainer.setCardBackgroundColor(getColor(R.color.primary));
+        }
+        
+        popupWindow.showAtLocation(anchorView, android.view.Gravity.CENTER, 0, 0);
     }
 }

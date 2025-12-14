@@ -3,7 +3,8 @@
     <!-- Basic Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-
+    <color name="primary">#1565C0</color>
+    
     <!-- Material 3 Light Theme Surface Colors -->
     <color name="background_light">#FFFBFE</color>
     <color name="surface_light">#FFFBFE</color>
@@ -79,10 +80,17 @@
     <color name="on_error_container">#410E0B</color>
     <color name="success">#2E7D32</color>
     <color name="warning">#F57C00</color>
+    <color name="text_secondary">#79747E</color>
 
     <!-- Priority Chip Colors -->
     <color name="chip_priority_none">#E7E0EC</color>
     <color name="chip_priority_low">#C8E6C9</color>
     <color name="chip_priority_medium">#FFE0B2</color>
     <color name="chip_priority_high">#F9DEDC</color>
+
+    <!-- Priority Border Colors -->
+    <color name="priority_border_none">#79747E</color>
+    <color name="priority_border_low">#4CAF50</color>
+    <color name="priority_border_medium">#FF9800</color>
+    <color name="priority_border_high">#F44336</color>
 </resources>

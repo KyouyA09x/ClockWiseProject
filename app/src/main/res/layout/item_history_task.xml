@@ -1,91 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardBackgroundColor="?attr/colorSurface"
     app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:cardBackgroundColor="@android:color/white">
+    app:cardElevation="0dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="?attr/colorOutline">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:padding="12dp">
 
-        <!-- Urgency Indicator -->
+        <!-- Priority Indicator -->
         <View
-            android:id="@+id/urgencyIndicator"
-            android:layout_width="8dp"
-            android:layout_height="48dp"
-            android:background="@drawable/green_circle" />
+            android:id="@+id/priorityIndicator"
+            android:layout_width="4dp"
+            android:layout_height="40dp"
+            android:background="?attr/colorOutline" />
 
-        <!-- Task Info -->
+        <!-- Task Details -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:layout_marginStart="16dp">
+            android:layout_marginStart="12dp">
 
             <TextView
-                android:id="@+id/taskName"
-                android:layout_width="wrap_content"
+                android:id="@+id/historyTaskName"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Task Name"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="?attr/textColorPrimary"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurface"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
-            <TextView
-                android:id="@+id/taskTime"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="10:00 AM"
-                android:textSize="14sp"
-                android:textColor="?attr/textColorSecondary"
-                android:layout_marginTop="2dp" />
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp">
 
-            <TextView
-                android:id="@+id/taskDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Dec 9, 2025"
-                android:textSize="12sp"
-                android:textColor="?attr/textColorSecondary"
-                android:layout_marginTop="2dp" />
+                <TextView
+                    android:id="@+id/historyTaskDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Dec 14"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" • "
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <TextView
+                    android:id="@+id/historyTaskTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="10:00 AM"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-        <!-- Completed Badge -->
+        <!-- Task Type Chip -->
         <TextView
-            android:id="@+id/completedBadge"
+            android:id="@+id/historyTaskType"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="✓ Done"
-            android:textSize="12sp"
-            android:textColor="#4CAF50"
-            android:background="@drawable/green_circle"
-            android:backgroundTint="#E8F5E9"
-            android:paddingHorizontal="12dp"
+            android:text="Task"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="@color/white"
+            android:background="@drawable/rounded_corner_background"
+            android:paddingHorizontal="10dp"
             android:paddingVertical="4dp" />
-
-        <!-- Delete Button -->
-        <ImageButton
-            android:id="@+id/deleteButton"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:src="@android:drawable/ic_menu_delete"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            app:tint="#F44336"
-            android:layout_marginStart="8dp"
-            android:contentDescription="Delete" />
 
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
-
+</com.google.android.material.card.MaterialCardView>

@@ -2,65 +2,75 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/notepadRootContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/backgroundColor">
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/notepadScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
-        android:paddingBottom="88dp">
+        android:clipToPadding="false">
 
         <LinearLayout
+            android:id="@+id/notepadContentContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/screen_margin_horizontal"
-            android:paddingTop="@dimen/spacing_md">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="200dp"
+            android:clipToPadding="false">
 
-            <!-- Empty State -->
+            <!-- Modern Empty State -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/emptyStateNotes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_xxl"
+                android:layout_marginTop="48dp"
                 android:visibility="visible"
                 app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="2dp"
+                app:strokeColor="?attr/colorOutline">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:gravity="center"
-                    android:padding="@dimen/spacing_xxl">
+                    android:padding="48dp">
+
+                    <ImageView
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/ic_edit"
+                        android:contentDescription="@string/app_name"
+                        app:tint="?attr/colorPrimary"
+                        android:alpha="0.6"
+                        android:layout_marginBottom="20dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📝"
-                        android:textSize="64sp"
-                        android:layout_marginBottom="@dimen/spacing_md" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="No notes yet"
-                        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                        android:text="No Notes Yet"
+                        android:textAppearance="?attr/textAppearanceHeadlineMedium"
                         android:textColor="?attr/colorOnSurface"
                         android:gravity="center"
-                        android:layout_marginBottom="@dimen/spacing_sm" />
+                        android:layout_marginBottom="8dp" />
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Start adding notes to keep track of your thoughts and ideas"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:text="Tap the button below to create your first note and start organizing your thoughts"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:gravity="center"
-                        android:lineSpacingExtra="4dp" />
+                        android:lineSpacingExtra="4dp"
+                        android:maxWidth="300dp" />
 
                 </LinearLayout>
 
@@ -78,16 +88,21 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- FAB for Add Note -->
+    <!-- Modern FAB for Add Note -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabAddNote"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/spacing_lg"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="160dp"
         android:text="Add Note"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="?attr/colorOnPrimary"
         app:icon="@drawable/ic_add_fab"
         app:iconTint="?attr/colorOnPrimary"
-        app:backgroundTint="?attr/colorPrimary" />
+        app:backgroundTint="?attr/colorPrimary"
+        app:elevation="6dp"
+        app:shapeAppearance="?attr/shapeAppearanceLargeComponent" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

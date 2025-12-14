@@ -51,7 +51,10 @@
         <item name="colorPrimary">@color/cyan_primary_dark</item>
         <item name="colorPrimaryContainer">@color/cyan_dark_variant</item>
         <item name="colorOnPrimary">@color/cyan_dark</item>
+        <item name="colorSecondary">@color/cyan_primary_dark</item>
+        <item name="colorSecondaryContainer">@color/cyan_dark_variant</item>
         <item name="android:statusBarColor">@color/background_dark</item>
+        <item name="colorAccent">@color/cyan_primary_dark</item>
     </style>
 
     <!-- Green Theme - Dark -->
@@ -59,7 +62,10 @@
         <item name="colorPrimary">@color/green_primary_dark</item>
         <item name="colorPrimaryContainer">@color/green_dark_variant</item>
         <item name="colorOnPrimary">@color/green_dark</item>
+        <item name="colorSecondary">@color/green_primary_dark</item>
+        <item name="colorSecondaryContainer">@color/green_dark_variant</item>
         <item name="android:statusBarColor">@color/background_dark</item>
+        <item name="colorAccent">@color/green_primary_dark</item>
     </style>
 
     <!-- Purple Theme - Dark -->
@@ -67,7 +73,10 @@
         <item name="colorPrimary">@color/purple_primary_dark</item>
         <item name="colorPrimaryContainer">@color/purple_dark_variant</item>
         <item name="colorOnPrimary">@color/purple_dark</item>
+        <item name="colorSecondary">@color/purple_primary_dark</item>
+        <item name="colorSecondaryContainer">@color/purple_dark_variant</item>
         <item name="android:statusBarColor">@color/background_dark</item>
+        <item name="colorAccent">@color/purple_primary_dark</item>
     </style>
 
     <!-- Orange Theme - Dark -->
@@ -75,7 +84,10 @@
         <item name="colorPrimary">@color/orange_primary_dark</item>
         <item name="colorPrimaryContainer">@color/orange_dark_variant</item>
         <item name="colorOnPrimary">@color/orange_dark</item>
+        <item name="colorSecondary">@color/orange_primary_dark</item>
+        <item name="colorSecondaryContainer">@color/orange_dark_variant</item>
         <item name="android:statusBarColor">@color/background_dark</item>
+        <item name="colorAccent">@color/orange_primary_dark</item>
     </style>
 
     <!-- NumberPicker Theme - Dark -->

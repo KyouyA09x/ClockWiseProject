@@ -11,7 +11,8 @@
         android:id="@+id/mainLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?attr/backgroundColor">
+        android:background="?attr/backgroundColor"
+        android:fitsSystemWindows="false">
 
         <!-- Top App Bar -->
         <com.google.android.material.appbar.AppBarLayout
@@ -65,17 +66,34 @@
             android:id="@+id/fragmentContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="56dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+        <!-- FAB for Quick Actions (positioned at bottom right above bottom nav) -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabCenterAction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginBottom="160dp"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="Add Task"
+            android:src="@drawable/ic_add_fab"
+            app:backgroundTint="?attr/colorPrimary"
+            app:fabSize="normal"
+            app:tint="?attr/colorOnPrimary"
+            app:elevation="8dp"
+            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
 
         <!-- Bottom Navigation -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigation"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:background="?attr/colorSurface"
-            app:elevation="8dp"
+            android:paddingBottom="0dp"
+            android:fitsSystemWindows="true"
+            app:elevation="16dp"
             app:labelVisibilityMode="labeled"
             app:menu="@menu/bottom_nav_menu" />
 

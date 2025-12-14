@@ -75,7 +75,7 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
                         task.hour, task.minute, task.amPm != null ? task.amPm : "AM",
                         task.endHour, task.endMinute, task.endAmPm != null ? task.endAmPm : "AM");
                 taskTime.setText(timeRange);
-                taskType.setText("Focus Task");
+                taskType.setText("Focus Session");
                 taskType.setVisibility(View.VISIBLE);
             } else {
                 taskTime.setText(String.format("%d:%02d %s",

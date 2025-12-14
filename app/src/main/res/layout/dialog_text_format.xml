@@ -1,26 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:maxHeight="600dp">
+    android:layout_margin="16dp"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardCornerRadius="28dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
+
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:maxHeight="650dp"
+    android:fillViewport="true"
+    android:scrollbars="vertical">
 
 <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="?attr/colorSurface"
-    android:padding="@dimen/spacing_lg">
+    android:padding="24dp">
 
-    <!-- Title -->
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- Header with icon -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Text Format Options"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall"
-        android:textColor="?attr/colorOnSurface"
-        android:layout_marginBottom="@dimen/spacing_md" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="20dp">
+        
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_edit"
+            android:contentDescription="@string/app_name"
+            app:tint="?attr/colorPrimary"
+            android:layout_marginEnd="12dp" />
+        
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Text Formatting"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:textColor="?attr/colorOnSurface" />
+    </LinearLayout>
 
     <!-- Font Preview -->
     <TextView
@@ -231,7 +257,14 @@
         app:iconGravity="start"
         android:layout_marginBottom="@dimen/spacing_md" />
 
-    <!-- Action Buttons -->
+    <!-- Action Buttons with modern styling -->
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        app:dividerColor="?attr/colorOutline" />
+    
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -244,17 +277,27 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Cancel"
-            android:layout_marginEnd="@dimen/spacing_sm" />
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:minWidth="88dp"
+            android:layout_marginEnd="8dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/applyFormatButton"
+            style="@style/Widget.Material3.Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Apply"
-            app:backgroundTint="?attr/colorPrimary" />
+            android:text="Apply Format"
+            android:minWidth="120dp"
+            app:icon="@drawable/ic_add_fab"
+            app:iconGravity="textStart"
+            app:backgroundTint="?attr/colorPrimary"
+            app:cornerRadius="20dp" />
 
     </LinearLayout>
 
 </LinearLayout>
 
 </ScrollView>
+
+</com.google.android.material.card.MaterialCardView>
+

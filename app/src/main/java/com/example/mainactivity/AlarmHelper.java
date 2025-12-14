@@ -164,6 +164,58 @@ public class AlarmHelper {
         Log.d(TAG, "Cancelled alarm for task: " + task.name);
     }
 
+    /**
+     * Snooze a task alarm for a specified number of minutes
+     */
+    public static void snoozeTask(Context context, Task task, int minutes) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager == null) return;
+
+        // Calculate snooze time
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MINUTE, minutes);
+
+        // Create intent for the snoozed alarm
+        Intent intent = new Intent(context, AlarmReceiver.class);
+        intent.putExtra(AlarmReceiver.EXTRA_TASK_ID, task.id);
+        intent.putExtra(AlarmReceiver.EXTRA_TASK_NAME, task.name);
+        intent.putExtra(AlarmReceiver.EXTRA_TASK_TIME, String.format(Locale.getDefault(), "%d:%02d %s", task.hour, task.minute, task.amPm));
+        intent.putExtra(AlarmReceiver.EXTRA_VIBRATION_ENABLED, task.vibrationEnabled);
+        intent.putExtra(AlarmReceiver.EXTRA_TASK_TYPE, task.taskType);
+
+        // Use a unique request code for snooze (task.id + 10000)
+        int snoozeRequestCode = task.id + 10000;
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                context,
+                snoozeRequestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        // Schedule the snoozed alarm
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(
+                            AlarmManager.RTC_WAKEUP,
+                            calendar.getTimeInMillis(),
+                            pendingIntent
+                    );
+                }
+            } else {
+                alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        calendar.getTimeInMillis(),
+                        pendingIntent
+                );
+            }
+            Log.d(TAG, "Snoozed task '" + task.name + "' for " + minutes + " minutes");
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to snooze task: " + e.getMessage());
+        }
+    }
+
     public static void rescheduleAllAlarms(Context context) {
         try {
             TaskRepository repository = TaskRepository.getInstance();
@@ -396,4 +448,3 @@ public class AlarmHelper {
               String.format("%02d", finalEndMinute) + " " + finalEndAmPm);
     }
 }
-

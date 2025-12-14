@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#80000000">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_gravity="center"
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Header with Icon -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/popupIconContainer"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    app:cardBackgroundColor="?attr/colorPrimary"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp">
+
+                    <ImageView
+                        android:id="@+id/popupIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_reminder"
+                        app:tint="?attr/colorOnPrimary"
+                        android:contentDescription="Task Reminder" />
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+
+                    <TextView
+                        android:id="@+id/popupType"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Task Reminder"
+                        android:textAppearance="?attr/textAppearanceLabelMedium"
+                        android:textColor="?attr/colorPrimary" />
+
+                    <TextView
+                        android:id="@+id/popupTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="10:30 AM"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:layout_marginTop="2dp" />
+
+                </LinearLayout>
+
+                <!-- Priority Badge -->
+                <TextView
+                    android:id="@+id/priorityBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="HIGH"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="@color/white"
+                    android:background="@drawable/rounded_corner_background"
+                    android:backgroundTint="@color/error"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp" />
+
+            </LinearLayout>
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/popupTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Review Project Proposal"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Task Description -->
+            <TextView
+                android:id="@+id/popupDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="It's time to complete this task. Stay focused and productive!"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:maxLines="3"
+                android:ellipsize="end"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Date Info Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_calendar"
+                        app:tint="?attr/colorOnSurfaceVariant"
+                        android:contentDescription="Date" />
+
+                    <TextView
+                        android:id="@+id/popupDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="Today, December 14, 2025"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:dividerColor="?attr/colorOutlineVariant" />
+
+            <!-- Snooze Options -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Remind me later"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Snooze Buttons - Wrap in HorizontalScrollView for small screens -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/snooze5Button"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:minWidth="72dp"
+                        android:text="5 min"
+                        android:textSize="12sp"
+                        android:paddingHorizontal="12dp"
+                        android:layout_marginEnd="8dp"
+                        android:singleLine="true" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/snooze15Button"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:minWidth="72dp"
+                        android:text="15 min"
+                        android:textSize="12sp"
+                        android:paddingHorizontal="12dp"
+                        android:layout_marginEnd="8dp"
+                        android:singleLine="true" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/snooze1hButton"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:minWidth="72dp"
+                        android:text="1 hour"
+                        android:textSize="12sp"
+                        android:paddingHorizontal="12dp"
+                        android:singleLine="true" />
+
+                </LinearLayout>
+
+            </HorizontalScrollView>
+
+            <!-- Primary Actions - Wrap in ScrollView for small screens -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dismissButton"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="44dp"
+                        android:minWidth="80dp"
+                        android:text="Dismiss"
+                        android:textSize="13sp"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:singleLine="true" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/startButton"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="44dp"
+                        android:minWidth="100dp"
+                        android:text="Start"
+                        android:textSize="13sp"
+                        android:layout_marginStart="8dp"
+                        android:singleLine="true" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/completeButton"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="44dp"
+                        android:minWidth="80dp"
+                        android:text="Done"
+                        android:textSize="13sp"
+                        app:backgroundTint="?attr/colorPrimary"
+                        android:layout_marginStart="8dp"
+                        android:singleLine="true" />
+
+                </LinearLayout>
+
+            </HorizontalScrollView>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</FrameLayout>

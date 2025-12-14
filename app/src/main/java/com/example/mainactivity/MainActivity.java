@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -28,7 +27,7 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseThemedActivity {
 
     public static final String ACTION_TASK_COMPLETED = "com.example.mainactivity.TASK_COMPLETED";
 
@@ -36,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private MaterialToolbar topBar;
     private com.google.android.material.navigation.NavigationView navigationView;
     private com.google.android.material.bottomnavigation.BottomNavigationView bottomNavigation;
+    private com.google.android.material.floatingactionbutton.FloatingActionButton fabCenterAction;
     private View progressTracker;
     private View emptyStateCard;
     private View tasksContainerCard;
@@ -64,8 +64,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ThemeHelper.applyTheme(this);
-        setTheme(ThemeHelper.getThemeResource(this));
         setContentView(R.layout.activity_main);
 
         // Initialize views
@@ -73,6 +71,64 @@ public class MainActivity extends AppCompatActivity {
         topBar = findViewById(R.id.topBar);
         navigationView = findViewById(R.id.navigationView);
         bottomNavigation = findViewById(R.id.bottomNavigation);
+        fabCenterAction = findViewById(R.id.fabCenterAction);
+        
+        // Setup center FAB click listener with animation
+        if (fabCenterAction != null) {
+            fabCenterAction.setOnClickListener(v -> {
+                // Animate FAB rotation
+                fabCenterAction.animate()
+                    .rotation(fabCenterAction.getRotation() + 45)
+                    .setDuration(150)
+                    .withEndAction(() -> {
+                        showTaskTypeChooser();
+                        // Reset rotation after dialog closes
+                        fabCenterAction.animate()
+                            .rotation(0)
+                            .setDuration(150)
+                            .start();
+                    })
+                    .start();
+            });
+        }
+        
+        // Handle window insets for bottom navigation bar (works with 3-button navigation)
+        if (bottomNavigation != null) {
+            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(bottomNavigation, (v, insets) -> {
+                try {
+                    androidx.core.graphics.Insets systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars());
+                    v.setPadding(0, 0, 0, systemBars.bottom);
+                } catch (Exception e) {
+                    // Fallback: no padding if insets fail
+                    v.setPadding(0, 0, 0, 0);
+                }
+                return insets;
+            });
+        }
+        
+        // Handle window insets for fragment container
+        final android.view.View fragmentContainer = findViewById(R.id.fragmentContainer);
+        if (fragmentContainer != null && bottomNavigation != null) {
+            // Post the layout to ensure bottom nav height is available
+            fragmentContainer.post(() -> {
+                androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(fragmentContainer, (v, insets) -> {
+                    try {
+                        androidx.core.graphics.Insets systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars());
+                        int bottomNavHeight = bottomNavigation.getHeight();
+                        if (bottomNavHeight == 0) {
+                            // Use default Material bottom nav height
+                            bottomNavHeight = (int) (56 * getResources().getDisplayMetrics().density);
+                        }
+                        v.setPadding(0, 0, 0, bottomNavHeight + systemBars.bottom);
+                    } catch (Exception e) {
+                        // Fallback: just use bottom nav height
+                        int bottomNavHeight = (int) (56 * getResources().getDisplayMetrics().density);
+                        v.setPadding(0, 0, 0, bottomNavHeight);
+                    }
+                    return insets;
+                });
+            });
+        }
 
         // Setup bottom navigation
         if (bottomNavigation != null) {
@@ -197,6 +253,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showTaskTypeChooser() {
+        // Show custom dialog with icons for Task and Focus Session
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_task_type_chooser, null);
         builder.setView(dialogView);
@@ -206,19 +263,23 @@ public class MainActivity extends AppCompatActivity {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
 
-        // Reminder option
+        // Setup Reminder/Task option
         View reminderOption = dialogView.findViewById(R.id.reminderOption);
-        reminderOption.setOnClickListener(v -> {
-            dialog.dismiss();
-            showReminderBottomSheet(null);
-        });
+        if (reminderOption != null) {
+            reminderOption.setOnClickListener(v -> {
+                dialog.dismiss();
+                showReminderBottomSheet(null);
+            });
+        }
 
-        // Focus Task option
-        View focusTaskOption = dialogView.findViewById(R.id.focusTaskOption);
-        focusTaskOption.setOnClickListener(v -> {
-            dialog.dismiss();
-            showFocusTaskBottomSheet(null);
-        });
+        // Setup Quick Note option
+        View quickNoteOption = dialogView.findViewById(R.id.quickNoteOption);
+        if (quickNoteOption != null) {
+            quickNoteOption.setOnClickListener(v -> {
+                dialog.dismiss();
+                openQuickTaskInNotepad();
+            });
+        }
 
         dialog.show();
     }
@@ -264,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void showQuickTaskBottomSheet() {
         // Show Material dialog for task type selection with better styling
-        String[] taskTypes = {"⏰  Reminder", "🎯  Focus Task"};
+        String[] taskTypes = {"⏰  Task", "🎯  Focus Session"};
         new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                 .setTitle("Quick Task")
                 .setItems(taskTypes, (dialog, which) -> {
@@ -861,6 +922,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        // No placeholder data - app starts empty until user populates via Settings
+
         if (completedTasksToday.isEmpty()) {
             emptyCompletedTasksText.setVisibility(View.VISIBLE);
             dialogView.findViewById(R.id.completedTasksScrollView).setVisibility(View.GONE);
@@ -908,5 +971,54 @@ public class MainActivity extends AppCompatActivity {
 
 
         return taskView;
+    }
+
+    private ArrayList<Task> generatePlaceholderCompletedTasks(String todayDate) {
+        ArrayList<Task> placeholderTasks = new ArrayList<>();
+        
+        String[] taskNames = {
+            "Morning workout ✓",
+            "Review emails ✓",
+            "Team standup ✓",
+            "Code review ✓"
+        };
+        
+        String[] focusNames = {
+            "Deep work session ✓"
+        };
+
+        // Add 3 completed regular tasks
+        for (int i = 0; i < 3; i++) {
+            Task task = new Task();
+            task.id = -(i + 200); // Negative ID for placeholder
+            task.name = taskNames[i % taskNames.length];
+            task.taskType = "reminder";
+            task.date = todayDate;
+            task.hour = 7 + (i * 2);
+            task.minute = 0;
+            task.amPm = task.hour >= 12 ? "PM" : "AM";
+            if (task.hour > 12) task.hour -= 12;
+            task.isComplete = true;
+            task.isAlarmOn = false;
+            placeholderTasks.add(task);
+        }
+
+        // Add 1 completed focus session
+        Task focusTask = new Task();
+        focusTask.id = -300;
+        focusTask.name = focusNames[0];
+        focusTask.taskType = "focus";
+        focusTask.date = todayDate;
+        focusTask.hour = 9;
+        focusTask.minute = 0;
+        focusTask.amPm = "AM";
+        focusTask.endHour = 11;
+        focusTask.endMinute = 0;
+        focusTask.endAmPm = "AM";
+        focusTask.isComplete = true;
+        focusTask.isAlarmOn = false;
+        placeholderTasks.add(focusTask);
+
+        return placeholderTasks;
     }
 }

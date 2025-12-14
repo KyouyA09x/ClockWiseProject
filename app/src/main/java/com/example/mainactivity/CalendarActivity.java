@@ -7,7 +7,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -17,7 +16,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-public class CalendarActivity extends AppCompatActivity {
+public class CalendarActivity extends BaseThemedActivity {
 
     private CalendarView calendarView;
     private RecyclerView tasksRecyclerView;
@@ -32,8 +31,6 @@ public class CalendarActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ThemeHelper.applyTheme(this);
-        setTheme(ThemeHelper.getThemeResource(this));
         setContentView(R.layout.activity_calendar);
 
         taskRepository = TaskRepository.getInstance();

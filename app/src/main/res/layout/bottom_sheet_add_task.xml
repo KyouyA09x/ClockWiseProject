@@ -20,7 +20,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Reminder"
+            android:text="New Task"
             android:textAppearance="?attr/textAppearanceTitleLarge"
             android:textColor="?attr/colorOnSurface" />
 
@@ -274,7 +274,7 @@
                 style="@style/Widget.Material3.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Save Reminder"
+                android:text="Save Task"
                 android:textColor="?attr/colorOnPrimary"
                 app:backgroundTint="?attr/colorPrimary"
                 app:cornerRadius="@dimen/card_corner_radius" />

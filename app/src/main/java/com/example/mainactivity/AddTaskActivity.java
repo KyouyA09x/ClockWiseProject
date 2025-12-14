@@ -1,11 +1,9 @@
 package com.example.mainactivity;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
-import android.app.DatePickerDialog; // <--- Added Import
-import android.content.DialogInterface;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.media.Ringtone;
@@ -17,7 +15,6 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -32,7 +29,7 @@ import java.util.Locale; // <--- Added Import
 import java.util.Map;
 import java.util.TreeMap;
 
-public class AddTaskActivity extends AppCompatActivity {
+public class AddTaskActivity extends BaseThemedActivity {
 
     private Button cancelButton;
     private Button saveButton;
@@ -70,8 +67,6 @@ public class AddTaskActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ThemeHelper.applyTheme(this);
-        setTheme(ThemeHelper.getThemeResource(this));
         setContentView(R.layout.activity_add_task);
 
         taskRepository = TaskRepository.getInstance();

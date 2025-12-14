@@ -52,7 +52,10 @@
         <item name="colorPrimary">@color/cyan_primary</item>
         <item name="colorPrimaryContainer">@color/cyan_light</item>
         <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/cyan_primary</item>
+        <item name="colorSecondaryContainer">@color/cyan_light</item>
         <item name="android:statusBarColor">@color/cyan_primary</item>
+        <item name="colorAccent">@color/cyan_primary</item>
     </style>
 
     <!-- Green Theme -->
@@ -60,7 +63,10 @@
         <item name="colorPrimary">@color/green_primary</item>
         <item name="colorPrimaryContainer">@color/green_light</item>
         <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/green_primary</item>
+        <item name="colorSecondaryContainer">@color/green_light</item>
         <item name="android:statusBarColor">@color/green_primary</item>
+        <item name="colorAccent">@color/green_primary</item>
     </style>
 
     <!-- Purple Theme -->
@@ -68,7 +74,10 @@
         <item name="colorPrimary">@color/purple_primary</item>
         <item name="colorPrimaryContainer">@color/purple_light</item>
         <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/purple_primary</item>
+        <item name="colorSecondaryContainer">@color/purple_light</item>
         <item name="android:statusBarColor">@color/purple_primary</item>
+        <item name="colorAccent">@color/purple_primary</item>
     </style>
 
     <!-- Orange Theme -->
@@ -76,7 +85,10 @@
         <item name="colorPrimary">@color/orange_primary</item>
         <item name="colorPrimaryContainer">@color/orange_light</item>
         <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/orange_primary</item>
+        <item name="colorSecondaryContainer">@color/orange_light</item>
         <item name="android:statusBarColor">@color/orange_primary</item>
+        <item name="colorAccent">@color/orange_primary</item>
     </style>
 
     <!-- NumberPicker Theme -->
@@ -96,5 +108,17 @@
     <style name="BottomSheetModalStyle" parent="Widget.Material3.BottomSheet.Modal">
         <item name="backgroundTint">@android:color/transparent</item>
         <item name="shapeAppearance">@style/ShapeAppearance.App.LargeComponent</item>
+    </style>
+
+    <!-- Transparent Popup Theme for fullscreen popup notifications -->
+    <style name="Theme.Popup.Transparent" parent="Theme.MainActivity">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 </resources>

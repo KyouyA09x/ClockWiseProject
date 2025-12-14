@@ -10,7 +10,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -18,8 +17,6 @@ public class TasksContainerFragment extends Fragment {
 
     private ViewPager2 viewPager;
     private TabLayout tabLayout;
-    private ExtendedFloatingActionButton fabAddTask;
-    private ExtendedFloatingActionButton fabQuickTask;
 
     @Nullable
     @Override
@@ -28,16 +25,7 @@ public class TasksContainerFragment extends Fragment {
 
         initViews(view);
         setupViewPager();
-        
-        fabAddTask.setOnClickListener(v -> {
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).showTaskTypeChooser();
-            }
-        });
-
-        fabQuickTask.setOnClickListener(v -> {
-            showQuickTaskOptions();
-        });
+        setupBottomPadding(view);
 
         return view;
     }
@@ -45,35 +33,6 @@ public class TasksContainerFragment extends Fragment {
     private void initViews(View view) {
         viewPager = view.findViewById(R.id.tasksViewPager);
         tabLayout = view.findViewById(R.id.tasksTabLayout);
-        fabAddTask = view.findViewById(R.id.fabAddTask);
-        fabQuickTask = view.findViewById(R.id.fabQuickTask);
-    }
-
-    private void showQuickTaskOptions() {
-        if (getContext() == null) return;
-        
-        String[] options = {
-            "➕ Create New Quick Task",
-            "🔄 Convert Note to Task"
-        };
-        
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(getContext())
-                .setTitle("⚡ Quick Task Options")
-                .setItems(options, (dialog, which) -> {
-                    if (which == 0) {
-                        // Create new quick task
-                        if (getActivity() instanceof MainActivity) {
-                            ((MainActivity) getActivity()).showQuickTaskBottomSheet();
-                        }
-                    } else if (which == 1) {
-                        // Convert note to task
-                        if (getActivity() instanceof MainActivity) {
-                            ((MainActivity) getActivity()).showNotepadToConvertToTask();
-                        }
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
     }
 
     private void setupViewPager() {
@@ -92,6 +51,55 @@ public class TasksContainerFragment extends Fragment {
                     }
                 }
         ).attach();
+    }
+
+    private void setupBottomPadding(View view) {
+        // Apply padding to avoid content being hidden by bottom navigation and FAB
+        View container = view.findViewById(R.id.tasksContainerLinear);
+        if (container == null) return;
+
+        view.post(() -> {
+            android.app.Activity activity = getActivity();
+            if (!(activity instanceof MainActivity)) return;
+
+            MainActivity mainActivity = (MainActivity) activity;
+
+            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+                androidx.core.graphics.Insets systemBars = insets.getInsets(
+                    androidx.core.view.WindowInsetsCompat.Type.systemBars()
+                );
+
+                float density = getResources().getDisplayMetrics().density;
+
+                // Get bottom navigation height
+                int bottomNavHeight = 0;
+                try {
+                    com.google.android.material.bottomnavigation.BottomNavigationView bottomNav =
+                        mainActivity.findViewById(R.id.bottomNavigation);
+                    if (bottomNav != null) {
+                        bottomNavHeight = bottomNav.getHeight();
+                        if (bottomNavHeight == 0) {
+                            bottomNavHeight = (int) (56 * density);
+                        }
+                    }
+                } catch (Exception e) {
+                    bottomNavHeight = (int) (56 * density);
+                }
+
+                // Set padding on ViewPager to account for bottom nav + system bars
+                if (viewPager != null) {
+                    // Add extra padding for FAB (80dp) + margins
+                    int fabSpace = (int) (96 * density);
+                    int totalBottomPadding = bottomNavHeight + systemBars.bottom + fabSpace;
+                    viewPager.setPadding(0, 0, 0, totalBottomPadding);
+                    viewPager.setClipToPadding(false);
+                }
+
+                return insets;
+            });
+
+            androidx.core.view.ViewCompat.requestApplyInsets(view);
+        });
     }
 
     public void refreshTasks() {

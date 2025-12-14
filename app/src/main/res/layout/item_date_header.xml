@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingVertical="8dp"
+    android:paddingHorizontal="4dp"
+    android:layout_marginTop="8dp">
+
+    <!-- Compact Date Icon -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/dateIconContainer"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        app:cardBackgroundColor="?attr/colorSurfaceVariant"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/dateDay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="15"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <TextView
+                android:id="@+id/dateMonth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DEC"
+                android:textSize="8sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:letterSpacing="0.05" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Date Text -->
+    <TextView
+        android:id="@+id/dateFull"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="10dp"
+        android:text="Sunday, December 15"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurface"
+        android:textStyle="bold" />
+
+    <!-- Relative + Count -->
+    <TextView
+        android:id="@+id/dateRelative"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tomorrow"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorPrimary"
+        android:background="@drawable/rounded_corner_background"
+        android:backgroundTint="?attr/colorSurfaceVariant"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="2dp" />
+
+</LinearLayout>

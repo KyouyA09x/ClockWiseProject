@@ -40,8 +40,6 @@ public class HistoryMonthDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ThemeHelper.applyTheme(this);
-        setTheme(ThemeHelper.getThemeResource(this));
         setContentView(R.layout.activity_history_month_detail);
 
         monthIndex = getIntent().getIntExtra("month_index", 0);

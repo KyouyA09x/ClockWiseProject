@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="3dp"
+    app:cardBackgroundColor="?attr/colorPrimaryContainer"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="1dp"
+    app:strokeWidth="2dp"
+    app:strokeColor="?attr/colorPrimary">
+
+    <LinearLayout
+        android:id="@+id/taskContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingVertical="8dp"
+        android:paddingHorizontal="10dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground">
+
+        <!-- Focus Icon -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            app:cardBackgroundColor="?attr/colorPrimary"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_focus"
+                app:tint="?attr/colorOnPrimary"
+                android:contentDescription="@string/app_name" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Session Info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="6dp">
+
+            <TextView
+                android:id="@+id/taskName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnPrimaryContainer"
+                android:textStyle="bold"
+                android:ellipsize="end"
+                android:maxLines="1" />
+
+            <TextView
+                android:id="@+id/taskTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- Actions -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/deleteButton"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            app:icon="@drawable/ic_delete"
+            app:iconSize="16dp"
+            app:iconTint="@color/error"
+            android:contentDescription="@string/app_name" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/taskSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:scaleX="0.8"
+            android:scaleY="0.8"
+            app:thumbTint="?attr/colorPrimary"
+            app:trackTint="?attr/colorPrimaryContainer" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
