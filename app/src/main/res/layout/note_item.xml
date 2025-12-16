@@ -95,6 +95,19 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             android:alpha="0.7" />
 
+        <!-- Due Date (shown only if set) -->
+        <TextView
+            android:id="@+id/noteDueDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_xs"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorPrimary"
+            android:textStyle="bold"
+            android:drawableStart="@drawable/ic_calendar"
+            android:drawablePadding="4dp"
+            android:visibility="gone" />
+
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

@@ -490,6 +490,9 @@ public class UpcomingTasksFragment extends Fragment {
                         androidx.core.content.ContextCompat.getColor(requireContext(), R.color.success);
                     break;
             }
+            // Set stroke width and color to make border visible
+            int strokeWidth = (int) (3 * getResources().getDisplayMetrics().density); // 3dp
+            cardView.setStrokeWidth(strokeWidth);
             cardView.setStrokeColor(borderColor);
         }
 
@@ -826,7 +829,35 @@ public class UpcomingTasksFragment extends Fragment {
         // Haptic feedback
         anchorView.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
         
+        // Add tap-to-edit functionality on the entire dialog
+        View rootView = dialog.findViewById(android.R.id.content);
+        if (rootView != null) {
+            rootView.setOnClickListener(v -> {
+                dialog.dismiss();
+                openTaskForEditing(task);
+            });
+        }
+        
         dialog.show();
+    }
+    
+    private void openTaskForEditing(Task task) {
+        if (task.isFocusTask()) {
+            // Open focus task editor
+            Intent intent = new Intent(getContext(), EditFocusTaskActivity.class);
+            intent.putExtra("task_id", task.id);
+            startActivity(intent);
+        } else {
+            // Open reminder editor using bottom sheet
+            if (getActivity() != null) {
+                AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstance(task);
+                bottomSheet.setOnTaskSavedListener(() -> {
+                    taskRepository.refreshTasks();
+                    refreshTasks();
+                });
+                bottomSheet.show(getActivity().getSupportFragmentManager(), "AddReminderBottomSheet");
+            }
+        }
     }
 
     private int convertTo24Hour(int hour, String amPm) {

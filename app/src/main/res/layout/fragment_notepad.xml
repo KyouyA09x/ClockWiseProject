@@ -88,6 +88,40 @@
 
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Convert Selected FAB (shown in selection mode at bottom center) -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabConvertSelected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="160dp"
+        android:text="Convert Selected"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="?attr/colorOnPrimary"
+        android:visibility="gone"
+        app:icon="@drawable/ic_check"
+        app:iconTint="?attr/colorOnPrimary"
+        app:backgroundTint="?attr/colorPrimary"
+        app:elevation="6dp"
+        app:shapeAppearance="?attr/shapeAppearanceLargeComponent" />
+
+    <!-- Cancel Convert FAB (shown in selection mode at bottom right) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabCancelConvert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="160dp"
+        android:contentDescription="Cancel"
+        android:visibility="gone"
+        android:src="@drawable/ic_close"
+        app:backgroundTint="@color/error"
+        app:tint="@color/on_error"
+        app:fabSize="normal"
+        app:elevation="6dp"
+        app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
+
     <!-- Modern FAB for Add Note -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabAddNote"

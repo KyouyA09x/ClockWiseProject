@@ -94,9 +94,9 @@ public class MainActivity extends BaseThemedActivity {
             });
         }
         
-        // Setup Quick Task FAB - directly goes to convert note to task
+        // Setup Quick Task FAB - shows options dialog
         if (fabQuickTask != null) {
-            fabQuickTask.setOnClickListener(v -> showNotepadToConvertToTask());
+            fabQuickTask.setOnClickListener(v -> showQuickTaskOptionsDialog());
         }
         
         // Handle window insets for bottom navigation bar (works with 3-button navigation)
@@ -225,7 +225,7 @@ public class MainActivity extends BaseThemedActivity {
         });
     }
 
-    private void refreshAllFragments() {
+    public void refreshAllFragments() {
         // Refresh fragments when activity resumes
         for (androidx.fragment.app.Fragment fragment : getSupportFragmentManager().getFragments()) {
             if (fragment instanceof TasksContainerFragment) {
@@ -242,6 +242,17 @@ public class MainActivity extends BaseThemedActivity {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragmentContainer, fragment)
                 .commit();
+        
+        // Hide MainActivity FABs when in Notepad to avoid overlap with Add Note FAB
+        if (fabQuickTask != null && fabCenterAction != null) {
+            if (fragment instanceof TasksContainerFragment) {
+                fabQuickTask.show();
+                fabCenterAction.show();
+            } else if (fragment instanceof NotepadFragment) {
+                fabQuickTask.hide();
+                fabCenterAction.hide();
+            }
+        }
     }
 
     public void showCompletedDialog() {
@@ -276,6 +287,15 @@ public class MainActivity extends BaseThemedActivity {
             reminderOption.setOnClickListener(v -> {
                 dialog.dismiss();
                 showReminderBottomSheet(null);
+            });
+        }
+
+        // Setup Focus Task option
+        View focusTaskOption = dialogView.findViewById(R.id.focusTaskOption);
+        if (focusTaskOption != null) {
+            focusTaskOption.setOnClickListener(v -> {
+                dialog.dismiss();
+                showFocusTaskBottomSheet(null);
             });
         }
 
@@ -328,6 +348,87 @@ public class MainActivity extends BaseThemedActivity {
             refreshAllFragments();
         });
         bottomSheet.show(getSupportFragmentManager(), "AddFocusTaskBottomSheet");
+    }
+
+    public void showQuickTaskOptionsDialog() {
+        // Show Material dialog with two options: Convert note to task and New quick task
+        String[] options = {"📝  Convert note to task", "⚡  New quick task"};
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                .setTitle("Quick Task")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        // Convert note to task
+                        showNotepadToConvertToTask();
+                    } else if (which == 1) {
+                        // New quick task - show Reminder/Focus Session options
+                        showNewQuickTaskDialog();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showNewQuickTaskDialog() {
+        // Show dialog with Reminder and Focus Session options (date set to today)
+        String[] taskTypes = {"⏰  Reminder", "🎯  Focus Session"};
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                .setTitle("New Quick Task")
+                .setItems(taskTypes, (dialog, which) -> {
+                    if (which == 0) {
+                        // Create quick reminder with today's date
+                        Task quickTask = new Task();
+                        quickTask.taskType = "reminder";
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                        quickTask.date = sdf.format(new java.util.Date());
+                        quickTask.hour = 9;
+                        quickTask.minute = 0;
+                        quickTask.amPm = "AM";
+                        quickTask.isAlarmOn = true;
+                        quickTask.urgency = "None";
+                        quickTask.selectedDays = new boolean[7];
+
+                        // Pass as quick task to set date to today
+                        AddReminderBottomSheet bottomSheet = new AddReminderBottomSheet();
+                        Bundle args = new Bundle();
+                        args.putParcelable("TASK", quickTask);
+                        args.putBoolean("QUICK_TASK", true);
+                        bottomSheet.setArguments(args);
+                        bottomSheet.setOnTaskSavedListener(() -> {
+                            taskRepository.refreshTasks();
+                            refreshAllFragments();
+                        });
+                        bottomSheet.show(getSupportFragmentManager(), "AddReminderBottomSheet");
+                    } else if (which == 1) {
+                        // Create quick focus task with today's date
+                        Task quickTask = new Task();
+                        quickTask.taskType = "focus";
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                        quickTask.date = sdf.format(new java.util.Date());
+                        quickTask.hour = 9;
+                        quickTask.minute = 0;
+                        quickTask.amPm = "AM";
+                        quickTask.endHour = 10;
+                        quickTask.endMinute = 0;
+                        quickTask.endAmPm = "AM";
+                        quickTask.isAlarmOn = true;
+                        quickTask.urgency = "None";
+                        quickTask.selectedDays = new boolean[7];
+
+                        // Pass as quick task to set date to today
+                        AddFocusTaskBottomSheet bottomSheet = new AddFocusTaskBottomSheet();
+                        Bundle args = new Bundle();
+                        args.putParcelable("TASK", quickTask);
+                        args.putBoolean("QUICK_TASK", true);
+                        bottomSheet.setArguments(args);
+                        bottomSheet.setOnTaskSavedListener(() -> {
+                            taskRepository.refreshTasks();
+                            refreshAllFragments();
+                        });
+                        bottomSheet.show(getSupportFragmentManager(), "AddFocusTaskBottomSheet");
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     public void showQuickTaskBottomSheet() {
@@ -770,7 +871,9 @@ public class MainActivity extends BaseThemedActivity {
         }
 
         // Make task clickable for editing
-        taskContent.setOnClickListener(v -> openTaskForEditing(task));
+        if (taskContent != null) {
+            taskContent.setOnClickListener(v -> openTaskForEditing(task));
+        }
 
         // Delete button
         com.google.android.material.button.MaterialButton deleteButton = taskView.findViewById(R.id.deleteButton);

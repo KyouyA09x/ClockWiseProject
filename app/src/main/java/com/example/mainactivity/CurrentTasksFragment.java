@@ -424,6 +424,9 @@ public class CurrentTasksFragment extends Fragment {
                         androidx.core.content.ContextCompat.getColor(requireContext(), R.color.success);
                     break;
             }
+            // Set stroke width and color to make border visible
+            int strokeWidth = (int) (3 * getResources().getDisplayMetrics().density); // 3dp
+            cardView.setStrokeWidth(strokeWidth);
             cardView.setStrokeColor(borderColor);
         }
 
@@ -719,6 +722,15 @@ public class CurrentTasksFragment extends Fragment {
 
         // Haptic feedback
         anchorView.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
+        
+        // Add tap-to-edit functionality on the entire dialog
+        View rootView = dialog.findViewById(android.R.id.content);
+        if (rootView != null) {
+            rootView.setOnClickListener(v -> {
+                dialog.dismiss();
+                openTaskForEditing(task);
+            });
+        }
         
         dialog.show();
     }

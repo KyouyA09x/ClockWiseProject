@@ -27,6 +27,7 @@ public class Note implements Parcelable {
     public String priority; // "None", "Low", "Medium", "High"
     public boolean isConvertedToTask; // whether this note has been converted to a task
     public String taskType; // "None", "Reminder", "Focus Task"
+    public String dueDate; // due date in yyyy-MM-dd format (null if not set)
 
     public Note() {
         this.createdTimestamp = System.currentTimeMillis();
@@ -41,6 +42,7 @@ public class Note implements Parcelable {
         this.priority = "None";
         this.isConvertedToTask = false;
         this.taskType = "None";
+        this.dueDate = null;
     }
 
     public Note(String title, String description) {
@@ -101,5 +103,6 @@ public class Note implements Parcelable {
         dest.writeString(priority);
         dest.writeByte((byte) (isConvertedToTask ? 1 : 0));
         dest.writeString(taskType);
+        dest.writeString(dueDate);
     }
 }

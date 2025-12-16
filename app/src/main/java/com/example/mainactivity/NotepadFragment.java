@@ -30,6 +30,8 @@ public class NotepadFragment extends Fragment {
     private View emptyStateNotes;
     private LinearLayout notesContainer;
     private ExtendedFloatingActionButton fabAddNote;
+    private ExtendedFloatingActionButton fabConvertSelected;
+    private com.google.android.material.floatingactionbutton.FloatingActionButton fabCancelConvert;
     private NoteDao noteDao;
     private List<Note> notesList = new ArrayList<>();
     private boolean isSelectionMode = false;
@@ -184,10 +186,16 @@ public class NotepadFragment extends Fragment {
             notesContainer.addView(noteView);
         }
 
-        // Change FAB to confirm button
-        fabAddNote.setText("Convert Selected");
-        fabAddNote.setIcon(null);
-        fabAddNote.setOnClickListener(v -> convertSelectedNotesToTasks());
+        // Hide Add Note FAB, show Convert and Cancel FABs in selection mode
+        if (fabAddNote != null) {
+            fabAddNote.setVisibility(View.GONE);
+        }
+        if (fabConvertSelected != null) {
+            fabConvertSelected.setVisibility(View.VISIBLE);
+        }
+        if (fabCancelConvert != null) {
+            fabCancelConvert.setVisibility(View.VISIBLE);
+        }
     }
 
     private View createNoteViewWithCheckbox(Note note) {
@@ -262,9 +270,23 @@ public class NotepadFragment extends Fragment {
             // All notes converted, show success message and reset
             Toast.makeText(getContext(), selectedNotes.size() + " note(s) converted to task(s)", Toast.LENGTH_SHORT).show();
             selectedNotes.clear();
-            fabAddNote.setText("Add Note");
-            fabAddNote.setIcon(androidx.core.content.ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_fab));
-            fabAddNote.setOnClickListener(v -> showAddNoteDialog(null));
+            
+            // Restore Add Note FAB, hide Convert/Cancel FABs
+            if (fabAddNote != null) {
+                fabAddNote.setVisibility(View.VISIBLE);
+            }
+            if (fabConvertSelected != null) {
+                fabConvertSelected.setVisibility(View.GONE);
+            }
+            if (fabCancelConvert != null) {
+                fabCancelConvert.setVisibility(View.GONE);
+            }
+            
+            // Refresh MainActivity to show converted tasks in Current/Upcoming
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).refreshAllFragments();
+            }
+            
             refreshNotes();
             return;
         }
@@ -297,6 +319,11 @@ public class NotepadFragment extends Fragment {
                 note.isConvertedToTask = true;
                 noteDao.update(note);
                 
+                // Refresh MainActivity to show task immediately
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).refreshAllFragments();
+                }
+                
                 // Convert next note
                 convertNextNote(index + 1);
             });
@@ -311,6 +338,11 @@ public class NotepadFragment extends Fragment {
                 // Mark note as converted
                 note.isConvertedToTask = true;
                 noteDao.update(note);
+                
+                // Refresh MainActivity to show task immediately
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).refreshAllFragments();
+                }
                 
                 // Convert next note
                 convertNextNote(index + 1);
@@ -364,12 +396,30 @@ public class NotepadFragment extends Fragment {
         TextView titleView = noteView.findViewById(R.id.noteTitle);
         TextView descriptionView = noteView.findViewById(R.id.noteDescription);
         TextView timestampView = noteView.findViewById(R.id.noteTimestamp);
+        TextView dueDateView = noteView.findViewById(R.id.noteDueDate);
         ImageView deleteButton = noteView.findViewById(R.id.deleteNoteButton);
         View priorityIndicator = noteView.findViewById(R.id.notePriorityIndicator);
         TextView taskTag = noteView.findViewById(R.id.noteTaskTag);
 
         titleView.setText(note.title != null && !note.title.isEmpty() ? note.title : "Untitled");
         descriptionView.setText(note.description != null && !note.description.isEmpty() ? note.description : "No description");
+
+        // Show due date if set
+        if (dueDateView != null && note.dueDate != null && !note.dueDate.isEmpty()) {
+            dueDateView.setVisibility(View.VISIBLE);
+            try {
+                SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                SimpleDateFormat outputFormat = new SimpleDateFormat("MMM d, yyyy", Locale.getDefault());
+                Date date = inputFormat.parse(note.dueDate);
+                if (date != null) {
+                    dueDateView.setText("Due: " + outputFormat.format(date));
+                }
+            } catch (Exception e) {
+                dueDateView.setText("Due: " + note.dueDate);
+            }
+        } else if (dueDateView != null) {
+            dueDateView.setVisibility(View.GONE);
+        }
 
         // Show task tag based on task type
         if (taskTag != null && note.taskType != null && !note.taskType.equals("None")) {
