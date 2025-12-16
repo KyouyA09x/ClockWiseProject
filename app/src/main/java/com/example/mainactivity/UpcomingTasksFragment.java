@@ -312,7 +312,7 @@ public class UpcomingTasksFragment extends Fragment {
 
             // Add task items
             for (Task task : tasks) {
-                View taskView = createTaskItemView(inflater, task, isFocusSession);
+                View taskView = createTaskItemView(inflater, task, isFocusSession, container);
                 container.addView(taskView);
             }
         }
@@ -408,9 +408,9 @@ public class UpcomingTasksFragment extends Fragment {
         }
     }
 
-    private View createTaskItemView(LayoutInflater inflater, Task task, boolean isFocusSession) {
+    private View createTaskItemView(LayoutInflater inflater, Task task, boolean isFocusSession, ViewGroup parent) {
         int layoutId = isFocusSession ? R.layout.item_upcoming_focus_session : R.layout.item_upcoming_task;
-        View taskView = inflater.inflate(layoutId, null, false);
+        View taskView = inflater.inflate(layoutId, parent, false);
 
         TextView taskNameTextView = taskView.findViewById(R.id.taskName);
         TextView taskTimeTextView = taskView.findViewById(R.id.taskTime);

@@ -78,6 +78,16 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         return fragment;
     }
 
+    public static AddFocusTaskBottomSheet newInstanceWithData(Task task) {
+        AddFocusTaskBottomSheet fragment = new AddFocusTaskBottomSheet();
+        Bundle args = new Bundle();
+        args.putParcelable("TASK", task);
+        args.putBoolean("EDIT_MODE", false); // Not edit mode - creating new task with pre-filled data
+        args.putBoolean("PREFILLED", true);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     public void setOnTaskSavedListener(OnTaskSavedListener listener) {
         this.listener = listener;
     }

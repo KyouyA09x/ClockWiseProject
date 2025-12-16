@@ -329,23 +329,25 @@ public class CurrentTasksFragment extends Fragment {
             if (!task.date.equals(todayDate) || task.isComplete) continue;
 
             if (task.isFocusTask() && focusContainer != null) {
-                focusContainer.addView(createTaskView(task, true));
+                View taskView = createTaskView(task, true, focusContainer);
+                focusContainer.addView(taskView);
             } else {
-                container.addView(createTaskView(task, false));
+                View taskView = createTaskView(task, false, container);
+                container.addView(taskView);
             }
         }
     }
 
-    private View createTaskView(Task task, boolean isFocusTaskView) {
+    private View createTaskView(Task task, boolean isFocusTaskView, ViewGroup parent) {
         if (task == null || getContext() == null) return new View(getContext());
 
         LayoutInflater inflater = LayoutInflater.from(getContext());
         View taskView;
 
         if (isFocusTaskView) {
-            taskView = inflater.inflate(R.layout.focus_task_item, null, false);
+            taskView = inflater.inflate(R.layout.focus_task_item, parent, false);
         } else {
-            taskView = inflater.inflate(R.layout.task_item, null, false);
+            taskView = inflater.inflate(R.layout.task_item, parent, false);
         }
 
         // Setup task view with click listeners
@@ -628,6 +630,15 @@ public class CurrentTasksFragment extends Fragment {
 
         // Show popup at center of screen
         popupWindow.showAtLocation(anchorView, android.view.Gravity.CENTER, 0, 0);
+        
+        // Add haptic feedback
+        anchorView.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
+
+        // Tap popup to edit
+        popupView.setOnClickListener(v -> {
+            popupWindow.dismiss();
+            openTaskForEditing(task);
+        });
     }
 
     /**

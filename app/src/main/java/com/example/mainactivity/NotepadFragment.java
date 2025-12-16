@@ -62,6 +62,24 @@ public class NotepadFragment extends Fragment {
         emptyStateNotes = view.findViewById(R.id.emptyStateNotes);
         notesContainer = view.findViewById(R.id.notesContainer);
         fabAddNote = view.findViewById(R.id.fabAddNote);
+        fabConvertSelected = view.findViewById(R.id.fabConvertSelected);
+        fabCancelConvert = view.findViewById(R.id.fabCancelConvert);
+        
+        // Setup Convert and Cancel button listeners
+        if (fabConvertSelected != null) {
+            fabConvertSelected.setOnClickListener(v -> convertSelectedNotesToTasks());
+        }
+        if (fabCancelConvert != null) {
+            fabCancelConvert.setOnClickListener(v -> {
+                isSelectionMode = false;
+                selectedNotes.clear();
+                // Hide Convert and Cancel FABs, show Add Note FAB
+                if (fabConvertSelected != null) fabConvertSelected.setVisibility(View.GONE);
+                if (fabCancelConvert != null) fabCancelConvert.setVisibility(View.GONE);
+                if (fabAddNote != null) fabAddNote.setVisibility(View.VISIBLE);
+                refreshNotes();
+            });
+        }
         
         // Setup dynamic FAB positioning and content padding
         setupDynamicPadding(view);
@@ -313,7 +331,7 @@ public class NotepadFragment extends Fragment {
             task.endAmPm = "AM";
             
             // Show Focus Task bottom sheet - allow date modification
-            AddFocusTaskBottomSheet bottomSheet = AddFocusTaskBottomSheet.newInstance(task);
+            AddFocusTaskBottomSheet bottomSheet = AddFocusTaskBottomSheet.newInstanceWithData(task);
             bottomSheet.setOnTaskSavedListener(() -> {
                 // Mark note as converted
                 note.isConvertedToTask = true;
@@ -333,7 +351,7 @@ public class NotepadFragment extends Fragment {
             task.taskType = "reminder";
             
             // Show Reminder bottom sheet - allow date modification
-            AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstance(task);
+            AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstanceWithData(task);
             bottomSheet.setOnTaskSavedListener(() -> {
                 // Mark note as converted
                 note.isConvertedToTask = true;
