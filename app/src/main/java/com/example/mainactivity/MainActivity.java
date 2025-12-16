@@ -36,6 +36,7 @@ public class MainActivity extends BaseThemedActivity {
     private com.google.android.material.navigation.NavigationView navigationView;
     private com.google.android.material.bottomnavigation.BottomNavigationView bottomNavigation;
     private com.google.android.material.floatingactionbutton.FloatingActionButton fabCenterAction;
+    private com.google.android.material.floatingactionbutton.FloatingActionButton fabQuickTask;
     private View progressTracker;
     private View emptyStateCard;
     private View tasksContainerCard;
@@ -72,6 +73,7 @@ public class MainActivity extends BaseThemedActivity {
         navigationView = findViewById(R.id.navigationView);
         bottomNavigation = findViewById(R.id.bottomNavigation);
         fabCenterAction = findViewById(R.id.fabCenterAction);
+        fabQuickTask = findViewById(R.id.fabQuickTask);
         
         // Setup center FAB click listener with animation
         if (fabCenterAction != null) {
@@ -90,6 +92,11 @@ public class MainActivity extends BaseThemedActivity {
                     })
                     .start();
             });
+        }
+        
+        // Setup Quick Task FAB - directly goes to convert note to task
+        if (fabQuickTask != null) {
+            fabQuickTask.setOnClickListener(v -> showNotepadToConvertToTask());
         }
         
         // Handle window insets for bottom navigation bar (works with 3-button navigation)

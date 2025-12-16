@@ -116,8 +116,11 @@ public class CurrentTasksFragment extends Fragment {
                 }
 
                 // Reserve space for: bottom nav + system nav + FABs (2 stacked) + margins
-                // Extended FAB height ~48dp, spacing 16dp between, margin 16dp
-                int fabsReservedSpace = (int) ((48 + 16 + 48 + 16) * density); // Two FABs + spacing + margin
+                // Quick Task FAB:  56dp (height)
+                // Spacing:         8dp
+                // Main FAB:        56dp (height)
+                // Bottom margin:   16dp
+                int fabsReservedSpace = (int) ((56 + 8 + 56 + 16) * density); // Two regular FABs + spacing + margin
                 int totalBottomPadding = bottomNavHeight + systemBars.bottom + fabsReservedSpace;
 
                 // Set dynamic padding

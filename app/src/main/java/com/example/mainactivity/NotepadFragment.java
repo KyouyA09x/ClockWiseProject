@@ -250,32 +250,73 @@ public class NotepadFragment extends Fragment {
             return;
         }
 
-        // Convert selected notes to tasks
-        for (Note note : selectedNotes) {
-            // Create a reminder task from note
-            Task task = new Task();
-            task.name = note.title != null && !note.title.isEmpty() ? note.title : "Task from Note";
-            task.taskType = "reminder";
-            task.date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-            task.hour = 9;
-            task.minute = 0;
-            task.amPm = "AM";
-            task.isAlarmOn = true;
-            // Use note priority for task urgency to match colors
-            task.urgency = note.priority != null ? note.priority : "None";
-            task.selectedDays = new boolean[7]; // No repeat by default
-
-            TaskRepository.getInstance().addTask(task);
-            
-            // Mark note as converted to task
-            note.isConvertedToTask = true;
-            noteDao.update(note);
-        }
-
-        Toast.makeText(getContext(), selectedNotes.size() + " note(s) converted to task(s)", Toast.LENGTH_SHORT).show();
+        // Exit selection mode first
+        isSelectionMode = false;
         
-        // Exit selection mode
-        exitSelectionMode();
+        // Convert each selected note, showing bottom sheet for configuration
+        convertNextNote(0);
+    }
+    
+    private void convertNextNote(int index) {
+        if (index >= selectedNotes.size()) {
+            // All notes converted, show success message and reset
+            Toast.makeText(getContext(), selectedNotes.size() + " note(s) converted to task(s)", Toast.LENGTH_SHORT).show();
+            selectedNotes.clear();
+            fabAddNote.setText("Add Note");
+            fabAddNote.setIcon(androidx.core.content.ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_fab));
+            fabAddNote.setOnClickListener(v -> showAddNoteDialog(null));
+            refreshNotes();
+            return;
+        }
+        
+        Note note = selectedNotes.get(index);
+        
+        // Create task from note with note type and priority matching
+        Task task = new Task();
+        task.name = note.title != null && !note.title.isEmpty() ? note.title : "Task from Note";
+        task.date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        task.hour = 9;
+        task.minute = 0;
+        task.amPm = "AM";
+        task.isAlarmOn = true;
+        // Match note priority to task urgency
+        task.urgency = note.priority != null ? note.priority : "None";
+        task.selectedDays = new boolean[7];
+        
+        // Determine task type based on note's task type
+        if (note.taskType != null && note.taskType.equals("Focus Task")) {
+            task.taskType = "focus";
+            task.endHour = 10;
+            task.endMinute = 0;
+            task.endAmPm = "AM";
+            
+            // Show Focus Task bottom sheet - allow date modification
+            AddFocusTaskBottomSheet bottomSheet = AddFocusTaskBottomSheet.newInstance(task);
+            bottomSheet.setOnTaskSavedListener(() -> {
+                // Mark note as converted
+                note.isConvertedToTask = true;
+                noteDao.update(note);
+                
+                // Convert next note
+                convertNextNote(index + 1);
+            });
+            bottomSheet.show(getParentFragmentManager(), "AddFocusTaskBottomSheet");
+        } else {
+            // Default to reminder task - match note type
+            task.taskType = "reminder";
+            
+            // Show Reminder bottom sheet - allow date modification
+            AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstance(task);
+            bottomSheet.setOnTaskSavedListener(() -> {
+                // Mark note as converted
+                note.isConvertedToTask = true;
+                noteDao.update(note);
+                
+                // Convert next note
+                convertNextNote(index + 1);
+            });
+            bottomSheet.show(getParentFragmentManager(), "AddReminderBottomSheet");
+        }
     }
 
     private void exitSelectionMode() {

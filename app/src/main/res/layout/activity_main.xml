@@ -68,6 +68,22 @@
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
+        <!-- Quick Task FAB (positioned above the main FAB) -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabQuickTask"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginBottom="224dp"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="@string/quick_task"
+            android:src="@drawable/ic_flash"
+            app:backgroundTint="?attr/colorPrimary"
+            app:fabSize="normal"
+            app:tint="?attr/colorOnPrimary"
+            app:elevation="6dp"
+            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
+
         <!-- FAB for Quick Actions (positioned at bottom right above bottom nav) -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabCenterAction"

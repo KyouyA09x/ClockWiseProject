@@ -99,7 +99,7 @@ public class UpcomingTasksFragment extends Fragment {
                     bottomNavHeight = (int) (56 * density);
                 }
 
-                int fabsReservedSpace = (int) ((48 + 16 + 48 + 16) * density);
+                int fabsReservedSpace = (int) ((56 + 8 + 56 + 16) * density); // Two regular FABs + spacing + margin
                 int totalBottomPadding = bottomNavHeight + systemBars.bottom + fabsReservedSpace;
 
                 container.setPadding(
