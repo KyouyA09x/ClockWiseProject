@@ -70,9 +70,10 @@
 
             <!-- App Icon -->
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@mipmap/ic_launcher"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/app_icon"
+                android:scaleType="fitCenter"
                 android:contentDescription="ClockWise" />
 
         </LinearLayout>

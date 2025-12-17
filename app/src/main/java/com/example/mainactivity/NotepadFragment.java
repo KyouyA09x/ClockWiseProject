@@ -311,6 +311,49 @@ public class NotepadFragment extends Fragment {
         
         Note note = selectedNotes.get(index);
         
+        // Show task type chooser dialog to let user pick Focus Session or Reminder
+        showTaskTypeChooserForNote(note, index);
+    }
+    
+    private void showTaskTypeChooserForNote(Note note, int index) {
+        if (getContext() == null) return;
+        
+        // Create dialog
+        android.app.Dialog dialog = new android.app.Dialog(getContext());
+        dialog.setContentView(R.layout.dialog_task_type_chooser);
+        
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            android.view.WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+            params.width = android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+            params.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+            dialog.getWindow().setAttributes(params);
+        }
+        
+        // Get views
+        com.google.android.material.card.MaterialCardView reminderOption = dialog.findViewById(R.id.reminderOption);
+        com.google.android.material.card.MaterialCardView focusOption = dialog.findViewById(R.id.focusTaskOption);
+        
+        // Reminder option click
+        if (reminderOption != null) {
+            reminderOption.setOnClickListener(v -> {
+                dialog.dismiss();
+                convertNoteToReminder(note, index);
+            });
+        }
+        
+        // Focus Session option click
+        if (focusOption != null) {
+            focusOption.setOnClickListener(v -> {
+                dialog.dismiss();
+                convertNoteToFocusSession(note, index);
+            });
+        }
+        
+        dialog.show();
+    }
+    
+    private void convertNoteToReminder(Note note, int index) {
         // Create task from note with note type and priority matching
         Task task = new Task();
         task.name = note.title != null && !note.title.isEmpty() ? note.title : "Task from Note";
@@ -322,51 +365,59 @@ public class NotepadFragment extends Fragment {
         // Match note priority to task urgency
         task.urgency = note.priority != null ? note.priority : "None";
         task.selectedDays = new boolean[7];
+        task.taskType = "reminder";
         
-        // Determine task type based on note's task type
-        if (note.taskType != null && note.taskType.equals("Focus Task")) {
-            task.taskType = "focus";
-            task.endHour = 10;
-            task.endMinute = 0;
-            task.endAmPm = "AM";
+        // Show Reminder bottom sheet - allow date modification
+        AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstanceWithData(task);
+        bottomSheet.setOnTaskSavedListener(() -> {
+            // Mark note as converted
+            note.isConvertedToTask = true;
+            noteDao.update(note);
             
-            // Show Focus Task bottom sheet - allow date modification
-            AddFocusTaskBottomSheet bottomSheet = AddFocusTaskBottomSheet.newInstanceWithData(task);
-            bottomSheet.setOnTaskSavedListener(() -> {
-                // Mark note as converted
-                note.isConvertedToTask = true;
-                noteDao.update(note);
-                
-                // Refresh MainActivity to show task immediately
-                if (getActivity() instanceof MainActivity) {
-                    ((MainActivity) getActivity()).refreshAllFragments();
-                }
-                
-                // Convert next note
-                convertNextNote(index + 1);
-            });
-            bottomSheet.show(getParentFragmentManager(), "AddFocusTaskBottomSheet");
-        } else {
-            // Default to reminder task - match note type
-            task.taskType = "reminder";
+            // Refresh MainActivity to show task immediately
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).refreshAllFragments();
+            }
             
-            // Show Reminder bottom sheet - allow date modification
-            AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstanceWithData(task);
-            bottomSheet.setOnTaskSavedListener(() -> {
-                // Mark note as converted
-                note.isConvertedToTask = true;
-                noteDao.update(note);
-                
-                // Refresh MainActivity to show task immediately
-                if (getActivity() instanceof MainActivity) {
-                    ((MainActivity) getActivity()).refreshAllFragments();
-                }
-                
-                // Convert next note
-                convertNextNote(index + 1);
-            });
-            bottomSheet.show(getParentFragmentManager(), "AddReminderBottomSheet");
-        }
+            // Convert next note
+            convertNextNote(index + 1);
+        });
+        bottomSheet.show(getParentFragmentManager(), "AddReminderBottomSheet");
+    }
+    
+    private void convertNoteToFocusSession(Note note, int index) {
+        // Create task from note with note type and priority matching
+        Task task = new Task();
+        task.name = note.title != null && !note.title.isEmpty() ? note.title : "Task from Note";
+        task.date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        task.hour = 9;
+        task.minute = 0;
+        task.amPm = "AM";
+        task.isAlarmOn = true;
+        // Match note priority to task urgency
+        task.urgency = note.priority != null ? note.priority : "None";
+        task.selectedDays = new boolean[7];
+        task.taskType = "focus";
+        task.endHour = 10;
+        task.endMinute = 0;
+        task.endAmPm = "AM";
+        
+        // Show Focus Task bottom sheet - allow date modification
+        AddFocusTaskBottomSheet bottomSheet = AddFocusTaskBottomSheet.newInstanceWithData(task);
+        bottomSheet.setOnTaskSavedListener(() -> {
+            // Mark note as converted
+            note.isConvertedToTask = true;
+            noteDao.update(note);
+            
+            // Refresh MainActivity to show task immediately
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).refreshAllFragments();
+            }
+            
+            // Convert next note
+            convertNextNote(index + 1);
+        });
+        bottomSheet.show(getParentFragmentManager(), "AddFocusTaskBottomSheet");
     }
 
     private void exitSelectionMode() {

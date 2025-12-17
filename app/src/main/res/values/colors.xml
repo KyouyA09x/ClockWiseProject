@@ -5,6 +5,9 @@
     <color name="white">#FFFFFFFF</color>
     <color name="primary">#1565C0</color>
     
+    <!-- App Icon Background -->
+    <color name="app_icon_background">#FFFFFF</color>
+    
     <!-- Material 3 Light Theme Surface Colors -->
     <color name="background_light">#FFFBFE</color>
     <color name="surface_light">#FFFBFE</color>

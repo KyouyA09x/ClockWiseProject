@@ -1,5 +1,6 @@
 package com.example.mainactivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -590,6 +591,27 @@ public class HistoryActivity extends BaseThemedActivity {
         }
 
         popupWindow.showAtLocation(anchorView, android.view.Gravity.CENTER, 0, 0);
+
+        // Add haptic feedback
+        anchorView.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
+
+        // Tap popup to edit - allow editing completed tasks
+        popupView.setOnClickListener(v -> {
+            popupWindow.dismiss();
+            openTaskForEditing(task);
+        });
+    }
+
+    private void openTaskForEditing(Task task) {
+        if (task.isFocusTask()) {
+            Intent intent = new Intent(this, EditFocusTaskActivity.class);
+            intent.putExtra("task_id", task.id);
+            startActivity(intent);
+        } else {
+            Intent intent = new Intent(this, EditTaskActivity.class);
+            intent.putExtra("task_id", task.id);
+            startActivity(intent);
+        }
     }
 
     private int convertTo24Hour(int hour, String amPm) {

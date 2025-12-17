@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Slightly enlarged app launcher icon -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="88dp"
+        android:height="88dp"
+        android:gravity="center">
+        <bitmap
+            android:src="@drawable/app_launch_icon"
+            android:gravity="center" />
+    </item>
+</layer-list>
