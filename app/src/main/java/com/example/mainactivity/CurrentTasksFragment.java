@@ -160,6 +160,7 @@ public class CurrentTasksFragment extends Fragment {
         boolean hasTasksForToday = false;
         boolean hasTodayFocusTasks = false;
         boolean hasAnyTodayTasks = false;
+        boolean hasReminderTasksForToday = false;
 
         // Check if there are any tasks for today
         for (Task task : morningTasks) {
@@ -198,7 +199,11 @@ public class CurrentTasksFragment extends Fragment {
                 totalTasks++;
                 if (task.isComplete) completedTasks++;
                 else hasTasksForToday = true;
-                if (task.isFocusTask() && !task.isComplete) hasTodayFocusTasks = true;
+                if (task.isFocusTask() && !task.isComplete) {
+                    hasTodayFocusTasks = true;
+                } else if (!task.isFocusTask() && !task.isComplete) {
+                    hasReminderTasksForToday = true;
+                }
             }
         }
         for (Task task : afternoonTasks) {
@@ -206,7 +211,11 @@ public class CurrentTasksFragment extends Fragment {
                 totalTasks++;
                 if (task.isComplete) completedTasks++;
                 else hasTasksForToday = true;
-                if (task.isFocusTask() && !task.isComplete) hasTodayFocusTasks = true;
+                if (task.isFocusTask() && !task.isComplete) {
+                    hasTodayFocusTasks = true;
+                } else if (!task.isFocusTask() && !task.isComplete) {
+                    hasReminderTasksForToday = true;
+                }
             }
         }
         for (Task task : nightTasks) {
@@ -214,7 +223,11 @@ public class CurrentTasksFragment extends Fragment {
                 totalTasks++;
                 if (task.isComplete) completedTasks++;
                 else hasTasksForToday = true;
-                if (task.isFocusTask() && !task.isComplete) hasTodayFocusTasks = true;
+                if (task.isFocusTask() && !task.isComplete) {
+                    hasTodayFocusTasks = true;
+                } else if (!task.isFocusTask() && !task.isComplete) {
+                    hasReminderTasksForToday = true;
+                }
             }
         }
 
@@ -236,10 +249,13 @@ public class CurrentTasksFragment extends Fragment {
             focusTasksSection.setVisibility(hasTodayFocusTasks ? View.VISIBLE : View.GONE);
         }
 
-        if (!hasTasksForToday) {
-            if (emptyStateCard != null) emptyStateCard.setVisibility(View.VISIBLE);
+        if (!hasReminderTasksForToday) {
+            // No reminder tasks, hide the tasks container card
             if (tasksContainerCard != null) tasksContainerCard.setVisibility(View.GONE);
+            // Show empty state only if there are no tasks at all (no focus sessions either)
+            if (emptyStateCard != null) emptyStateCard.setVisibility(!hasTodayFocusTasks ? View.VISIBLE : View.GONE);
         } else {
+            // Has reminder tasks, show the container
             if (emptyStateCard != null) emptyStateCard.setVisibility(View.GONE);
             if (tasksContainerCard != null) tasksContainerCard.setVisibility(View.VISIBLE);
         }

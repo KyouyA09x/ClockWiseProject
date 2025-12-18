@@ -95,7 +95,8 @@
             android:inputType="textCapSentences"
             android:maxLines="1"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="?attr/colorOnSurface" />
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOnSurfaceVariant" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -127,6 +128,7 @@
             android:scrollbars="vertical"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOnSurfaceVariant"
             android:lineSpacingExtra="4dp"
             android:paddingTop="12dp" />
 
