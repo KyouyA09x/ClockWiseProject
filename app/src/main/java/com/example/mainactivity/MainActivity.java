@@ -983,7 +983,11 @@ public class MainActivity extends BaseThemedActivity {
             } else if (id == R.id.nav_settings) {
                 startActivity(new Intent(MainActivity.this, SettingsActivity.class));
             } else if (id == R.id.nav_about) {
-                Toast.makeText(this, "ClockWise v1.0 - Your smart task manager", Toast.LENGTH_SHORT).show();
+                // Close drawer first, then show dialog
+                drawerLayout.closeDrawer(GravityCompat.START);
+                // Delay dialog to allow drawer to close
+                drawerLayout.postDelayed(() -> showAboutDialog(), 250);
+                return true;
             }
 
             drawerLayout.closeDrawer(GravityCompat.START);
@@ -1130,5 +1134,71 @@ public class MainActivity extends BaseThemedActivity {
         placeholderTasks.add(focusTask);
 
         return placeholderTasks;
+    }
+
+    private void showAboutDialog() {
+        // Create and show a dialog to display app information
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_about, null);
+        builder.setView(dialogView);
+
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            // Make dialog appear as centered overlay
+            android.view.WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+            params.gravity = android.view.Gravity.CENTER;
+            params.width = android.view.WindowManager.LayoutParams.WRAP_CONTENT;
+            params.height = android.view.WindowManager.LayoutParams.WRAP_CONTENT;
+            dialog.getWindow().setAttributes(params);
+        }
+
+        // Setup close button
+        dialogView.findViewById(R.id.closeButton).setOnClickListener(v -> dialog.dismiss());
+
+        // Apply HTML formatting to feature TextViews
+        applyHtmlToTextView(dialogView, R.id.featureTaskManagement, R.string.feature_task_management);
+        applyHtmlToTextView(dialogView, R.id.featureFocusSessions, R.string.feature_focus_sessions);
+        applyHtmlToTextView(dialogView, R.id.featureCalendarIntegration, R.string.feature_calendar_integration);
+        applyHtmlToTextView(dialogView, R.id.featureNotepad, R.string.feature_notepad);
+        applyHtmlToTextView(dialogView, R.id.featureHistoryTracking, R.string.feature_history_tracking);
+        applyHtmlToTextView(dialogView, R.id.featureReminders, R.string.feature_reminders);
+
+        // Get references to the sections
+        View aboutClockwiseSection = dialogView.findViewById(R.id.aboutClockwiseSection);
+        View aboutUsSection = dialogView.findViewById(R.id.aboutUsSection);
+        com.google.android.material.button.MaterialButton toggleButton = 
+            dialogView.findViewById(R.id.aboutUsToggleButton);
+
+        // Setup toggle button click listener
+        toggleButton.setOnClickListener(v -> {
+            if (aboutUsSection.getVisibility() == View.GONE) {
+                // Show About Us, hide About ClockWise
+                aboutUsSection.setVisibility(View.VISIBLE);
+                aboutClockwiseSection.setVisibility(View.GONE);
+                toggleButton.setText("About ClockWise");
+                toggleButton.setIcon(getDrawable(R.drawable.app_icon));
+            } else {
+                // Show About ClockWise, hide About Us
+                aboutUsSection.setVisibility(View.GONE);
+                aboutClockwiseSection.setVisibility(View.VISIBLE);
+                toggleButton.setText("About the development team");
+                toggleButton.setIcon(getDrawable(R.drawable.ic_person));
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void applyHtmlToTextView(View rootView, int textViewId, int stringResId) {
+        TextView textView = rootView.findViewById(textViewId);
+        if (textView != null) {
+            String htmlText = getString(stringResId);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                textView.setText(android.text.Html.fromHtml(htmlText, android.text.Html.FROM_HTML_MODE_COMPACT));
+            } else {
+                textView.setText(android.text.Html.fromHtml(htmlText));
+            }
+        }
     }
 }

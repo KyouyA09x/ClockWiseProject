@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_task_management"><![CDATA[• <b>Task Management</b> - Create, edit, and organize tasks with priority levels]]></string>
+    <string name="feature_focus_sessions"><![CDATA[• <b>Focus Sessions</b> - Schedule dedicated time blocks for focused work]]></string>
+    <string name="feature_calendar_integration"><![CDATA[• <b>Calendar Integration</b> - View and manage tasks in a calendar format]]></string>
+    <string name="feature_notepad"><![CDATA[• <b>Notepad</b> - Jot down quick notes and convert them to tasks]]></string>
+    <string name="feature_history_tracking"><![CDATA[• <b>History Tracking</b> - Review completed tasks and track progress]]></string>
+    <string name="feature_reminders"><![CDATA[• <b>Reminders</b> - Set notifications to never miss important tasks]]></string>
+</resources>
