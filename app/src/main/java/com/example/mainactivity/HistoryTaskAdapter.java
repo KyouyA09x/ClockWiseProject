@@ -111,7 +111,14 @@ public class HistoryTaskAdapter extends RecyclerView.Adapter<HistoryTaskAdapter.
 
             deleteButton.setOnClickListener(v -> {
                 if (deleteListener != null) {
-                    deleteListener.onDelete(task);
+                    // Animate slide-to-right deletion
+                    itemView.animate()
+                        .translationX(itemView.getWidth())
+                        .alpha(0f)
+                        .setDuration(300)
+                        .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
+                        .withEndAction(() -> deleteListener.onDelete(task))
+                        .start();
                 }
             });
         }

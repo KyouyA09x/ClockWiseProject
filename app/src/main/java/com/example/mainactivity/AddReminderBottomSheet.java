@@ -399,12 +399,15 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
     }
 
     private void showDeleteConfirmation() {
-        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle("Delete Reminder")
-                .setMessage("Are you sure you want to delete this reminder?")
-                .setPositiveButton("Delete", (dialog, which) -> deleteTask())
-                .setNegativeButton("Cancel", null)
-                .show();
+        ModernDialogHelper.showDestructiveDialog(
+                requireContext(),
+                "Delete Reminder?",
+                "This action cannot be undone. {item} will be permanently removed.",
+                editingTask != null ? editingTask.name : "This reminder",
+                R.drawable.ic_delete,
+                this::deleteTask,
+                null
+        );
     }
 
     private void deleteTask() {

@@ -11,6 +11,7 @@
     <string name="morning_tasks_header">Morning Tasks</string>
     <string name="afternoon_tasks_header">Afternoon Tasks</string>
     <string name="night_tasks_header">Night Tasks</string>
+    <string name="upcoming_tasks">Upcoming Tasks</string>
     <string name="add_task_desc">Add new task</string>
     <string name="task_name_label">Task Name</string>
     <string name="task_hint">What are you going to do?</string>
@@ -33,5 +34,17 @@
     <string name="history_menu">History Menu</string>
     <string name="completed_task_indicator">Completed task indicator</string>
     <string name="quick_task">Quick Task</string>
+
+    <!-- Tutorial strings -->
+    <string name="next">Next</string>
+    <string name="start_using_clockwise">Start Using ClockWise</string>
+    <string name="skip">Skip</string>
+    <string name="step_1_8">1 / 8</string>
+    <string name="welcome_clockwise">Welcome to ClockWise!</string>
+    <string name="tutorial_intro_desc">Let\'s explore the app together</string>
+    <string name="today_progress">Today\'s Progress</string>
+    <string name="sample_progress">3 of 8 tasks completed</string>
+    <string name="no_tasks_today">No tasks for today\nTap + to add your first task</string>
+    <string name="quick_actions">Quick Actions</string>
 </resources>
 

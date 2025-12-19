@@ -57,6 +57,8 @@
         <activity android:name=".HistoryMonthDetailActivity" />
         <activity android:name=".CalendarActivity" />
         <activity android:name=".SettingsActivity" />
+        <activity android:name=".TutorialActivityNew"
+            android:theme="@style/Theme.MainActivity" />
         
         <!-- Popup Notification Activity for fullscreen popup alerts -->
         <activity

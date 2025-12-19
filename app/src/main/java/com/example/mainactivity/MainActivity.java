@@ -670,9 +670,10 @@ public class MainActivity extends BaseThemedActivity {
         com.google.android.material.button.MaterialButton deleteButton = taskView.findViewById(R.id.deleteButton);
         if (deleteButton != null) {
             deleteButton.setOnClickListener(v -> {
-                new androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("Delete Focus Session")
-                    .setMessage("Are you sure you want to delete \"" + task.name + "\"?")
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                    .setTitle("Delete Focus Session?")
+                    .setMessage("This action cannot be undone. \"" + task.name + "\" will be permanently removed.")
+                    .setIcon(R.drawable.ic_delete)
                     .setPositiveButton("Delete", (dialog, which) -> {
                         AlarmHelper.cancelFocusTaskAlarms(this, task);
                         taskRepository.deleteTask(task);
@@ -879,17 +880,29 @@ public class MainActivity extends BaseThemedActivity {
         com.google.android.material.button.MaterialButton deleteButton = taskView.findViewById(R.id.deleteButton);
         if (deleteButton != null) {
             deleteButton.setOnClickListener(v -> {
-                new androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("Delete Task")
-                    .setMessage("Are you sure you want to delete \"" + task.name + "\"?")
-                    .setPositiveButton("Delete", (dialog, which) -> {
-                        taskRepository.deleteTask(task);
-                        taskRepository.refreshTasks();
-                        refreshAllFragments();
-                        Toast.makeText(this, "Task deleted", Toast.LENGTH_SHORT).show();
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
+                ModernDialogHelper.showDestructiveDialog(
+                    this,
+                    "Delete Task?",
+                    "This action cannot be undone. {item} will be permanently removed.",
+                    task.name,
+                    R.drawable.ic_delete,
+                    () -> {
+                        // Animate slide-to-right deletion
+                        taskView.animate()
+                            .translationX(taskView.getWidth())
+                            .alpha(0f)
+                            .setDuration(300)
+                            .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
+                            .withEndAction(() -> {
+                                taskRepository.deleteTask(task);
+                                taskRepository.refreshTasks();
+                                refreshAllFragments();
+                                Toast.makeText(this, "Task deleted", Toast.LENGTH_SHORT).show();
+                            })
+                            .start();
+                    },
+                    null
+                );
             });
         }
 
@@ -980,6 +993,8 @@ public class MainActivity extends BaseThemedActivity {
                 startActivity(new Intent(MainActivity.this, HistoryActivity.class));
             } else if (id == R.id.nav_calendar) {
                 startActivity(new Intent(MainActivity.this, CalendarActivity.class));
+            } else if (id == R.id.nav_tutorial) {
+                startActivity(new Intent(MainActivity.this, TutorialActivityNew.class));
             } else if (id == R.id.nav_settings) {
                 startActivity(new Intent(MainActivity.this, SettingsActivity.class));
             } else if (id == R.id.nav_about) {

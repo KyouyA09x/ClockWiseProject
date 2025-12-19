@@ -504,24 +504,43 @@ public class CurrentTasksFragment extends Fragment {
         com.google.android.material.button.MaterialButton deleteButton = taskView.findViewById(R.id.deleteButton);
         if (deleteButton != null) {
             deleteButton.setOnClickListener(v -> {
-                new androidx.appcompat.app.AlertDialog.Builder(getContext())
-                    .setTitle(task.isFocusTask() ? "Delete Focus Session" : "Delete Task")
-                    .setMessage("Are you sure you want to delete \"" + task.name + "\"?")
-                    .setPositiveButton("Delete", (dialog, which) -> {
-                        if (task.isFocusTask()) {
-                            AlarmHelper.cancelFocusTaskAlarms(getContext(), task);
-                        } else {
-                            AlarmHelper.cancelTaskAlarm(getContext(), task);
-                        }
-                        taskRepository.deleteTask(task);
-                        taskRepository.refreshTasks();
-                        refreshTasks();
-                        Toast.makeText(getContext(), "Task deleted", Toast.LENGTH_SHORT).show();
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
+                String title = task.isFocusTask() ? "Delete Focus Session?" : "Delete Task?";
+                String message = "This action cannot be undone. {item} will be permanently removed.";
+                
+                ModernDialogHelper.showDestructiveDialog(
+                    getContext(),
+                    title,
+                    message,
+                    task.name,
+                    R.drawable.ic_delete,
+                    () -> {
+                        // Animate slide-to-right deletion
+                        animateTaskDeletion(taskView, () -> {
+                            if (task.isFocusTask()) {
+                                AlarmHelper.cancelFocusTaskAlarms(getContext(), task);
+                            } else {
+                                AlarmHelper.cancelTaskAlarm(getContext(), task);
+                            }
+                            taskRepository.deleteTask(task);
+                            taskRepository.refreshTasks();
+                            refreshTasks();
+                            Toast.makeText(getContext(), "Task deleted", Toast.LENGTH_SHORT).show();
+                        });
+                    },
+                    null
+                );
             });
         }
+    }
+    
+    private void animateTaskDeletion(View taskView, Runnable onComplete) {
+        taskView.animate()
+            .translationX(taskView.getWidth())
+            .alpha(0f)
+            .setDuration(300)
+            .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
+            .withEndAction(onComplete)
+            .start();
     }
 
     private void showQuickInfoPopup(View anchorView, Task task, boolean isFocusSession) {

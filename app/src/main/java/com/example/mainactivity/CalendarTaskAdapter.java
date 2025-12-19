@@ -103,18 +103,30 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
             // Delete button click
             if (deleteButton != null) {
                 deleteButton.setOnClickListener(v -> {
-                    new com.google.android.material.dialog.MaterialAlertDialogBuilder(itemView.getContext())
-                            .setTitle("Delete Task")
-                            .setMessage("Are you sure you want to delete \"" + task.name + "\"?")
-                            .setPositiveButton("Delete", (dialog, which) -> {
-                                TaskRepository.getInstance().deleteTask(task);
-                                android.widget.Toast.makeText(itemView.getContext(), "Task deleted", android.widget.Toast.LENGTH_SHORT).show();
-                                if (listener != null) {
-                                    listener.onTaskDeleted();
-                                }
-                            })
-                            .setNegativeButton("Cancel", null)
-                            .show();
+                    ModernDialogHelper.showDestructiveDialog(
+                            itemView.getContext(),
+                            "Delete Task?",
+                            "This action cannot be undone. {item} will be permanently removed.",
+                            task.name,
+                            R.drawable.ic_delete,
+                            () -> {
+                                // Animate slide-to-right deletion
+                                itemView.animate()
+                                    .translationX(itemView.getWidth())
+                                    .alpha(0f)
+                                    .setDuration(300)
+                                    .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
+                                    .withEndAction(() -> {
+                                        TaskRepository.getInstance().deleteTask(task);
+                                        android.widget.Toast.makeText(itemView.getContext(), "Task deleted", android.widget.Toast.LENGTH_SHORT).show();
+                                        if (listener != null) {
+                                            listener.onTaskDeleted();
+                                        }
+                                    })
+                                    .start();
+                            },
+                            null
+                    );
                 });
             }
         }

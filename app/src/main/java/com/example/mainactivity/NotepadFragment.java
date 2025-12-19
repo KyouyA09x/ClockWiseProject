@@ -564,7 +564,7 @@ public class NotepadFragment extends Fragment {
         });
 
         // Delete button
-        deleteButton.setOnClickListener(v -> showDeleteConfirmation(note));
+        deleteButton.setOnClickListener(v -> showDeleteConfirmation(note, noteView));
 
         return noteView;
     }
@@ -628,7 +628,7 @@ public class NotepadFragment extends Fragment {
                             showAddNoteDialog(note);
                             break;
                         case 1: // Delete
-                            showDeleteConfirmation(note);
+                            showDeleteConfirmation(note, anchorView);
                             break;
                         case 2: // Convert to Task
                             convertNoteToTask(note);
@@ -662,15 +662,40 @@ public class NotepadFragment extends Fragment {
     }
 
     private void showDeleteConfirmation(Note note) {
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Delete Note")
-                .setMessage("Are you sure you want to delete this note?")
-                .setPositiveButton("Delete", (dialog, which) -> {
-                    noteDao.delete(note);
-                    refreshNotes();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        showDeleteConfirmation(note, null);
+    }
+    
+    private void showDeleteConfirmation(Note note, View noteView) {
+        ModernDialogHelper.showDestructiveDialog(
+                getContext(),
+                "Delete Note?",
+                "This action cannot be undone. {item} will be permanently removed.",
+                note.title != null && !note.title.isEmpty() ? note.title : "This note",
+                R.drawable.ic_delete,
+                () -> {
+                    if (noteView != null) {
+                        // Animate slide-to-right deletion
+                        animateNoteDeletion(noteView, () -> {
+                            noteDao.delete(note);
+                            refreshNotes();
+                        });
+                    } else {
+                        noteDao.delete(note);
+                        refreshNotes();
+                    }
+                },
+                null
+        );
+    }
+    
+    private void animateNoteDeletion(View noteView, Runnable onComplete) {
+        noteView.animate()
+            .translationX(noteView.getWidth())
+            .alpha(0f)
+            .setDuration(300)
+            .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
+            .withEndAction(onComplete)
+            .start();
     }
     
     /**

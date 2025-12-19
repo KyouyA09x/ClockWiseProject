@@ -190,18 +190,22 @@ public class SettingsActivity extends BaseThemedActivity {
 
         if (clearButton != null) {
             clearButton.setOnClickListener(v -> 
-                new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                    .setTitle("Clear All Data")
-                    .setMessage("⚠️ This will permanently delete ALL tasks and notes. This action cannot be undone. Continue?")
-                    .setPositiveButton("Delete All", (dialog, which) -> {
+                ModernDialogHelper.showBulkDestructiveDialog(
+                    this,
+                    "Clear All Data?",
+                    "⚠️ This will permanently delete ALL tasks and notes. This action cannot be undone. Continue?",
+                    0,  // No count needed for this type
+                    "Delete All",
+                    R.drawable.ic_delete,
+                    () -> {
                         TestDataGenerator generator = new TestDataGenerator(this);
                         generator.clearAllData();
                         android.widget.Toast.makeText(this, 
                             "All data cleared!", 
                             android.widget.Toast.LENGTH_SHORT).show();
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show()
+                    },
+                    null
+                )
             );
         }
     }

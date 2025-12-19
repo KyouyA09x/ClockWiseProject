@@ -123,31 +123,40 @@ public class HistoryMonthDetailActivity extends AppCompatActivity {
     }
 
     private void onDeleteTask(Task task) {
-        new AlertDialog.Builder(this)
-                .setTitle("Delete Task")
-                .setMessage("Are you sure you want to delete \"" + task.name + "\"?")
-                .setPositiveButton("Delete", (dialog, which) -> {
+        ModernDialogHelper.showDestructiveDialog(
+                this,
+                "Delete Task?",
+                "This action cannot be undone. {item} will be permanently removed from history.",
+                task.name,
+                R.drawable.ic_delete,
+                () -> {
                     taskRepository.deleteTask(task);
                     loadCompletedTasks();
                     Toast.makeText(this, "Task deleted", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+                },
+                null
+        );
     }
 
     private void showDeleteAllConfirmation() {
-        new AlertDialog.Builder(this)
-                .setTitle("Delete All")
-                .setMessage("Are you sure you want to delete all completed tasks for " + monthName + "?")
-                .setPositiveButton("Delete All", (dialog, which) -> {
+        String message = "This action cannot be undone. All {count} completed tasks for " + monthName + " will be permanently removed.";
+        
+        ModernDialogHelper.showBulkDestructiveDialog(
+                this,
+                "Delete All Tasks?",
+                message,
+                completedTasks.size(),
+                "Delete All",
+                R.drawable.ic_delete,
+                () -> {
                     for (Task task : new ArrayList<>(completedTasks)) {
                         taskRepository.deleteTask(task);
                     }
                     loadCompletedTasks();
                     Toast.makeText(this, "All tasks deleted", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+                },
+                null
+        );
     }
 
     public interface OnTaskDeleteListener {

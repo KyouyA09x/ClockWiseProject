@@ -472,9 +472,10 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
     }
 
     private void showDeleteConfirmation() {
-        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle("Delete Focus Session")
-                .setMessage("Are you sure you want to delete this focus session?")
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Delete Focus Session?")
+                .setMessage("This action cannot be undone. This focus session will be permanently removed.")
+                .setIcon(R.drawable.ic_delete)
                 .setPositiveButton("Delete", (dialog, which) -> deleteTask())
                 .setNegativeButton("Cancel", null)
                 .show();
