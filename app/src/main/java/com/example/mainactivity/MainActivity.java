@@ -35,10 +35,6 @@ public class MainActivity extends BaseThemedActivity {
     private MaterialToolbar topBar;
     private com.google.android.material.navigation.NavigationView navigationView;
     private com.google.android.material.bottomnavigation.BottomNavigationView bottomNavigation;
-    private com.google.android.material.floatingactionbutton.FloatingActionButton fabCenterAction;
-    private com.google.android.material.floatingactionbutton.FloatingActionButton fabQuickTask;
-    private View toggleBar;
-    private boolean isToggleBarVisible = false;
     private View progressTracker;
     private View emptyStateCard;
     private View tasksContainerCard;
@@ -74,37 +70,6 @@ public class MainActivity extends BaseThemedActivity {
         topBar = findViewById(R.id.topBar);
         navigationView = findViewById(R.id.navigationView);
         bottomNavigation = findViewById(R.id.bottomNavigation);
-        toggleBar = findViewById(R.id.toggleBar);
-        
-        // Setup close on outside click
-        View mainLayout = findViewById(R.id.mainLayout);
-        if (mainLayout != null) {
-            mainLayout.setOnClickListener(v -> {
-                if (isToggleBarVisible) {
-                    toggleBarVisibility();
-                }
-            });
-        }
-        
-        // Initialize toggle bar buttons
-        com.google.android.material.button.MaterialButton btnAddTask = findViewById(R.id.btnAddTask);
-        com.google.android.material.button.MaterialButton btnQuickTask = findViewById(R.id.btnQuickTask);
-        
-        // Setup Add Task button in toggle bar
-        if (btnAddTask != null) {
-            btnAddTask.setOnClickListener(v -> {
-                showTaskTypeChooser();
-                toggleBarVisibility();
-            });
-        }
-        
-        // Setup Quick Task button in toggle bar
-        if (btnQuickTask != null) {
-            btnQuickTask.setOnClickListener(v -> {
-                showQuickTaskOptionsDialog();
-                toggleBarVisibility();
-            });
-        }
         
         // Handle window insets for bottom navigation bar (works with 3-button navigation)
         if (bottomNavigation != null) {
@@ -152,8 +117,8 @@ public class MainActivity extends BaseThemedActivity {
                     loadFragment(new TasksContainerFragment());
                     return true;
                 } else if (itemId == R.id.navigation_add) {
-                    // Toggle the bar when Add button is clicked
-                    toggleBarVisibility();
+                    // Open task type chooser dialog directly
+                    showTaskTypeChooser();
                     return false; // Don't select this item
                 } else if (itemId == R.id.navigation_notepad) {
                     loadFragment(new NotepadFragment());
@@ -565,29 +530,6 @@ public class MainActivity extends BaseThemedActivity {
                 }
             }
         }, 300); // Small delay to allow fragment transition
-    }
-
-    private void toggleBarVisibility() {
-        if (toggleBar == null) return;
-        
-        isToggleBarVisible = !isToggleBarVisible;
-        
-        if (isToggleBarVisible) {
-            // Show the toggle bar with slide up animation
-            toggleBar.setVisibility(View.VISIBLE);
-            toggleBar.setTranslationY(toggleBar.getHeight());
-            toggleBar.animate()
-                .translationY(0)
-                .setDuration(300)
-                .start();
-        } else {
-            // Hide the toggle bar with slide down animation
-            toggleBar.animate()
-                .translationY(toggleBar.getHeight())
-                .setDuration(300)
-                .withEndAction(() -> toggleBar.setVisibility(View.GONE))
-                .start();
-        }
     }
 
     public void showNotepadToConvertToTask() {
@@ -1084,6 +1026,8 @@ public class MainActivity extends BaseThemedActivity {
                 startActivity(new Intent(MainActivity.this, HistoryActivity.class));
             } else if (id == R.id.nav_calendar) {
                 startActivity(new Intent(MainActivity.this, CalendarActivity.class));
+            } else if (id == R.id.nav_trash) {
+                startActivity(new Intent(MainActivity.this, TrashBinActivity.class));
             } else if (id == R.id.nav_tutorial) {
                 startActivity(new Intent(MainActivity.this, TutorialActivityNew.class));
             } else if (id == R.id.nav_settings) {
