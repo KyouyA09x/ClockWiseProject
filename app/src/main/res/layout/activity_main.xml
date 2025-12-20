@@ -115,17 +115,39 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:orientation="horizontal"
+                android:gravity="center"
                 android:padding="16dp">
                 
-                <TextView
-                    android:layout_width="match_parent"
+                <!-- Add Task Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddTask"
+                    style="@style/Widget.Material3.Button.ElevatedButton"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Toggle Bar Content"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurface"
-                    android:gravity="center"
-                    android:paddingVertical="24dp" />
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Add Task"
+                    android:textColor="?attr/colorOnPrimary"
+                    app:icon="@drawable/ic_add_fab"
+                    app:iconTint="?attr/colorOnPrimary"
+                    app:backgroundTint="?attr/colorPrimary"
+                    app:cornerRadius="12dp" />
+                
+                <!-- Quick Task Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnQuickTask"
+                    style="@style/Widget.Material3.Button.ElevatedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Quick Task"
+                    android:textColor="?attr/colorOnPrimary"
+                    app:icon="@drawable/ic_flash"
+                    app:iconTint="?attr/colorOnPrimary"
+                    app:backgroundTint="?attr/colorPrimary"
+                    app:cornerRadius="12dp" />
                     
             </LinearLayout>
             

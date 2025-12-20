@@ -102,7 +102,7 @@
                         android:textAppearance="?attr/textAppearanceTitleMedium"
                         android:textColor="?attr/colorPrimary"
                         android:textStyle="bold"
-                        android:gravity="center"
+                        android:gravity="center_horizontal"
                         app:icon="@drawable/ic_arrow_down"
                         app:iconTint="?attr/colorPrimary"
                         app:iconGravity="end"

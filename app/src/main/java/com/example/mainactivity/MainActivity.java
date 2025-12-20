@@ -37,6 +37,8 @@ public class MainActivity extends BaseThemedActivity {
     private com.google.android.material.bottomnavigation.BottomNavigationView bottomNavigation;
     private com.google.android.material.floatingactionbutton.FloatingActionButton fabCenterAction;
     private com.google.android.material.floatingactionbutton.FloatingActionButton fabQuickTask;
+    private View toggleBar;
+    private boolean isToggleBarVisible = false;
     private View progressTracker;
     private View emptyStateCard;
     private View tasksContainerCard;
@@ -74,8 +76,23 @@ public class MainActivity extends BaseThemedActivity {
         bottomNavigation = findViewById(R.id.bottomNavigation);
         fabCenterAction = findViewById(R.id.fabCenterAction);
         fabQuickTask = findViewById(R.id.fabQuickTask);
+        toggleBar = findViewById(R.id.toggleBar);
         
-        // Setup center FAB click listener with animation
+        // Initialize toggle bar buttons
+        com.google.android.material.button.MaterialButton btnAddTask = findViewById(R.id.btnAddTask);
+        com.google.android.material.button.MaterialButton btnQuickTask = findViewById(R.id.btnQuickTask);
+        
+        // Setup Add Task button in toggle bar
+        if (btnAddTask != null) {
+            btnAddTask.setOnClickListener(v -> showTaskTypeChooser());
+        }
+        
+        // Setup Quick Task button in toggle bar
+        if (btnQuickTask != null) {
+            btnQuickTask.setOnClickListener(v -> showQuickTaskOptionsDialog());
+        }
+        
+        // Setup center FAB click listener with animation (keeping for backward compatibility)
         if (fabCenterAction != null) {
             fabCenterAction.setOnClickListener(v -> {
                 // Animate FAB rotation
@@ -144,6 +161,9 @@ public class MainActivity extends BaseThemedActivity {
                 if (itemId == R.id.navigation_tasks) {
                     loadFragment(new TasksContainerFragment());
                     return true;
+                } else if (itemId == R.id.navigation_toggle) {
+                    toggleBarVisibility();
+                    return false; // Don't select this item
                 } else if (itemId == R.id.navigation_notepad) {
                     loadFragment(new NotepadFragment());
                     return true;
@@ -497,6 +517,29 @@ public class MainActivity extends BaseThemedActivity {
                 }
             }
         }, 300); // Small delay to allow fragment transition
+    }
+
+    private void toggleBarVisibility() {
+        if (toggleBar == null) return;
+        
+        isToggleBarVisible = !isToggleBarVisible;
+        
+        if (isToggleBarVisible) {
+            // Show the toggle bar with slide up animation
+            toggleBar.setVisibility(View.VISIBLE);
+            toggleBar.setTranslationY(toggleBar.getHeight());
+            toggleBar.animate()
+                .translationY(0)
+                .setDuration(300)
+                .start();
+        } else {
+            // Hide the toggle bar with slide down animation
+            toggleBar.animate()
+                .translationY(toggleBar.getHeight())
+                .setDuration(300)
+                .withEndAction(() -> toggleBar.setVisibility(View.GONE))
+                .start();
+        }
     }
 
     public void showNotepadToConvertToTask() {
