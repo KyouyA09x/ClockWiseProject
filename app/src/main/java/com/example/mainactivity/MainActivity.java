@@ -77,6 +77,32 @@ public class MainActivity extends BaseThemedActivity {
         fabCenterAction = findViewById(R.id.fabCenterAction);
         fabQuickTask = findViewById(R.id.fabQuickTask);
         toggleBar = findViewById(R.id.toggleBar);
+        com.google.android.material.floatingactionbutton.FloatingActionButton fabAddBump = findViewById(R.id.fabAddBump);
+        
+        // Setup FAB bump click listener
+        if (fabAddBump != null) {
+            fabAddBump.setOnClickListener(v -> {
+                toggleBarVisibility();
+                // Animate FAB rotation
+                fabAddBump.animate()
+                    .rotation(isToggleBarVisible ? 45 : 0)
+                    .setDuration(300)
+                    .start();
+            });
+        }
+        
+        // Setup close on outside click
+        View mainLayout = findViewById(R.id.mainLayout);
+        if (mainLayout != null) {
+            mainLayout.setOnClickListener(v -> {
+                if (isToggleBarVisible) {
+                    toggleBarVisibility();
+                    if (fabAddBump != null) {
+                        fabAddBump.animate().rotation(0).setDuration(300).start();
+                    }
+                }
+            });
+        }
         
         // Initialize toggle bar buttons
         com.google.android.material.button.MaterialButton btnAddTask = findViewById(R.id.btnAddTask);
@@ -84,12 +110,24 @@ public class MainActivity extends BaseThemedActivity {
         
         // Setup Add Task button in toggle bar
         if (btnAddTask != null) {
-            btnAddTask.setOnClickListener(v -> showTaskTypeChooser());
+            btnAddTask.setOnClickListener(v -> {
+                showTaskTypeChooser();
+                toggleBarVisibility();
+                if (fabAddBump != null) {
+                    fabAddBump.animate().rotation(0).setDuration(300).start();
+                }
+            });
         }
         
         // Setup Quick Task button in toggle bar
         if (btnQuickTask != null) {
-            btnQuickTask.setOnClickListener(v -> showQuickTaskOptionsDialog());
+            btnQuickTask.setOnClickListener(v -> {
+                showQuickTaskOptionsDialog();
+                toggleBarVisibility();
+                if (fabAddBump != null) {
+                    fabAddBump.animate().rotation(0).setDuration(300).start();
+                }
+            });
         }
         
         // Setup center FAB click listener with animation (keeping for backward compatibility)
