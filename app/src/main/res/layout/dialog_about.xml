@@ -92,8 +92,10 @@
                         android:lineSpacingExtra="4dp"
                         android:layout_marginBottom="@dimen/spacing_lg" />
 
-                    <!-- Features Section -->
-                    <TextView
+                    <!-- Features Section Header (Clickable) -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/featuresToggleButton"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Features"
@@ -101,12 +103,18 @@
                         android:textColor="?attr/colorPrimary"
                         android:textStyle="bold"
                         android:gravity="center"
+                        app:icon="@drawable/ic_arrow_down"
+                        app:iconTint="?attr/colorPrimary"
+                        app:iconGravity="end"
                         android:layout_marginBottom="@dimen/spacing_sm" />
 
+                    <!-- Features List (Collapsible) -->
                     <LinearLayout
+                        android:id="@+id/featuresSection"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
+                        android:visibility="gone"
                         android:paddingHorizontal="@dimen/spacing_md"
                         android:layout_marginBottom="@dimen/spacing_lg">
 

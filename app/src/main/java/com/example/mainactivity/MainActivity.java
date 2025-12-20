@@ -1182,8 +1182,24 @@ public class MainActivity extends BaseThemedActivity {
         // Get references to the sections
         View aboutClockwiseSection = dialogView.findViewById(R.id.aboutClockwiseSection);
         View aboutUsSection = dialogView.findViewById(R.id.aboutUsSection);
+        View featuresSection = dialogView.findViewById(R.id.featuresSection);
         com.google.android.material.button.MaterialButton toggleButton = 
             dialogView.findViewById(R.id.aboutUsToggleButton);
+        com.google.android.material.button.MaterialButton featuresToggleButton = 
+            dialogView.findViewById(R.id.featuresToggleButton);
+
+        // Setup features toggle button click listener
+        featuresToggleButton.setOnClickListener(v -> {
+            if (featuresSection.getVisibility() == View.GONE) {
+                // Show features section
+                featuresSection.setVisibility(View.VISIBLE);
+                featuresToggleButton.setIcon(getDrawable(R.drawable.ic_arrow_up));
+            } else {
+                // Hide features section
+                featuresSection.setVisibility(View.GONE);
+                featuresToggleButton.setIcon(getDrawable(R.drawable.ic_arrow_down));
+            }
+        });
 
         // Setup toggle button click listener
         toggleButton.setOnClickListener(v -> {

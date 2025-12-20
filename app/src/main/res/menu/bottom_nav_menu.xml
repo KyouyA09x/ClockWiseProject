@@ -5,6 +5,10 @@
         android:icon="@drawable/ic_reminder"
         android:title="Tasks" />
     <item
+        android:id="@+id/navigation_toggle"
+        android:icon="@drawable/ic_toggle_bar"
+        android:title="Toggle" />
+    <item
         android:id="@+id/navigation_notepad"
         android:icon="@drawable/ic_notepad"
         android:title="Notepad" />
