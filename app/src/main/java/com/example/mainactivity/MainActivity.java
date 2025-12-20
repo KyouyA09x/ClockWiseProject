@@ -161,9 +161,6 @@ public class MainActivity extends BaseThemedActivity {
                 if (itemId == R.id.navigation_tasks) {
                     loadFragment(new TasksContainerFragment());
                     return true;
-                } else if (itemId == R.id.navigation_toggle) {
-                    toggleBarVisibility();
-                    return false; // Don't select this item
                 } else if (itemId == R.id.navigation_notepad) {
                     loadFragment(new NotepadFragment());
                     return true;
@@ -371,21 +368,35 @@ public class MainActivity extends BaseThemedActivity {
     }
 
     public void showQuickTaskOptionsDialog() {
-        // Show Material dialog with two options: Convert note to task and New quick task
-        String[] options = {"📝  Convert note to task", "⚡  New quick task"};
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                .setTitle("Quick Task")
-                .setItems(options, (dialog, which) -> {
-                    if (which == 0) {
-                        // Convert note to task
-                        showNotepadToConvertToTask();
-                    } else if (which == 1) {
-                        // New quick task - show Reminder/Focus Session options
-                        showNewQuickTaskDialog();
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        // Show modern card-based dialog matching the Add Task dialog style
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_quick_task_chooser, null);
+        builder.setView(dialogView);
+
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        // Setup Convert Note option
+        View convertNoteOption = dialogView.findViewById(R.id.convertNoteOption);
+        if (convertNoteOption != null) {
+            convertNoteOption.setOnClickListener(v -> {
+                dialog.dismiss();
+                showNotepadToConvertToTask();
+            });
+        }
+
+        // Setup New Quick Task option
+        View newQuickTaskOption = dialogView.findViewById(R.id.newQuickTaskOption);
+        if (newQuickTaskOption != null) {
+            newQuickTaskOption.setOnClickListener(v -> {
+                dialog.dismiss();
+                showNewQuickTaskDialog();
+            });
+        }
+
+        dialog.show();
     }
 
     private void showNewQuickTaskDialog() {
