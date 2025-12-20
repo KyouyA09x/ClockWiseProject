@@ -68,7 +68,7 @@
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-        <!-- Bottom Navigation -->
+        <!-- Bottom Navigation with center Add button -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigation"
             android:layout_width="match_parent"
@@ -79,26 +79,8 @@
             android:fitsSystemWindows="true"
             app:elevation="16dp"
             app:labelVisibilityMode="labeled"
+            app:itemIconSize="28dp"
             app:menu="@menu/bottom_nav_menu" />
-
-        <!-- Circular FAB Bump - positioned in center of bottom nav for easy access -->
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabAddBump"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="0dp"
-            android:translationY="-4dp"
-            android:src="@drawable/ic_add_fab"
-            android:contentDescription="Add"
-            app:backgroundTint="?attr/colorPrimary"
-            app:tint="?attr/colorOnPrimary"
-            app:fabSize="auto"
-            app:fabCustomSize="64dp"
-            app:maxImageSize="32dp"
-            app:elevation="24dp"
-            app:borderWidth="0dp"
-            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
 
         <!-- Toggle Bar (Hidden by default) - MUST BE LAST for proper z-index -->
         <com.google.android.material.card.MaterialCardView

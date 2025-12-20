@@ -74,22 +74,7 @@ public class MainActivity extends BaseThemedActivity {
         topBar = findViewById(R.id.topBar);
         navigationView = findViewById(R.id.navigationView);
         bottomNavigation = findViewById(R.id.bottomNavigation);
-        fabCenterAction = findViewById(R.id.fabCenterAction);
-        fabQuickTask = findViewById(R.id.fabQuickTask);
         toggleBar = findViewById(R.id.toggleBar);
-        com.google.android.material.floatingactionbutton.FloatingActionButton fabAddBump = findViewById(R.id.fabAddBump);
-        
-        // Setup FAB bump click listener
-        if (fabAddBump != null) {
-            fabAddBump.setOnClickListener(v -> {
-                toggleBarVisibility();
-                // Animate FAB rotation
-                fabAddBump.animate()
-                    .rotation(isToggleBarVisible ? 45 : 0)
-                    .setDuration(300)
-                    .start();
-            });
-        }
         
         // Setup close on outside click
         View mainLayout = findViewById(R.id.mainLayout);
@@ -97,9 +82,6 @@ public class MainActivity extends BaseThemedActivity {
             mainLayout.setOnClickListener(v -> {
                 if (isToggleBarVisible) {
                     toggleBarVisibility();
-                    if (fabAddBump != null) {
-                        fabAddBump.animate().rotation(0).setDuration(300).start();
-                    }
                 }
             });
         }
@@ -113,9 +95,6 @@ public class MainActivity extends BaseThemedActivity {
             btnAddTask.setOnClickListener(v -> {
                 showTaskTypeChooser();
                 toggleBarVisibility();
-                if (fabAddBump != null) {
-                    fabAddBump.animate().rotation(0).setDuration(300).start();
-                }
             });
         }
         
@@ -124,34 +103,7 @@ public class MainActivity extends BaseThemedActivity {
             btnQuickTask.setOnClickListener(v -> {
                 showQuickTaskOptionsDialog();
                 toggleBarVisibility();
-                if (fabAddBump != null) {
-                    fabAddBump.animate().rotation(0).setDuration(300).start();
-                }
             });
-        }
-        
-        // Setup center FAB click listener with animation (keeping for backward compatibility)
-        if (fabCenterAction != null) {
-            fabCenterAction.setOnClickListener(v -> {
-                // Animate FAB rotation
-                fabCenterAction.animate()
-                    .rotation(fabCenterAction.getRotation() + 45)
-                    .setDuration(150)
-                    .withEndAction(() -> {
-                        showTaskTypeChooser();
-                        // Reset rotation after dialog closes
-                        fabCenterAction.animate()
-                            .rotation(0)
-                            .setDuration(150)
-                            .start();
-                    })
-                    .start();
-            });
-        }
-        
-        // Setup Quick Task FAB - shows options dialog
-        if (fabQuickTask != null) {
-            fabQuickTask.setOnClickListener(v -> showQuickTaskOptionsDialog());
         }
         
         // Handle window insets for bottom navigation bar (works with 3-button navigation)
@@ -199,11 +151,45 @@ public class MainActivity extends BaseThemedActivity {
                 if (itemId == R.id.navigation_tasks) {
                     loadFragment(new TasksContainerFragment());
                     return true;
+                } else if (itemId == R.id.navigation_add) {
+                    // Toggle the bar when Add button is clicked
+                    toggleBarVisibility();
+                    return false; // Don't select this item
                 } else if (itemId == R.id.navigation_notepad) {
                     loadFragment(new NotepadFragment());
                     return true;
                 }
                 return false;
+            });
+            
+            // Style the middle Add button to have circular bump effect
+            bottomNavigation.post(() -> {
+                try {
+                    android.view.View menuView = bottomNavigation.getChildAt(0);
+                    if (menuView instanceof android.view.ViewGroup) {
+                        android.view.ViewGroup menuViewGroup = (android.view.ViewGroup) menuView;
+                        if (menuViewGroup.getChildCount() >= 2) {
+                            // Get the middle button (index 1 for the Add button)
+                            android.view.View middleButton = menuViewGroup.getChildAt(1);
+                            if (middleButton != null) {
+                                // Make it larger and elevated
+                                middleButton.setScaleX(1.3f);
+                                middleButton.setScaleY(1.3f);
+                                middleButton.setTranslationY(-16f);
+                                middleButton.setElevation(12f);
+                                
+                                // Set circular background
+                                android.graphics.drawable.GradientDrawable drawable = new android.graphics.drawable.GradientDrawable();
+                                drawable.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+                                drawable.setColor(androidx.core.content.ContextCompat.getColor(this, R.color.primary));
+                                middleButton.setBackground(drawable);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // If styling fails, button will still work normally
+                    android.util.Log.e("MainActivity", "Failed to style middle button", e);
+                }
             });
         }
 
