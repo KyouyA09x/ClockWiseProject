@@ -81,13 +81,14 @@
             app:labelVisibilityMode="labeled"
             app:menu="@menu/bottom_nav_menu" />
 
-        <!-- Circular FAB Bump - enlarged and positioned to clearly bulge out from bottom nav -->
+        <!-- Circular FAB Bump - positioned in center of bottom nav for easy access -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabAddBump"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="28dp"
+            android:layout_marginBottom="0dp"
+            android:translationY="-4dp"
             android:src="@drawable/ic_add_fab"
             android:contentDescription="Add"
             app:backgroundTint="?attr/colorPrimary"
