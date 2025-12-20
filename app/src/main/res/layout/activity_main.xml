@@ -68,39 +68,38 @@
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-        <!-- Quick Task FAB (positioned above the main FAB) -->
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabQuickTask"
-            android:layout_width="wrap_content"
+        <!-- Bottom Navigation -->
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNavigation"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_marginBottom="224dp"
-            android:layout_marginEnd="16dp"
-            android:contentDescription="@string/quick_task"
-            android:src="@drawable/ic_flash"
-            app:backgroundTint="?attr/colorPrimary"
-            app:fabSize="normal"
-            app:tint="?attr/colorOnPrimary"
-            app:elevation="6dp"
-            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
+            android:layout_gravity="bottom"
+            android:background="?attr/colorSurface"
+            android:paddingBottom="0dp"
+            android:fitsSystemWindows="true"
+            app:elevation="16dp"
+            app:labelVisibilityMode="labeled"
+            app:menu="@menu/bottom_nav_menu" />
 
-        <!-- FAB for Quick Actions (positioned at bottom right above bottom nav) -->
+        <!-- Circular FAB Bump - enlarged and positioned to clearly bulge out from bottom nav -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabCenterAction"
+            android:id="@+id/fabAddBump"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_marginBottom="160dp"
-            android:layout_marginEnd="16dp"
-            android:contentDescription="Add Task"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="28dp"
             android:src="@drawable/ic_add_fab"
+            android:contentDescription="Add"
             app:backgroundTint="?attr/colorPrimary"
-            app:fabSize="normal"
             app:tint="?attr/colorOnPrimary"
-            app:elevation="8dp"
+            app:fabSize="auto"
+            app:fabCustomSize="64dp"
+            app:maxImageSize="32dp"
+            app:elevation="24dp"
+            app:borderWidth="0dp"
             app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
 
-        <!-- Toggle Bar (Hidden by default) -->
+        <!-- Toggle Bar (Hidden by default) - MUST BE LAST for proper z-index -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/toggleBar"
             android:layout_width="match_parent"
@@ -109,7 +108,7 @@
             android:layout_marginBottom="80dp"
             android:visibility="gone"
             app:cardBackgroundColor="?attr/colorSurfaceVariant"
-            app:cardElevation="8dp"
+            app:cardElevation="24dp"
             app:cardCornerRadius="0dp">
             
             <LinearLayout
@@ -163,37 +162,6 @@
             </LinearLayout>
             
         </com.google.android.material.card.MaterialCardView>
-
-        <!-- Bottom Navigation -->
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottomNavigation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="?attr/colorSurface"
-            android:paddingBottom="0dp"
-            android:fitsSystemWindows="true"
-            app:elevation="16dp"
-            app:labelVisibilityMode="labeled"
-            app:menu="@menu/bottom_nav_menu" />
-
-        <!-- Circular FAB Bump - enlarged and positioned to clearly bulge out from bottom nav -->
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabAddBump"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="28dp"
-            android:src="@drawable/ic_add_fab"
-            android:contentDescription="Add"
-            app:backgroundTint="?attr/colorPrimary"
-            app:tint="?attr/colorOnPrimary"
-            app:fabSize="auto"
-            app:fabCustomSize="64dp"
-            app:maxImageSize="32dp"
-            app:elevation="24dp"
-            app:borderWidth="0dp"
-            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
