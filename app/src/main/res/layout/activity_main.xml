@@ -177,19 +177,21 @@
             app:labelVisibilityMode="labeled"
             app:menu="@menu/bottom_nav_menu" />
 
-        <!-- Circular FAB Bump - positioned to bulge out from bottom nav -->
+        <!-- Circular FAB Bump - enlarged and positioned to clearly bulge out from bottom nav -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabAddBump"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="28dp"
             android:src="@drawable/ic_add_fab"
             android:contentDescription="Add"
             app:backgroundTint="?attr/colorPrimary"
             app:tint="?attr/colorOnPrimary"
-            app:fabSize="normal"
-            app:elevation="12dp"
+            app:fabSize="auto"
+            app:fabCustomSize="64dp"
+            app:maxImageSize="32dp"
+            app:elevation="24dp"
             app:borderWidth="0dp"
             app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
 

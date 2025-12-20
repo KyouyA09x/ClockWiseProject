@@ -297,17 +297,6 @@ public class MainActivity extends BaseThemedActivity {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragmentContainer, fragment)
                 .commit();
-        
-        // Hide MainActivity FABs when in Notepad to avoid overlap with Add Note FAB
-        if (fabQuickTask != null && fabCenterAction != null) {
-            if (fragment instanceof TasksContainerFragment) {
-                fabQuickTask.show();
-                fabCenterAction.show();
-            } else if (fragment instanceof NotepadFragment) {
-                fabQuickTask.hide();
-                fabCenterAction.hide();
-            }
-        }
     }
 
     public void showCompletedDialog() {
