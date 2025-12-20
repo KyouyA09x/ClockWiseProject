@@ -172,17 +172,41 @@ public class MainActivity extends BaseThemedActivity {
                             // Get the middle button (index 1 for the Add button)
                             android.view.View middleButton = menuViewGroup.getChildAt(1);
                             if (middleButton != null) {
-                                // Make it larger and elevated
-                                middleButton.setScaleX(1.3f);
-                                middleButton.setScaleY(1.3f);
-                                middleButton.setTranslationY(-16f);
-                                middleButton.setElevation(12f);
+                                // Create circular bump without distorting the icon
+                                int size = (int) (56 * getResources().getDisplayMetrics().density); // 56dp
                                 
-                                // Set circular background
+                                // Move up to create bump effect
+                                middleButton.setTranslationY(-24f * getResources().getDisplayMetrics().density);
+                                
+                                // Set fixed size for circular shape
+                                android.view.ViewGroup.LayoutParams params = middleButton.getLayoutParams();
+                                params.width = size;
+                                params.height = size;
+                                middleButton.setLayoutParams(params);
+                                
+                                // Create circular background with shadow
                                 android.graphics.drawable.GradientDrawable drawable = new android.graphics.drawable.GradientDrawable();
                                 drawable.setShape(android.graphics.drawable.GradientDrawable.OVAL);
                                 drawable.setColor(androidx.core.content.ContextCompat.getColor(this, R.color.primary));
+                                
+                                // Add shadow/stroke for depth
+                                int strokeColor = androidx.core.content.ContextCompat.getColor(this, R.color.primary);
+                                drawable.setStroke(2, strokeColor);
+                                
                                 middleButton.setBackground(drawable);
+                                middleButton.setElevation(16f * getResources().getDisplayMetrics().density);
+                                
+                                // Ensure icon is properly sized (not distorted)
+                                if (middleButton instanceof android.widget.ImageView) {
+                                    android.widget.ImageView imageView = (android.widget.ImageView) middleButton;
+                                    imageView.setScaleType(android.widget.ImageView.ScaleType.CENTER);
+                                    
+                                    // Set icon tint to white for better visibility
+                                    imageView.setColorFilter(
+                                        androidx.core.content.ContextCompat.getColor(this, android.R.color.white),
+                                        android.graphics.PorterDuff.Mode.SRC_IN
+                                    );
+                                }
                             }
                         }
                     }

@@ -74,12 +74,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:background="?attr/colorSurface"
+            android:background="@drawable/bottom_nav_background"
+            android:paddingTop="8dp"
             android:paddingBottom="0dp"
             android:fitsSystemWindows="true"
             app:elevation="16dp"
             app:labelVisibilityMode="labeled"
-            app:itemIconSize="28dp"
+            app:itemIconSize="24dp"
+            app:itemIconTint="?attr/colorOnSurface"
+            app:itemTextColor="?attr/colorOnSurface"
             app:menu="@menu/bottom_nav_menu" />
 
         <!-- Toggle Bar (Hidden by default) - MUST BE LAST for proper z-index -->
