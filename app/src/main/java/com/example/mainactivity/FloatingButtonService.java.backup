@@ -1,0 +1,843 @@
+package com.example.mainactivity;
+
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.app.TimePickerDialog;
+import android.content.Intent;
+import android.graphics.PixelFormat;
+import android.graphics.Point;
+import android.os.Build;
+import android.os.IBinder;
+import android.text.TextUtils;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.WindowManager;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.ImageView;
+import android.widget.RadioGroup;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.core.app.NotificationCompat;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.android.material.textfield.TextInputEditText;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.concurrent.Executors;
+
+public class FloatingButtonService extends Service {
+
+    private static final String CHANNEL_ID = "FloatingButtonChannel";
+    private static final int NOTIFICATION_ID = 1001;
+
+    private WindowManager windowManager;
+    private View floatingView;
+    private View menuView;
+    private View floatingButton;
+    private boolean isMenuVisible = false;
+
+    private int initialX;
+    private int initialY;
+    private float initialTouchX;
+    private float initialTouchY;
+    private boolean isDragging = false;
+    private long touchStartTime;
+
+    private TaskDatabase taskDatabase;
+    private TaskRepository taskRepository;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        createNotificationChannel();
+        taskDatabase = TaskDatabase.getInstance(this);
+        taskRepository = TaskRepository.getInstance();
+        taskRepository.initialize(this);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        android.util.Log.d("FloatingButtonService", "onStartCommand() called");
+        try {
+            // Start as foreground service first (required for Android O+)
+            Notification notification = createNotification();
+            startForeground(NOTIFICATION_ID, notification);
+            android.util.Log.d("FloatingButtonService", "Service started as foreground");
+            
+            // Then create floating button
+            if (floatingView == null) {
+                android.util.Log.d("FloatingButtonService", "Creating floating button...");
+                createFloatingButton();
+                
+                // If creation failed, stop the service
+                if (floatingView == null) {
+                    android.util.Log.e("FloatingButtonService", "Floating button creation FAILED - stopping service");
+                    stopForeground(true);
+                    stopSelf();
+                    
+                    // Show error to user
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        android.widget.Toast.makeText(this, 
+                            "Failed to create floating button. Please check overlay permission in system settings.", 
+                            android.widget.Toast.LENGTH_LONG).show();
+                    });
+                    
+                    return START_NOT_STICKY;
+                }
+                android.util.Log.d("FloatingButtonService", "Floating button created successfully!");
+            } else {
+                android.util.Log.d("FloatingButtonService", "Floating button already exists");
+            }
+
+            return START_STICKY;
+        } catch (Exception e) {
+            android.util.Log.e("FloatingButtonService", "EXCEPTION in onStartCommand", e);
+            try {
+                stopForeground(true);
+            } catch (Exception ignored) {}
+            stopSelf();
+            
+            // Show error to user
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                android.widget.Toast.makeText(this, 
+                    "Floating button error: " + e.getMessage(), 
+                    android.widget.Toast.LENGTH_LONG).show();
+            });
+            
+            return START_NOT_STICKY;
+        }
+    }
+
+    private void createFloatingButton() {
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+
+        // Inflate the floating button layout
+        floatingView = LayoutInflater.from(this).inflate(R.layout.floating_button_layout, null);
+        floatingButton = floatingView.findViewById(R.id.floatingActionButton);
+
+        // Set up layout parameters
+        int LAYOUT_FLAG;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        } else {
+            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_PHONE;
+        }
+
+        final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                LAYOUT_FLAG,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT
+        );
+
+        params.gravity = Gravity.TOP | Gravity.START;
+        params.x = 0;
+        params.y = 100;
+
+        windowManager.addView(floatingView, params);
+
+        // Handle both tap and drag in touch listener
+        floatingButton.setOnTouchListener((v, event) -> {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    initialX = params.x;
+                    initialY = params.y;
+                    initialTouchX = event.getRawX();
+                    initialTouchY = event.getRawY();
+                    isDragging = false;
+                    touchStartTime = System.currentTimeMillis();
+                    android.util.Log.d("FloatingButton", "DOWN");
+                    return true;
+
+                case MotionEvent.ACTION_MOVE:
+                    int deltaX = (int) (event.getRawX() - initialTouchX);
+                    int deltaY = (int) (event.getRawY() - initialTouchY);
+
+                    if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+                        isDragging = true;
+                        params.x = initialX + deltaX;
+                        params.y = initialY + deltaY;
+                        windowManager.updateViewLayout(floatingView, params);
+                    }
+                    return true;
+
+                case MotionEvent.ACTION_UP:
+                    android.util.Log.d("FloatingButton", "UP - isDragging: " + isDragging);
+                    snapToEdge(params);
+                    
+                    if (!isDragging) {
+                        // This is a tap - show menu
+                        android.util.Log.d("FloatingButton", "TAP detected - showing menu");
+                        v.performClick();
+                        toggleMenu();
+                    }
+                    isDragging = false;
+                    return true;
+
+                case MotionEvent.ACTION_CANCEL:
+                    isDragging = false;
+                    return true;
+            }
+            return false;
+        });
+    }
+
+    private void snapToEdge(WindowManager.LayoutParams params) {
+        Point screenSize = new Point();
+        windowManager.getDefaultDisplay().getSize(screenSize);
+        int screenWidth = screenSize.x;
+
+        // Snap to left or right edge
+        if (params.x < screenWidth / 2) {
+            params.x = 0;
+        } else {
+            params.x = screenWidth - floatingView.getWidth();
+        }
+
+        windowManager.updateViewLayout(floatingView, params);
+    }
+
+    // Menu state constants
+    private static final int STATE_MAIN_MENU = 0;
+    private static final int STATE_TASK_TYPE = 1;
+    private static final int STATE_QUICK_TASK = 2;
+    private static final int STATE_FOCUS_TASK = 3;
+    private static final int STATE_QUICK_NOTE = 4;
+    private int currentMenuState = STATE_MAIN_MENU;
+    
+    // Form data
+    private Calendar taskSelectedTime;
+    private Calendar focusStartTime;
+    private Calendar focusEndTime;
+
+    private void toggleMenu() {
+        android.util.Log.d("FloatingButton", "toggleMenu() called - isMenuVisible: " + isMenuVisible);
+        if (isMenuVisible) {
+            hideMenu();
+        } else {
+            showMenu();
+        }
+    }
+
+    private void showMenu() {
+        android.util.Log.d("FloatingButton", "showMenu() ENTER");
+        
+        if (menuView != null) {
+            android.util.Log.d("FloatingButton", "menuView not null, returning");
+            return;
+        }
+
+        try {
+            // Use the SIMPLE old menu layout
+            menuView = LayoutInflater.from(this).inflate(R.layout.floating_menu_layout, null);
+            android.util.Log.d("FloatingButton", "Inflated: " + (menuView != null));
+            
+            if (menuView == null) {
+                android.util.Log.e("FloatingButton", "INFLATE FAILED");
+                return;
+            }
+
+            int LAYOUT_FLAG;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+            } else {
+                LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_PHONE;
+            }
+
+            WindowManager.LayoutParams menuParams = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    LAYOUT_FLAG,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                    PixelFormat.TRANSLUCENT
+            );
+            menuParams.gravity = Gravity.CENTER;
+
+            windowManager.addView(menuView, menuParams);
+            isMenuVisible = true;
+            android.util.Log.d("FloatingButton", "Menu added to window");
+
+            // Simple click listeners
+            View quickTaskCard = menuView.findViewById(R.id.quickTaskCard);
+            View noteCard = menuView.findViewById(R.id.noteCard);
+
+            if (quickTaskCard != null) {
+                quickTaskCard.setOnClickListener(v -> {
+                    Toast.makeText(this, "Quick Task clicked!", Toast.LENGTH_SHORT).show();
+                    hideMenu();
+                });
+            }
+
+            if (noteCard != null) {
+                noteCard.setOnClickListener(v -> {
+                    Toast.makeText(this, "Note clicked!", Toast.LENGTH_SHORT).show();
+                    hideMenu();
+                });
+            }
+
+            // Click outside to dismiss
+            menuView.setOnClickListener(v -> hideMenu());
+
+        } catch (Exception e) {
+            android.util.Log.e("FloatingButton", "ERROR: " + e.getMessage(), e);
+            menuView = null;
+            isMenuVisible = false;
+        }
+    }
+
+    private void morphToState(int newState) {
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> navigateBack());
+        }
+
+        // Main menu cards
+        View quickTaskCard = menuView.findViewById(R.id.quickTaskCard);
+        View noteCard = menuView.findViewById(R.id.noteCard);
+
+        if (quickTaskCard != null) {
+            quickTaskCard.setOnClickListener(v -> morphToState(STATE_TASK_TYPE));
+        }
+        if (noteCard != null) {
+            noteCard.setOnClickListener(v -> morphToState(STATE_QUICK_NOTE));
+        }
+
+        // Task type cards
+        View taskTypeCard = menuView.findViewById(R.id.taskTypeCard);
+        View focusTypeCard = menuView.findViewById(R.id.focusTypeCard);
+
+        if (taskTypeCard != null) {
+            taskTypeCard.setOnClickListener(v -> morphToState(STATE_QUICK_TASK));
+        }
+        if (focusTypeCard != null) {
+            focusTypeCard.setOnClickListener(v -> morphToState(STATE_FOCUS_TASK));
+        }
+
+        // Form buttons
+        setupTaskFormButtons();
+        setupFocusFormButtons();
+        setupNoteFormButtons();
+    }
+
+    private void morphToState(int newState) {
+        if (menuView == null) return;
+        
+        android.util.Log.d("FloatingButtonService", "morphToState: " + currentMenuState + " -> " + newState);
+
+        View mainMenuContent = menuView.findViewById(R.id.mainMenuContent);
+        View taskTypeContent = menuView.findViewById(R.id.taskTypeContent);
+        View quickTaskFormContent = menuView.findViewById(R.id.quickTaskFormContent);
+        View focusTaskFormContent = menuView.findViewById(R.id.focusTaskFormContent);
+        View quickNoteFormContent = menuView.findViewById(R.id.quickNoteFormContent);
+        
+        ImageView backButton = menuView.findViewById(R.id.backButton);
+        View headerSpacer = menuView.findViewById(R.id.headerSpacer);
+        TextView menuTitle = menuView.findViewById(R.id.menuTitle);
+        View menuCard = menuView.findViewById(R.id.menuCard);
+
+        // Get current visible content
+        View currentContent = getContentForState(currentMenuState);
+        View newContent = getContentForState(newState);
+        
+        if (currentContent == null || newContent == null || menuCard == null) {
+            android.util.Log.e("FloatingButtonService", "Content views not found");
+            return;
+        }
+
+        // Morph animation - scale card slightly while transitioning
+        menuCard.animate()
+                .scaleX(0.95f)
+                .scaleY(0.95f)
+                .setDuration(100)
+                .withEndAction(() -> {
+                    // Hide all content
+                    mainMenuContent.setVisibility(View.GONE);
+                    taskTypeContent.setVisibility(View.GONE);
+                    quickTaskFormContent.setVisibility(View.GONE);
+                    focusTaskFormContent.setVisibility(View.GONE);
+                    quickNoteFormContent.setVisibility(View.GONE);
+
+                    // Update state
+                    currentMenuState = newState;
+
+                    // Update header
+                    switch (newState) {
+                        case STATE_MAIN_MENU:
+                            menuTitle.setText("Quick Actions");
+                            backButton.setVisibility(View.GONE);
+                            headerSpacer.setVisibility(View.GONE);
+                            mainMenuContent.setVisibility(View.VISIBLE);
+                            break;
+                        case STATE_TASK_TYPE:
+                            menuTitle.setText("Choose Type");
+                            backButton.setVisibility(View.VISIBLE);
+                            headerSpacer.setVisibility(View.VISIBLE);
+                            taskTypeContent.setVisibility(View.VISIBLE);
+                            break;
+                        case STATE_QUICK_TASK:
+                            menuTitle.setText("Quick Task");
+                            backButton.setVisibility(View.VISIBLE);
+                            headerSpacer.setVisibility(View.VISIBLE);
+                            quickTaskFormContent.setVisibility(View.VISIBLE);
+                            initializeTaskForm();
+                            break;
+                        case STATE_FOCUS_TASK:
+                            menuTitle.setText("Focus Task");
+                            backButton.setVisibility(View.VISIBLE);
+                            headerSpacer.setVisibility(View.VISIBLE);
+                            focusTaskFormContent.setVisibility(View.VISIBLE);
+                            initializeFocusForm();
+                            break;
+                        case STATE_QUICK_NOTE:
+                            menuTitle.setText("Quick Note");
+                            backButton.setVisibility(View.VISIBLE);
+                            headerSpacer.setVisibility(View.VISIBLE);
+                            quickNoteFormContent.setVisibility(View.VISIBLE);
+                            break;
+                    }
+
+                    // Scale back up
+                    menuCard.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(100)
+                            .start();
+                })
+                .start();
+    }
+
+    private View getContentForState(int state) {
+        if (menuView == null) return null;
+        switch (state) {
+            case STATE_MAIN_MENU: return menuView.findViewById(R.id.mainMenuContent);
+            case STATE_TASK_TYPE: return menuView.findViewById(R.id.taskTypeContent);
+            case STATE_QUICK_TASK: return menuView.findViewById(R.id.quickTaskFormContent);
+            case STATE_FOCUS_TASK: return menuView.findViewById(R.id.focusTaskFormContent);
+            case STATE_QUICK_NOTE: return menuView.findViewById(R.id.quickNoteFormContent);
+            default: return null;
+        }
+    }
+
+    private void navigateBack() {
+        switch (currentMenuState) {
+            case STATE_TASK_TYPE:
+                morphToState(STATE_MAIN_MENU);
+                break;
+            case STATE_QUICK_TASK:
+            case STATE_FOCUS_TASK:
+                morphToState(STATE_TASK_TYPE);
+                break;
+            case STATE_QUICK_NOTE:
+                morphToState(STATE_MAIN_MENU);
+                break;
+            default:
+                hideMenu();
+        }
+    }
+
+    private void initializeTaskForm() {
+        if (menuView == null) return;
+        
+        taskSelectedTime = Calendar.getInstance();
+        taskSelectedTime.add(Calendar.MINUTE, 5);
+        
+        TextView timePreview = menuView.findViewById(R.id.taskTimePreview);
+        if (timePreview != null) {
+            SimpleDateFormat tf = new SimpleDateFormat("h:mm a", Locale.getDefault());
+            timePreview.setText(tf.format(taskSelectedTime.getTime()));
+        }
+
+        // Reset form
+        TextInputEditText nameInput = menuView.findViewById(R.id.taskNameInput);
+        if (nameInput != null) nameInput.setText("");
+        
+        RadioGroup priorityGroup = menuView.findViewById(R.id.taskPriorityGroup);
+        if (priorityGroup != null) priorityGroup.check(R.id.taskPriorityMedium);
+        
+        SwitchMaterial vibSwitch = menuView.findViewById(R.id.taskVibrationSwitch);
+        SwitchMaterial alarmSwitch = menuView.findViewById(R.id.taskAlarmSwitch);
+        if (vibSwitch != null) { vibSwitch.setChecked(false); vibSwitch.setEnabled(true); }
+        if (alarmSwitch != null) { alarmSwitch.setChecked(false); alarmSwitch.setEnabled(true); }
+    }
+
+    private void initializeFocusForm() {
+        if (menuView == null) return;
+        
+        focusStartTime = Calendar.getInstance();
+        focusStartTime.add(Calendar.MINUTE, 5);
+        focusEndTime = Calendar.getInstance();
+        focusEndTime.add(Calendar.HOUR_OF_DAY, 1);
+        focusEndTime.add(Calendar.MINUTE, 5);
+        
+        SimpleDateFormat tf = new SimpleDateFormat("h:mm a", Locale.getDefault());
+        
+        TextView startPreview = menuView.findViewById(R.id.focusStartTimePreview);
+        TextView endPreview = menuView.findViewById(R.id.focusEndTimePreview);
+        if (startPreview != null) startPreview.setText(tf.format(focusStartTime.getTime()));
+        if (endPreview != null) endPreview.setText(tf.format(focusEndTime.getTime()));
+
+        TextInputEditText nameInput = menuView.findViewById(R.id.focusNameInput);
+        if (nameInput != null) nameInput.setText("");
+        
+        RadioGroup priorityGroup = menuView.findViewById(R.id.focusPriorityGroup);
+        if (priorityGroup != null) priorityGroup.check(R.id.focusPriorityMedium);
+    }
+
+    private void setupTaskFormButtons() {
+        if (menuView == null) return;
+
+        View timeLayout = menuView.findViewById(R.id.taskTimeLayout);
+        RadioGroup priorityGroup = menuView.findViewById(R.id.taskPriorityGroup);
+        SwitchMaterial vibSwitch = menuView.findViewById(R.id.taskVibrationSwitch);
+        SwitchMaterial alarmSwitch = menuView.findViewById(R.id.taskAlarmSwitch);
+        MaterialButton cancelBtn = menuView.findViewById(R.id.taskCancelButton);
+        MaterialButton saveBtn = menuView.findViewById(R.id.taskSaveButton);
+        TextView timePreview = menuView.findViewById(R.id.taskTimePreview);
+
+        if (timeLayout != null) {
+            timeLayout.setOnClickListener(v -> {
+                if (taskSelectedTime == null) {
+                    taskSelectedTime = Calendar.getInstance();
+                    taskSelectedTime.add(Calendar.MINUTE, 5);
+                }
+                new TimePickerDialog(this, android.R.style.Theme_Material_Light_Dialog,
+                    (view, h, m) -> {
+                        Calendar sel = Calendar.getInstance();
+                        sel.set(Calendar.HOUR_OF_DAY, h);
+                        sel.set(Calendar.MINUTE, m);
+                        if (sel.before(Calendar.getInstance())) {
+                            Toast.makeText(this, "Select a future time", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        taskSelectedTime.set(Calendar.HOUR_OF_DAY, h);
+                        taskSelectedTime.set(Calendar.MINUTE, m);
+                        if (timePreview != null) {
+                            SimpleDateFormat tf = new SimpleDateFormat("h:mm a", Locale.getDefault());
+                            timePreview.setText(tf.format(taskSelectedTime.getTime()));
+                        }
+                    },
+                    taskSelectedTime.get(Calendar.HOUR_OF_DAY),
+                    taskSelectedTime.get(Calendar.MINUTE), false
+                ).show();
+            });
+        }
+
+        if (priorityGroup != null) {
+            priorityGroup.setOnCheckedChangeListener((g, id) -> {
+                boolean isHigh = (id == R.id.taskPriorityHigh);
+                if (vibSwitch != null) { vibSwitch.setChecked(isHigh); vibSwitch.setEnabled(!isHigh); }
+                if (alarmSwitch != null) { alarmSwitch.setChecked(isHigh); alarmSwitch.setEnabled(!isHigh); }
+            });
+        }
+
+        if (cancelBtn != null) cancelBtn.setOnClickListener(v -> hideMenu());
+        
+        if (saveBtn != null) {
+            saveBtn.setOnClickListener(v -> {
+                TextInputEditText nameInput = menuView.findViewById(R.id.taskNameInput);
+                String name = nameInput != null && nameInput.getText() != null ? 
+                              nameInput.getText().toString().trim() : "";
+                if (TextUtils.isEmpty(name)) {
+                    Toast.makeText(this, "Enter a task name", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (taskSelectedTime == null || taskSelectedTime.before(Calendar.getInstance())) {
+                    Toast.makeText(this, "Select a valid future time", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                int priority = 1;
+                if (priorityGroup != null) {
+                    if (priorityGroup.getCheckedRadioButtonId() == R.id.taskPriorityLow) priority = 0;
+                    else if (priorityGroup.getCheckedRadioButtonId() == R.id.taskPriorityHigh) priority = 2;
+                }
+                boolean vib = vibSwitch != null && vibSwitch.isChecked();
+                boolean alarm = alarmSwitch != null && alarmSwitch.isChecked();
+                saveQuickTask(name, priority, taskSelectedTime, vib, alarm);
+            });
+        }
+    }
+
+    private void setupFocusFormButtons() {
+        if (menuView == null) return;
+
+        View startLayout = menuView.findViewById(R.id.focusStartTimeLayout);
+        View endLayout = menuView.findViewById(R.id.focusEndTimeLayout);
+        MaterialButton cancelBtn = menuView.findViewById(R.id.focusCancelButton);
+        MaterialButton saveBtn = menuView.findViewById(R.id.focusSaveButton);
+        TextView startPreview = menuView.findViewById(R.id.focusStartTimePreview);
+        TextView endPreview = menuView.findViewById(R.id.focusEndTimePreview);
+        SimpleDateFormat tf = new SimpleDateFormat("h:mm a", Locale.getDefault());
+
+        if (startLayout != null) {
+            startLayout.setOnClickListener(v -> {
+                if (focusStartTime == null) {
+                    focusStartTime = Calendar.getInstance();
+                    focusStartTime.add(Calendar.MINUTE, 5);
+                }
+                new TimePickerDialog(this, android.R.style.Theme_Material_Light_Dialog,
+                    (view, h, m) -> {
+                        Calendar sel = Calendar.getInstance();
+                        sel.set(Calendar.HOUR_OF_DAY, h);
+                        sel.set(Calendar.MINUTE, m);
+                        if (sel.before(Calendar.getInstance())) {
+                            Toast.makeText(this, "Select a future time", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        focusStartTime.set(Calendar.HOUR_OF_DAY, h);
+                        focusStartTime.set(Calendar.MINUTE, m);
+                        if (startPreview != null) startPreview.setText(tf.format(focusStartTime.getTime()));
+                        // Auto adjust end if needed
+                        if (focusEndTime != null && !focusEndTime.after(focusStartTime)) {
+                            focusEndTime.setTimeInMillis(focusStartTime.getTimeInMillis());
+                            focusEndTime.add(Calendar.HOUR_OF_DAY, 1);
+                            if (endPreview != null) endPreview.setText(tf.format(focusEndTime.getTime()));
+                        }
+                    },
+                    focusStartTime.get(Calendar.HOUR_OF_DAY),
+                    focusStartTime.get(Calendar.MINUTE), false
+                ).show();
+            });
+        }
+
+        if (endLayout != null) {
+            endLayout.setOnClickListener(v -> {
+                if (focusEndTime == null) {
+                    focusEndTime = Calendar.getInstance();
+                    focusEndTime.add(Calendar.HOUR_OF_DAY, 1);
+                }
+                new TimePickerDialog(this, android.R.style.Theme_Material_Light_Dialog,
+                    (view, h, m) -> {
+                        Calendar sel = Calendar.getInstance();
+                        sel.set(Calendar.HOUR_OF_DAY, h);
+                        sel.set(Calendar.MINUTE, m);
+                        if (focusStartTime != null && !sel.after(focusStartTime)) {
+                            Toast.makeText(this, "End must be after start", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        focusEndTime.set(Calendar.HOUR_OF_DAY, h);
+                        focusEndTime.set(Calendar.MINUTE, m);
+                        if (endPreview != null) endPreview.setText(tf.format(focusEndTime.getTime()));
+                    },
+                    focusEndTime.get(Calendar.HOUR_OF_DAY),
+                    focusEndTime.get(Calendar.MINUTE), false
+                ).show();
+            });
+        }
+
+        if (cancelBtn != null) cancelBtn.setOnClickListener(v -> hideMenu());
+        
+        if (saveBtn != null) {
+            saveBtn.setOnClickListener(v -> {
+                TextInputEditText nameInput = menuView.findViewById(R.id.focusNameInput);
+                RadioGroup priorityGroup = menuView.findViewById(R.id.focusPriorityGroup);
+                String name = nameInput != null && nameInput.getText() != null ?
+                              nameInput.getText().toString().trim() : "";
+                if (TextUtils.isEmpty(name)) {
+                    Toast.makeText(this, "Enter a focus task name", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (focusStartTime == null || focusStartTime.before(Calendar.getInstance())) {
+                    Toast.makeText(this, "Start time must be in future", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (focusEndTime == null || !focusEndTime.after(focusStartTime)) {
+                    Toast.makeText(this, "End must be after start", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                int priority = 1;
+                if (priorityGroup != null) {
+                    if (priorityGroup.getCheckedRadioButtonId() == R.id.focusPriorityLow) priority = 0;
+                    else if (priorityGroup.getCheckedRadioButtonId() == R.id.focusPriorityHigh) priority = 2;
+                }
+                saveFocusTask(name, priority, focusStartTime, focusEndTime);
+            });
+        }
+    }
+
+    private void setupNoteFormButtons() {
+        if (menuView == null) return;
+
+        MaterialButton cancelBtn = menuView.findViewById(R.id.noteCancelButton);
+        MaterialButton saveBtn = menuView.findViewById(R.id.noteSaveButton);
+
+        if (cancelBtn != null) cancelBtn.setOnClickListener(v -> hideMenu());
+        
+        if (saveBtn != null) {
+            saveBtn.setOnClickListener(v -> {
+                TextInputEditText titleInput = menuView.findViewById(R.id.noteTitleInput);
+                TextInputEditText contentInput = menuView.findViewById(R.id.noteContentInput);
+                String title = titleInput != null && titleInput.getText() != null ?
+                               titleInput.getText().toString().trim() : "";
+                String content = contentInput != null && contentInput.getText() != null ?
+                                 contentInput.getText().toString().trim() : "";
+                if (TextUtils.isEmpty(title)) {
+                    Toast.makeText(this, "Enter a note title", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (TextUtils.isEmpty(content)) {
+                    Toast.makeText(this, "Enter note content", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                saveQuickNote(title, content);
+            });
+        }
+    }
+
+    private void hideMenu() {
+        android.util.Log.d("FloatingButton", "hideMenu() called");
+        if (menuView != null && windowManager != null) {
+            try {
+                windowManager.removeView(menuView);
+            } catch (Exception e) {
+                android.util.Log.e("FloatingButton", "Error removing menu", e);
+            }
+            menuView = null;
+            isMenuVisible = false;
+        }
+    }
+
+    private void saveQuickTask(String name, int priority, Calendar time, boolean vibration, boolean alarm) {
+        String urgency = priority == 0 ? "Low" : (priority == 2 ? "High" : "Medium");
+        int hour = time.get(Calendar.HOUR);
+        if (hour == 0) hour = 12;
+        int minute = time.get(Calendar.MINUTE);
+        String amPm = time.get(Calendar.AM_PM) == Calendar.AM ? "AM" : "PM";
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String date = df.format(time.getTime());
+
+        Task task = new Task(name, hour, minute, amPm, urgency, new boolean[7]);
+        task.date = date;
+        task.isAlarmOn = alarm;
+        task.vibrationEnabled = vibration;
+        task.taskType = "reminder";
+
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                long id = taskRepository.addTask(task);
+                task.id = (int) id;
+                if (alarm) AlarmHelper.scheduleTaskAlarm(this, task);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Task added!", Toast.LENGTH_SHORT).show();
+                    hideMenu();
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(this, "Error saving task", Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+
+    private void saveFocusTask(String name, int priority, Calendar start, Calendar end) {
+        String urgency = priority == 0 ? "Low" : (priority == 2 ? "High" : "Medium");
+        int sh = start.get(Calendar.HOUR); if (sh == 0) sh = 12;
+        int sm = start.get(Calendar.MINUTE);
+        String sa = start.get(Calendar.AM_PM) == Calendar.AM ? "AM" : "PM";
+        int eh = end.get(Calendar.HOUR); if (eh == 0) eh = 12;
+        int em = end.get(Calendar.MINUTE);
+        String ea = end.get(Calendar.AM_PM) == Calendar.AM ? "AM" : "PM";
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String date = df.format(start.getTime());
+
+        Task task = new Task(name, sh, sm, sa, eh, em, ea, urgency);
+        task.date = date;
+        task.taskType = "focus";
+
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                taskRepository.addTask(task);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Focus task added!", Toast.LENGTH_SHORT).show();
+                    hideMenu();
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(this, "Error saving focus task", Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+
+    private void saveQuickNote(String title, String content) {
+        Note note = new Note(title, content);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                taskDatabase.noteDao().insert(note);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Note added!", Toast.LENGTH_SHORT).show();
+                    hideMenu();
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(this, "Error saving note", Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+
+    private void runOnUiThread(Runnable r) {
+        new android.os.Handler(android.os.Looper.getMainLooper()).post(r);
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Quick Access Floating Button",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            channel.setDescription("Floating button for quick task access");
+            channel.setShowBadge(false);
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(channel);
+        }
+    }
+
+    private Notification createNotification() {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this, 0, notificationIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("ClockWise Quick Access")
+                .setContentText("Floating button is active")
+                .setSmallIcon(R.drawable.ic_flash)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setOngoing(true)
+                .build();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        try {
+            if (floatingView != null && windowManager != null) {
+                windowManager.removeView(floatingView);
+                floatingView = null;
+            }
+        } catch (Exception e) {
+            android.util.Log.e("FloatingButtonService", "Error removing floating view", e);
+        }
+        
+        try {
+            if (menuView != null && windowManager != null) {
+                windowManager.removeView(menuView);
+                menuView = null;
+            }
+        } catch (Exception e) {
+            android.util.Log.e("FloatingButtonService", "Error removing menu view", e);
+        }
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+}

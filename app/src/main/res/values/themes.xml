@@ -25,6 +25,9 @@
         <item name="textColorSecondary">@color/on_surface_variant_light</item>
         <item name="cardBackgroundColor">@color/surface_light</item>
         <item name="dividerColor">@color/outline_light</item>
+        <!-- Floating menu colors -->
+        <item name="floatingMenuTextColor">@color/on_surface_light</item>
+        <item name="floatingMenuSecondaryTextColor">@color/on_surface_variant_light</item>
         <!-- Shape -->
         <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.App.SmallComponent</item>
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.MediumComponent</item>

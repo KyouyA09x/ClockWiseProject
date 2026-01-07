@@ -77,6 +77,17 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         fragment.setArguments(args);
         return fragment;
     }
+    
+    public static AddFocusTaskBottomSheet newInstance(Task task, boolean hideDate) {
+        AddFocusTaskBottomSheet fragment = new AddFocusTaskBottomSheet();
+        Bundle args = new Bundle();
+        args.putParcelable("TASK", task);
+        args.putBoolean("EDIT_MODE", false);
+        args.putBoolean("PREFILLED", true);
+        args.putBoolean("HIDE_DATE", hideDate); // For quick tasks
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     public static AddFocusTaskBottomSheet newInstanceWithData(Task task) {
         AddFocusTaskBottomSheet fragment = new AddFocusTaskBottomSheet();
@@ -101,7 +112,7 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
 
         if (getArguments() != null) {
             isEditMode = getArguments().getBoolean("EDIT_MODE", false);
-            isQuickTask = getArguments().getBoolean("QUICK_TASK", false);
+            isQuickTask = getArguments().getBoolean("QUICK_TASK", false) || getArguments().getBoolean("HIDE_DATE", false);
             editingTask = getArguments().getParcelable("TASK");
             
             // If it's a quick task or edit mode with task data, load the task
@@ -145,6 +156,8 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
 
         if (isEditMode && editingTask != null) {
             populateFieldsForEditing();
+        } else if (getArguments() != null && getArguments().getBoolean("PREFILLED", false) && editingTask != null) {
+            populateFieldsFromTask();
         }
     }
 
@@ -236,6 +249,56 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         saveButton.setText("Update");
         deleteButton.setVisibility(View.VISIBLE);
 
+        taskNameEditText.setText(editingTask.name);
+        
+        // Set start time
+        startHour = editingTask.hour;
+        startMinute = editingTask.minute;
+        startAmPm = editingTask.amPm != null ? editingTask.amPm : "AM";
+        updateStartTimeDisplay();
+
+        // Set end time
+        endHour = editingTask.endHour;
+        endMinute = editingTask.endMinute;
+        endAmPm = editingTask.endAmPm != null ? editingTask.endAmPm : "AM";
+        updateEndTimeDisplay();
+
+        // Set priority chip
+        if (editingTask.urgency != null) {
+            selectedUrgency = editingTask.urgency;
+            switch (editingTask.urgency.toLowerCase()) {
+                case "low":
+                    priorityLow.setChecked(true);
+                    break;
+                case "medium":
+                    priorityMedium.setChecked(true);
+                    break;
+                case "high":
+                    priorityHigh.setChecked(true);
+                    break;
+                default:
+                    priorityNone.setChecked(true);
+                    break;
+            }
+        }
+
+        // Set date
+        if (editingTask.date != null) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                selectedDate.setTime(sdf.parse(editingTask.date));
+                updateDateLabel();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        vibrationSwitch.setChecked(editingTask.vibrationEnabled);
+        alarmSwitch.setChecked(editingTask.isAlarmOn);
+    }
+    
+    private void populateFieldsFromTask() {
+        // Similar to populateFieldsForEditing but without edit mode UI changes
         taskNameEditText.setText(editingTask.name);
         
         // Set start time

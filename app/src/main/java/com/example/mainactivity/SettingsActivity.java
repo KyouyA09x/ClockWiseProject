@@ -1,13 +1,21 @@
 package com.example.mainactivity;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.view.View;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.MaterialColors;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 public class SettingsActivity extends BaseThemedActivity {
 
@@ -22,6 +30,11 @@ public class SettingsActivity extends BaseThemedActivity {
     private RadioButton radioPurple;
     private RadioButton radioOrange;
     
+    private SwitchMaterial floatingButtonSwitch;
+    private SharedPreferences prefs;
+    
+    private static final int REQUEST_OVERLAY_PERMISSION = 1234;
+    
     private boolean isInitializing = true;
 
     @Override
@@ -34,10 +47,13 @@ public class SettingsActivity extends BaseThemedActivity {
             toolbar.setNavigationOnClickListener(v -> finish());
         }
 
+        prefs = getSharedPreferences("settings", MODE_PRIVATE);
+
         initViews();
         updateThemeModeUI();
         updateThemeColorUI();
         setupListeners();
+        setupFloatingButtonToggle();
         setupTestDataButtons();
         setupNotificationPreviewButtons();
         isInitializing = false;
@@ -54,6 +70,98 @@ public class SettingsActivity extends BaseThemedActivity {
         radioGreen = findViewById(R.id.greenThemeRadio);
         radioPurple = findViewById(R.id.purpleThemeRadio);
         radioOrange = findViewById(R.id.orangeThemeRadio);
+        
+        floatingButtonSwitch = findViewById(R.id.floatingButtonSwitch);
+    }
+    
+    private void setupFloatingButtonToggle() {
+        if (floatingButtonSwitch == null) return;
+        
+        // Set initial state from preferences WITHOUT triggering the listener
+        boolean isEnabled = prefs.getBoolean("floating_button_enabled", false);
+        
+        // Set the checked state without listener first
+        floatingButtonSwitch.setOnCheckedChangeListener(null);
+        floatingButtonSwitch.setChecked(isEnabled);
+        
+        // NOW set up the listener
+        floatingButtonSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                // Check overlay permission
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (!Settings.canDrawOverlays(this)) {
+                        // Need to request overlay permission
+                        floatingButtonSwitch.setChecked(false);
+                        showOverlayPermissionDialog();
+                        return;
+                    }
+                }
+                
+                // Permission granted, start service
+                startFloatingButtonService();
+                prefs.edit().putBoolean("floating_button_enabled", true).apply();
+                Toast.makeText(this, "Floating button enabled", Toast.LENGTH_SHORT).show();
+            } else {
+                // Stop service
+                stopFloatingButtonService();
+                prefs.edit().putBoolean("floating_button_enabled", false).apply();
+                Toast.makeText(this, "Floating button disabled", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    
+    private void showOverlayPermissionDialog() {
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                .setTitle("Overlay Permission Required")
+                .setMessage("The floating button requires permission to display over other apps. This allows quick access to ClockWise actions from anywhere on your device.")
+                .setIcon(R.drawable.ic_flash)
+                .setPositiveButton("Grant Permission", (dialog, which) -> {
+                    requestOverlayPermission();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+    
+    private void requestOverlayPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, REQUEST_OVERLAY_PERMISSION);
+        }
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == REQUEST_OVERLAY_PERMISSION) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (Settings.canDrawOverlays(this)) {
+                    // Permission granted
+                    floatingButtonSwitch.setChecked(true);
+                    startFloatingButtonService();
+                    prefs.edit().putBoolean("floating_button_enabled", true).apply();
+                    Toast.makeText(this, "Floating button enabled", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Permission denied
+                    Toast.makeText(this, "Overlay permission is required for floating button", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
+    
+    private void startFloatingButtonService() {
+        Intent serviceIntent = new Intent(this, FloatingButtonService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
+    }
+    
+    private void stopFloatingButtonService() {
+        Intent serviceIntent = new Intent(this, FloatingButtonService.class);
+        stopService(serviceIntent);
     }
 
     private void setupListeners() {
@@ -307,5 +415,14 @@ public class SettingsActivity extends BaseThemedActivity {
         }
         
         popupWindow.showAtLocation(anchorView, android.view.Gravity.CENTER, 0, 0);
+    }
+    
+    private void setupTrashBinButton() {
+        View trashBinButton = findViewById(R.id.trashBinButton);
+        if (trashBinButton != null) {
+            trashBinButton.setOnClickListener(v -> {
+                startActivity(new Intent(SettingsActivity.this, TrashBinActivity.class));
+            });
+        }
     }
 }

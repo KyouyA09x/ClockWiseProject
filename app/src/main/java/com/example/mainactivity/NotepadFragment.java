@@ -1,5 +1,9 @@
 package com.example.mainactivity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
@@ -36,6 +40,16 @@ public class NotepadFragment extends Fragment {
     private List<Note> notesList = new ArrayList<>();
     private boolean isSelectionMode = false;
     private final List<Note> selectedNotes = new ArrayList<>();
+    
+    // Broadcast receiver to refresh notes when added from floating button
+    private final BroadcastReceiver notesRefreshReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if ("com.example.mainactivity.REFRESH_TASKS".equals(intent.getAction())) {
+                refreshNotes();
+            }
+        }
+    };
 
     @Nullable
     @Override
@@ -53,9 +67,25 @@ public class NotepadFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        // Register broadcast receiver for notes refresh
+        IntentFilter filter = new IntentFilter("com.example.mainactivity.REFRESH_TASKS");
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            requireContext().registerReceiver(notesRefreshReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            requireContext().registerReceiver(notesRefreshReceiver, filter);
+        }
         if (!isSelectionMode) {
             refreshNotes();
         }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Unregister broadcast receiver
+        try {
+            requireContext().unregisterReceiver(notesRefreshReceiver);
+        } catch (Exception ignored) {}
     }
 
     private void initViews(View view) {
@@ -195,6 +225,11 @@ public class NotepadFragment extends Fragment {
     }
 
     private void refreshNotesInSelectionMode() {
+        // Reload notes from database to get current state
+        if (noteDao != null) {
+            notesList = noteDao.getActiveNotes();
+        }
+        
         notesContainer.removeAllViews();
         emptyStateNotes.setVisibility(View.GONE);
         notesContainer.setVisibility(View.VISIBLE);
@@ -432,7 +467,7 @@ public class NotepadFragment extends Fragment {
     public void refreshNotes() {
         if (noteDao == null || getContext() == null) return;
 
-        notesList = noteDao.getAllNotes();
+        notesList = noteDao.getActiveNotes(); // Only show non-deleted notes
         notesContainer.removeAllViews();
 
         if (notesList.isEmpty()) {
@@ -616,6 +651,10 @@ public class NotepadFragment extends Fragment {
         AddNoteDialog dialog = new AddNoteDialog(requireContext(), noteToEdit, this::refreshNotes);
         dialog.show();
     }
+    
+    public void showAddNoteDialog() {
+        showAddNoteDialog(null);
+    }
 
     private void showNoteContextMenu(Note note, View anchorView) {
         String[] options = {"✏️ Edit", "🗑️ Delete", "📋 Convert to Task"};
@@ -666,26 +705,44 @@ public class NotepadFragment extends Fragment {
     }
     
     private void showDeleteConfirmation(Note note, View noteView) {
-        ModernDialogHelper.showDestructiveDialog(
-                getContext(),
-                "Delete Note?",
-                "This action cannot be undone. {item} will be permanently removed.",
-                note.title != null && !note.title.isEmpty() ? note.title : "This note",
-                R.drawable.ic_delete,
-                () -> {
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Move to Trash?")
+                .setMessage((note.title != null && !note.title.isEmpty() ? "\"" + note.title + "\"" : "This note") + " will be moved to the trash bin. You can restore it later.")
+                .setIcon(R.drawable.ic_delete)
+                .setPositiveButton("Move to Trash", (dialog, which) -> {
                     if (noteView != null) {
                         // Animate slide-to-right deletion
                         animateNoteDeletion(noteView, () -> {
-                            noteDao.delete(note);
-                            refreshNotes();
+                            // Update in background thread
+                            new Thread(() -> {
+                                noteDao.softDelete(note.id, System.currentTimeMillis());
+                                
+                                // Refresh on main thread
+                                if (getActivity() != null) {
+                                    getActivity().runOnUiThread(() -> {
+                                        refreshNotes();
+                                        android.widget.Toast.makeText(getContext(), "Note moved to trash", android.widget.Toast.LENGTH_SHORT).show();
+                                    });
+                                }
+                            }).start();
                         });
                     } else {
-                        noteDao.delete(note);
-                        refreshNotes();
+                        // Update in background thread
+                        new Thread(() -> {
+                            noteDao.softDelete(note.id, System.currentTimeMillis());
+                            
+                            // Refresh on main thread
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    refreshNotes();
+                                    android.widget.Toast.makeText(getContext(), "Note moved to trash", android.widget.Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        }).start();
                     }
-                },
-                null
-        );
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
     
     private void animateNoteDeletion(View noteView, Runnable onComplete) {

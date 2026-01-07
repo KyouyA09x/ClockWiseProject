@@ -1,6 +1,9 @@
 package com.example.mainactivity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -40,6 +43,16 @@ public class CurrentTasksFragment extends Fragment {
     private TextView completionText;
 
     private TaskRepository taskRepository;
+    
+    // Broadcast receiver to refresh tasks when added from floating button
+    private final BroadcastReceiver taskRefreshReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if ("com.example.mainactivity.REFRESH_TASKS".equals(intent.getAction())) {
+                refreshTasks();
+            }
+        }
+    };
 
     @Nullable
     @Override
@@ -56,7 +69,23 @@ public class CurrentTasksFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        // Register broadcast receiver for task refresh
+        IntentFilter filter = new IntentFilter("com.example.mainactivity.REFRESH_TASKS");
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            requireContext().registerReceiver(taskRefreshReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            requireContext().registerReceiver(taskRefreshReceiver, filter);
+        }
         refreshTasks();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Unregister broadcast receiver
+        try {
+            requireContext().unregisterReceiver(taskRefreshReceiver);
+        } catch (Exception ignored) {}
     }
 
     private void initViews(View view) {
@@ -504,8 +533,8 @@ public class CurrentTasksFragment extends Fragment {
         com.google.android.material.button.MaterialButton deleteButton = taskView.findViewById(R.id.deleteButton);
         if (deleteButton != null) {
             deleteButton.setOnClickListener(v -> {
-                String title = task.isFocusTask() ? "Delete Focus Session?" : "Delete Task?";
-                String message = "This action cannot be undone. {item} will be permanently removed.";
+                String title = task.isFocusTask() ? "Move to Trash?" : "Move to Trash?";
+                String message = "{item} will be moved to the trash bin. You can restore it later.";
                 
                 ModernDialogHelper.showDestructiveDialog(
                     getContext(),
@@ -524,7 +553,7 @@ public class CurrentTasksFragment extends Fragment {
                             taskRepository.deleteTask(task);
                             taskRepository.refreshTasks();
                             refreshTasks();
-                            Toast.makeText(getContext(), "Task deleted", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), (task.isFocusTask() ? "Focus session" : "Task") + " moved to trash", Toast.LENGTH_SHORT).show();
                         });
                     },
                     null

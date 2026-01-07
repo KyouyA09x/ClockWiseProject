@@ -7,7 +7,7 @@
     <item
         android:id="@+id/navigation_add"
         android:icon="@drawable/ic_add_fab"
-        android:title="" />
+        android:title="Actions" />
     <item
         android:id="@+id/navigation_notepad"
         android:icon="@drawable/ic_notepad"

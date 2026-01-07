@@ -127,59 +127,7 @@ public class MainActivity extends BaseThemedActivity {
                 return false;
             });
             
-            // Style the middle Add button to have circular bump effect
-            bottomNavigation.post(() -> {
-                try {
-                    android.view.View menuView = bottomNavigation.getChildAt(0);
-                    if (menuView instanceof android.view.ViewGroup) {
-                        android.view.ViewGroup menuViewGroup = (android.view.ViewGroup) menuView;
-                        if (menuViewGroup.getChildCount() >= 2) {
-                            // Get the middle button (index 1 for the Add button)
-                            android.view.View middleButton = menuViewGroup.getChildAt(1);
-                            if (middleButton != null) {
-                                // Create circular bump without distorting the icon
-                                int size = (int) (56 * getResources().getDisplayMetrics().density); // 56dp
-                                
-                                // Move up to create bump effect
-                                middleButton.setTranslationY(-24f * getResources().getDisplayMetrics().density);
-                                
-                                // Set fixed size for circular shape
-                                android.view.ViewGroup.LayoutParams params = middleButton.getLayoutParams();
-                                params.width = size;
-                                params.height = size;
-                                middleButton.setLayoutParams(params);
-                                
-                                // Create circular background with shadow
-                                android.graphics.drawable.GradientDrawable drawable = new android.graphics.drawable.GradientDrawable();
-                                drawable.setShape(android.graphics.drawable.GradientDrawable.OVAL);
-                                drawable.setColor(androidx.core.content.ContextCompat.getColor(this, R.color.primary));
-                                
-                                // Add shadow/stroke for depth
-                                int strokeColor = androidx.core.content.ContextCompat.getColor(this, R.color.primary);
-                                drawable.setStroke(2, strokeColor);
-                                
-                                middleButton.setBackground(drawable);
-                                middleButton.setElevation(16f * getResources().getDisplayMetrics().density);
-                                
-                                // Ensure icon is properly sized (not distorted)
-                                if (middleButton instanceof android.widget.ImageView) {
-                                    android.widget.ImageView imageView = (android.widget.ImageView) middleButton;
-                                    imageView.setScaleType(android.widget.ImageView.ScaleType.CENTER);
-                                    
-                                    // Set icon tint to white for better visibility
-                                    imageView.setColorFilter(
-                                        androidx.core.content.ContextCompat.getColor(this, android.R.color.white),
-                                        android.graphics.PorterDuff.Mode.SRC_IN
-                                    );
-                                }
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    // If styling fails, button will still work normally
-                    android.util.Log.e("MainActivity", "Failed to style middle button", e);
-                }
-            });
+            // Middle button styled normally like other buttons
         }
 
         // Load default fragment (Tasks)
@@ -253,6 +201,79 @@ public class MainActivity extends BaseThemedActivity {
                 }
             }
         });
+        
+        // Handle intents from floating button
+        handleIntent(getIntent());
+        
+        // Auto-start floating button service if enabled
+        startFloatingButtonIfEnabled();
+    }
+    
+    private void startFloatingButtonIfEnabled() {
+        android.content.SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
+        boolean isEnabled = prefs.getBoolean("floating_button_enabled", false);
+        
+        if (isEnabled) {
+            // Check if we have overlay permission
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                if (android.provider.Settings.canDrawOverlays(this)) {
+                    // Start the service
+                    Intent serviceIntent = new Intent(this, FloatingButtonService.class);
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        startForegroundService(serviceIntent);
+                    } else {
+                        startService(serviceIntent);
+                    }
+                }
+            } else {
+                // Pre-M, no permission needed
+                Intent serviceIntent = new Intent(this, FloatingButtonService.class);
+                startService(serviceIntent);
+            }
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent == null) return;
+        
+        String action = intent.getAction();
+        if (action == null) return;
+
+        switch (action) {
+            case "ACTION_QUICK_TASK":
+                showQuickTaskBottomSheet();
+                break;
+            case "ACTION_ADD_REMINDER":
+                showReminderBottomSheet(null);
+                break;
+            case "ACTION_ADD_FOCUS":
+                showFocusTaskBottomSheet(null);
+                break;
+            case "ACTION_ADD_NOTE":
+                // Switch to notepad tab and open add note dialog
+                if (bottomNavigation != null) {
+                    bottomNavigation.setSelectedItemId(R.id.navigation_notepad);
+                }
+                new android.os.Handler().postDelayed(() -> {
+                    for (androidx.fragment.app.Fragment fragment : getSupportFragmentManager().getFragments()) {
+                        if (fragment instanceof NotepadFragment && fragment.isVisible()) {
+                            ((NotepadFragment) fragment).showAddNoteDialog();
+                            break;
+                        }
+                    }
+                }, 300);
+                break;
+        }
+        
+        // Clear the action so it doesn't trigger again
+        intent.setAction(null);
     }
 
     public void refreshAllFragments() {
@@ -300,6 +321,15 @@ public class MainActivity extends BaseThemedActivity {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
 
+        // Setup Quick Task option
+        View quickTaskOption = dialogView.findViewById(R.id.quickTaskOption);
+        if (quickTaskOption != null) {
+            quickTaskOption.setOnClickListener(v -> {
+                dialog.dismiss();
+                showQuickTaskBottomSheet();
+            });
+        }
+
         // Setup Reminder/Task option
         View reminderOption = dialogView.findViewById(R.id.reminderOption);
         if (reminderOption != null) {
@@ -318,16 +348,212 @@ public class MainActivity extends BaseThemedActivity {
             });
         }
 
-        // Setup Quick Note option
+        // Setup Convert Note to Task option
         View quickNoteOption = dialogView.findViewById(R.id.quickNoteOption);
         if (quickNoteOption != null) {
             quickNoteOption.setOnClickListener(v -> {
                 dialog.dismiss();
-                openQuickTaskInNotepad();
+                showConvertNoteDialog();
             });
         }
 
         dialog.show();
+    }
+    
+    private void showConvertNoteDialog() {
+        // Get all active notes from database
+        NoteDao noteDao = TaskDatabase.getInstance(this).noteDao();
+        new Thread(() -> {
+            java.util.List<Note> notes = noteDao.getActiveNotes();
+            
+            runOnUiThread(() -> {
+                if (notes.isEmpty()) {
+                    android.widget.Toast.makeText(this, "No notes available to convert", android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                // Create note selection dialog
+                String[] noteTitles = new String[notes.size()];
+                for (int i = 0; i < notes.size(); i++) {
+                    Note note = notes.get(i);
+                    noteTitles[i] = (note.title != null && !note.title.isEmpty()) ? note.title : "Untitled Note";
+                }
+                
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                    .setTitle("Select Note to Convert")
+                    .setIcon(R.drawable.ic_convert)
+                    .setItems(noteTitles, (dialogInterface, which) -> {
+                        Note selectedNote = notes.get(which);
+                        showTaskTypeSelectionForNote(selectedNote);
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            });
+        }).start();
+    }
+    
+    private void showTaskTypeSelectionForNote(Note note) {
+        // Show styled dialog matching the main task chooser
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_convert_note_type_chooser, null);
+        builder.setView(dialogView);
+
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+        
+        // Set note title in dialog
+        TextView noteTitle = dialogView.findViewById(R.id.convertNoteTitle);
+        if (noteTitle != null) {
+            noteTitle.setText(note.title != null && !note.title.isEmpty() ? note.title : "Untitled Note");
+        }
+
+        // Setup Reminder option
+        View reminderOption = dialogView.findViewById(R.id.reminderOption);
+        if (reminderOption != null) {
+            reminderOption.setOnClickListener(v -> {
+                dialog.dismiss();
+                showReminderBottomSheetForNote(note);
+            });
+        }
+
+        // Setup Focus Session option
+        View focusTaskOption = dialogView.findViewById(R.id.focusTaskOption);
+        if (focusTaskOption != null) {
+            focusTaskOption.setOnClickListener(v -> {
+                dialog.dismiss();
+                showFocusTaskBottomSheetForNote(note);
+            });
+        }
+
+        dialog.show();
+    }
+    
+    private void showReminderBottomSheetForNote(Note note) {
+        // Create task from note
+        Task task = new Task();
+        task.name = (note.title != null && !note.title.isEmpty()) ? note.title : "Task from Note";
+        task.taskType = "reminder";
+        task.date = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(new java.util.Date());
+        task.hour = 9;
+        task.minute = 0;
+        task.amPm = "AM";
+        task.isAlarmOn = true;
+        task.urgency = (note.priority != null) ? note.priority : "None";
+        task.isComplete = false;
+        task.selectedDays = new boolean[7]; // Initialize repeat days
+        
+        AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstanceWithData(task);
+        bottomSheet.setOnTaskSavedListener(() -> {
+            // Mark note as converted
+            new Thread(() -> {
+                note.isConvertedToTask = true;
+                note.taskType = "Reminder";
+                NoteDao noteDao = TaskDatabase.getInstance(this).noteDao();
+                noteDao.update(note);
+                
+                runOnUiThread(() -> {
+                    taskRepository.refreshTasks();
+                    refreshAllFragments();
+                    
+                    // Refresh notepad fragment to update the converted note tag
+                    for (androidx.fragment.app.Fragment fragment : getSupportFragmentManager().getFragments()) {
+                        if (fragment instanceof NotepadFragment && fragment.isVisible()) {
+                            ((NotepadFragment) fragment).refreshNotes();
+                        }
+                    }
+                    
+                    android.widget.Toast.makeText(this, "Note converted to Reminder successfully", android.widget.Toast.LENGTH_SHORT).show();
+                });
+            }).start();
+        });
+        bottomSheet.show(getSupportFragmentManager(), "ConvertNoteReminderBottomSheet");
+    }
+    
+    private void showFocusTaskBottomSheetForNote(Note note) {
+        // Create task from note
+        Task task = new Task();
+        task.name = (note.title != null && !note.title.isEmpty()) ? note.title : "Task from Note";
+        task.taskType = "focus";
+        task.date = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(new java.util.Date());
+        task.hour = 9;
+        task.minute = 0;
+        task.amPm = "AM";
+        task.endHour = 10;
+        task.endMinute = 0;
+        task.endAmPm = "AM";
+        task.isAlarmOn = true;
+        task.urgency = (note.priority != null) ? note.priority : "None";
+        task.isComplete = false;
+        task.selectedDays = new boolean[7]; // Initialize repeat days
+        
+        AddFocusTaskBottomSheet bottomSheet = AddFocusTaskBottomSheet.newInstanceWithData(task);
+        bottomSheet.setOnTaskSavedListener(() -> {
+            // Mark note as converted
+            new Thread(() -> {
+                note.isConvertedToTask = true;
+                note.taskType = "Focus Task";
+                NoteDao noteDao = TaskDatabase.getInstance(this).noteDao();
+                noteDao.update(note);
+                
+                runOnUiThread(() -> {
+                    taskRepository.refreshTasks();
+                    refreshAllFragments();
+                    
+                    // Refresh notepad fragment to update the converted note tag
+                    for (androidx.fragment.app.Fragment fragment : getSupportFragmentManager().getFragments()) {
+                        if (fragment instanceof NotepadFragment && fragment.isVisible()) {
+                            ((NotepadFragment) fragment).refreshNotes();
+                        }
+                    }
+                    
+                    android.widget.Toast.makeText(this, "Note converted to Focus Session successfully", android.widget.Toast.LENGTH_SHORT).show();
+                });
+            }).start();
+        });
+        bottomSheet.show(getSupportFragmentManager(), "ConvertNoteFocusBottomSheet");
+    }
+    
+    private void convertNoteToTask(Note note, String taskType) {
+        // Create a task from the note
+        Task task = new Task();
+        task.name = (note.title != null && !note.title.isEmpty()) ? note.title : "Task from Note";
+        task.taskType = taskType;
+        task.date = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(new java.util.Date());
+        task.hour = 9;
+        task.minute = 0;
+        task.amPm = "AM";
+        task.isAlarmOn = false;
+        task.urgency = (note.priority != null) ? note.priority : "None";
+        task.isComplete = false;
+        
+        // For focus session, set default end time
+        if (taskType.equals("focus")) {
+            task.endHour = 10;
+            task.endMinute = 0;
+            task.endAmPm = "AM";
+        }
+        
+        // Mark note as converted
+        note.isConvertedToTask = true;
+        note.taskType = taskType.equals("focus") ? "Focus Task" : "Reminder";
+        
+        // Save task and update note
+        new Thread(() -> {
+            TaskDao taskDao = TaskDatabase.getInstance(this).taskDao();
+            NoteDao noteDao = TaskDatabase.getInstance(this).noteDao();
+            
+            taskDao.insert(task);
+            noteDao.update(note);
+            
+            runOnUiThread(() -> {
+                taskRepository.refreshTasks();
+                refreshAllFragments();
+                String taskTypeName = taskType.equals("focus") ? "Focus Session" : "Reminder";
+                android.widget.Toast.makeText(this, "Note converted to " + taskTypeName + " successfully", android.widget.Toast.LENGTH_SHORT).show();
+            });
+        }).start();
     }
 
     private void showReminderBottomSheet(Task taskToEdit) {
@@ -476,31 +702,50 @@ public class MainActivity extends BaseThemedActivity {
                         quickTask.taskType = "reminder";
                         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
                         quickTask.date = sdf.format(new java.util.Date());
-                        quickTask.hour = 9;
-                        quickTask.minute = 0;
-                        quickTask.amPm = "AM";
+                        java.util.Calendar cal = java.util.Calendar.getInstance();
+                        quickTask.hour = cal.get(java.util.Calendar.HOUR);
+                        if (quickTask.hour == 0) quickTask.hour = 12;
+                        quickTask.minute = cal.get(java.util.Calendar.MINUTE);
+                        quickTask.amPm = cal.get(java.util.Calendar.AM_PM) == java.util.Calendar.AM ? "AM" : "PM";
                         quickTask.isAlarmOn = true;
                         quickTask.urgency = "None";
                         quickTask.selectedDays = new boolean[7];
 
-                        showReminderBottomSheet(quickTask);
+                        // Use newInstance with hideDate flag
+                        AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstance(quickTask, true);
+                        bottomSheet.setOnTaskSavedListener(() -> {
+                            taskRepository.refreshTasks();
+                            refreshAllFragments();
+                        });
+                        bottomSheet.show(getSupportFragmentManager(), "QuickTaskReminder");
                     } else if (which == 1) {
                         // Create quick focus task with today's date
                         Task quickTask = new Task();
                         quickTask.taskType = "focus";
                         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
                         quickTask.date = sdf.format(new java.util.Date());
-                        quickTask.hour = 9;
-                        quickTask.minute = 0;
-                        quickTask.amPm = "AM";
-                        quickTask.endHour = 10;
-                        quickTask.endMinute = 0;
-                        quickTask.endAmPm = "AM";
+                        java.util.Calendar cal = java.util.Calendar.getInstance();
+                        quickTask.hour = cal.get(java.util.Calendar.HOUR);
+                        if (quickTask.hour == 0) quickTask.hour = 12;
+                        quickTask.minute = cal.get(java.util.Calendar.MINUTE);
+                        quickTask.amPm = cal.get(java.util.Calendar.AM_PM) == java.util.Calendar.AM ? "AM" : "PM";
+                        // Set end time 1 hour later
+                        cal.add(java.util.Calendar.HOUR, 1);
+                        quickTask.endHour = cal.get(java.util.Calendar.HOUR);
+                        if (quickTask.endHour == 0) quickTask.endHour = 12;
+                        quickTask.endMinute = cal.get(java.util.Calendar.MINUTE);
+                        quickTask.endAmPm = cal.get(java.util.Calendar.AM_PM) == java.util.Calendar.AM ? "AM" : "PM";
                         quickTask.isAlarmOn = true;
                         quickTask.urgency = "None";
                         quickTask.selectedDays = new boolean[7];
 
-                        showFocusTaskBottomSheet(quickTask);
+                        // Use newInstance with hideDate flag
+                        AddFocusTaskBottomSheet bottomSheet = AddFocusTaskBottomSheet.newInstance(quickTask, true);
+                        bottomSheet.setOnTaskSavedListener(() -> {
+                            taskRepository.refreshTasks();
+                            refreshAllFragments();
+                        });
+                        bottomSheet.show(getSupportFragmentManager(), "QuickTaskFocus");
                     }
                 })
                 .setNegativeButton("Cancel", null)

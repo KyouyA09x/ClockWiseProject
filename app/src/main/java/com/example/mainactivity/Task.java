@@ -34,11 +34,17 @@ public class Task implements Parcelable {
     boolean isFocusTaskActive; // Tracks if focus session is ongoing
     int extendedMinutes; // Total minutes extended via "Keep Going"
     String noteContent; // Note content for context when task notifies the user
+    
+    // Trash bin fields
+    boolean isDeleted; // Whether this task is in the trash bin
+    long deletedAt; // Timestamp when the task was deleted
 
     // Required empty constructor for Room
     public Task() {
         this.taskType = "reminder";
         this.endAmPm = "AM";
+        this.isDeleted = false;
+        this.deletedAt = 0;
     }
 
     @Ignore
@@ -142,6 +148,8 @@ public class Task implements Parcelable {
         dest.writeByte((byte) (isFocusTaskActive ? 1 : 0));
         dest.writeInt(extendedMinutes);
         dest.writeString(noteContent);
+        dest.writeByte((byte) (isDeleted ? 1 : 0));
+        dest.writeLong(deletedAt);
     }
 
     // Helper method to get formatted start time

@@ -84,6 +84,8 @@
     <color name="success">#2E7D32</color>
     <color name="warning">#F57C00</color>
     <color name="text_secondary">#79747E</color>
+    <color name="text_primary_light">#1C1B1F</color>
+    <color name="text_secondary_light">#49454F</color>
 
     <!-- Priority Chip Colors -->
     <color name="chip_priority_none">#E7E0EC</color>

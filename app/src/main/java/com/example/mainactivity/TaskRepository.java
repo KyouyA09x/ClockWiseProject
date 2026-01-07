@@ -58,6 +58,17 @@ public class TaskRepository {
     }
 
     public void deleteTask(Task task) {
+        // Soft delete - move to trash instead of permanent deletion
+        taskDao.softDelete(task.id, System.currentTimeMillis());
+        loadTasksFromDatabase();
+    }
+    
+    public void restoreTask(Task task) {
+        taskDao.restore(task.id);
+        loadTasksFromDatabase();
+    }
+    
+    public void permanentlyDeleteTask(Task task) {
         taskDao.delete(task);
         loadTasksFromDatabase();
     }

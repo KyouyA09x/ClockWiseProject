@@ -97,6 +97,16 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Display overlay popup notifications for task reminders" />
         </service>
+
+        <!-- Floating Button Service for quick access overlay -->
+        <service
+            android:name=".FloatingButtonService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property 
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Quick access floating button for task creation" />
+        </service>
     </application>
 
 </manifest>

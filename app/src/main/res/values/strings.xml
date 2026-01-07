@@ -6,7 +6,7 @@
     <string name="clock_text">Clock</string>
     <string name="wise_text">Wise</string>
     <string name="task_progress">Task 0/0</string>
-    <string name="progress_zero">0% completed</string>
+    <string name="progress_zero">0%% completed</string>
     <string name="add_task_prompt">Add task</string>
     <string name="morning_tasks_header">Morning Tasks</string>
     <string name="afternoon_tasks_header">Afternoon Tasks</string>
@@ -46,5 +46,15 @@
     <string name="sample_progress">3 of 8 tasks completed</string>
     <string name="no_tasks_today">No tasks for today\nTap + to add your first task</string>
     <string name="quick_actions">Quick Actions</string>
+    <string name="reminder">Reminder</string>
+    <string name="focus_session">Focus Session</string>
+    <string name="note">Note</string>
+    <string name="add_quick_task_focus">Add a Quick Task/Focus Session</string>
+    <string name="add_quick_note">Add a Quick Note</string>
+    <string name="choose_type">Choose Type</string>
+    <string name="quick_task_header">Quick Task</string>
+    <string name="focus_task_header">Focus Task</string>
+    <string name="quick_note_header">Quick Note</string>
+    <string name="task_limited_to_today">This task is set for today only. To change the date, edit it from the app.</string>
 </resources>
 
