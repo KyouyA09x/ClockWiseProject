@@ -377,6 +377,11 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
                 AlarmHelper.scheduleTaskAlarm(requireContext(), editingTask);
             }
 
+            // Trigger UI refresh IMMEDIATELY before toast
+            if (listener != null) {
+                listener.onTaskSaved();
+            }
+
             Toast.makeText(requireContext(), "Reminder updated!", Toast.LENGTH_SHORT).show();
         } else {
             // Create new task
@@ -393,12 +398,14 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
                 AlarmHelper.scheduleTaskAlarm(requireContext(), newTask);
             }
 
+            // Trigger UI refresh IMMEDIATELY before toast/dismiss
+            if (listener != null) {
+                listener.onTaskSaved();
+            }
+
             Toast.makeText(requireContext(), "Reminder saved!", Toast.LENGTH_SHORT).show();
         }
 
-        if (listener != null) {
-            listener.onTaskSaved();
-        }
         dismiss();
     }
 

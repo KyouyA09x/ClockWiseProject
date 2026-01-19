@@ -22,12 +22,16 @@ public class TaskRepository {
     }
 
     public void initialize(Context context) {
+        if (taskDao != null) return; // Already initialized
+
         TaskDatabase database = TaskDatabase.getInstance(context);
         taskDao = database.taskDao();
         loadTasksFromDatabase();
     }
 
     private void loadTasksFromDatabase() {
+        if (taskDao == null) return; // Safety check
+
         morningTasks.clear();
         afternoonTasks.clear();
         nightTasks.clear();
@@ -46,38 +50,110 @@ public class TaskRepository {
     }
 
     public long addTask(Task task) {
+        if (taskDao == null) return -1; // Safety check
+
+        // Add to in-memory list immediately for instant UI update
+        addTaskToMemory(task);
+
+        // Persist to database (allowMainThreadQueries is enabled in TaskDatabase)
         long id = taskDao.insert(task);
+
+        // Update the task object with the real ID (task is already in the list by reference)
         task.id = (int) id;
-        loadTasksFromDatabase();
+
         return id;
     }
 
+    private void addTaskToMemory(Task task) {
+        // Add task to appropriate time category list immediately
+        switch (task.timeCategory) {
+            case "morning":
+                morningTasks.add(task);
+                break;
+            case "afternoon":
+                afternoonTasks.add(task);
+                break;
+            case "night":
+                nightTasks.add(task);
+                break;
+        }
+    }
+
+
     public void updateTask(Task task) {
+        if (taskDao == null) return; // Safety check
+
+        // Update database
         taskDao.update(task);
-        loadTasksFromDatabase();
+
+        // Update in-memory lists immediately
+        updateTaskInMemory(task);
+    }
+
+    private void updateTaskInMemory(Task task) {
+        // Remove from all lists first
+        morningTasks.removeIf(t -> t.id == task.id);
+        afternoonTasks.removeIf(t -> t.id == task.id);
+        nightTasks.removeIf(t -> t.id == task.id);
+
+        // Add to appropriate list based on current timeCategory
+        switch (task.timeCategory) {
+            case "morning":
+                morningTasks.add(task);
+                break;
+            case "afternoon":
+                afternoonTasks.add(task);
+                break;
+            case "night":
+                nightTasks.add(task);
+                break;
+        }
     }
 
     public void deleteTask(Task task) {
+        if (taskDao == null) return; // Safety check
+
         // Soft delete - move to trash instead of permanent deletion
         taskDao.softDelete(task.id, System.currentTimeMillis());
-        loadTasksFromDatabase();
+
+        // Remove from in-memory lists immediately
+        removeTaskFromMemory(task);
+    }
+
+    private void removeTaskFromMemory(Task task) {
+        morningTasks.removeIf(t -> t.id == task.id);
+        afternoonTasks.removeIf(t -> t.id == task.id);
+        nightTasks.removeIf(t -> t.id == task.id);
     }
     
     public void restoreTask(Task task) {
+        if (taskDao == null) return; // Safety check
+
         taskDao.restore(task.id);
-        loadTasksFromDatabase();
+
+        // Reload from DB to get fresh data and add back to memory
+        Task restoredTask = taskDao.getTaskById(task.id);
+        if (restoredTask != null) {
+            addTaskToMemory(restoredTask);
+        }
     }
     
     public void permanentlyDeleteTask(Task task) {
+        if (taskDao == null) return; // Safety check
+
         taskDao.delete(task);
-        loadTasksFromDatabase();
+
+        // Remove from in-memory lists immediately
+        removeTaskFromMemory(task);
     }
 
     public List<Task> getAllTasks() {
+        if (taskDao == null) return new ArrayList<>(); // Safety check
         return taskDao.getAllTasks();
     }
 
     public Task getTaskById(int id) {
+        if (taskDao == null) return null; // Safety check
         return taskDao.getTaskById(id);
     }
 }

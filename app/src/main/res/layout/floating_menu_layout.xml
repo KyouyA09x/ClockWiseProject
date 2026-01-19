@@ -16,16 +16,37 @@
         android:background="@drawable/floating_menu_background"
         android:elevation="16dp">
 
-        <!-- Title -->
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- Header with Title and Close Button -->
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/quick_actions"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="?attr/floatingMenuTextColor"
-            android:layout_marginBottom="16dp"
-            android:layout_gravity="center_horizontal" />
+            android:layout_marginBottom="16dp">
+
+            <!-- Title -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/quick_actions"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="?attr/floatingMenuTextColor"
+                android:layout_centerInParent="true" />
+
+            <!-- Close Button -->
+            <ImageView
+                android:id="@+id/closeButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_alignParentEnd="true"
+                android:src="@drawable/ic_close"
+                android:padding="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/close"
+                app:tint="?attr/floatingMenuTextColor"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </RelativeLayout>
 
         <!-- Quick Task/Focus Session Option -->
         <LinearLayout
@@ -40,13 +61,23 @@
             android:clickable="true"
             android:focusable="true">
 
-            <ImageView
+            <FrameLayout
                 android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_flash"
-                android:padding="8dp"
-                android:background="@drawable/icon_background_cyan"
-                android:contentDescription="@string/add_quick_task_focus" />
+                android:layout_height="40dp">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/icon_background_circle" />
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_flash"
+                    android:padding="8dp"
+                    app:tint="@color/white"
+                    android:contentDescription="@string/add_quick_task_focus" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="0dp"
@@ -78,13 +109,23 @@
             android:clickable="true"
             android:focusable="true">
 
-            <ImageView
+            <FrameLayout
                 android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_notepad"
-                android:padding="8dp"
-                android:background="@drawable/icon_background_orange"
-                android:contentDescription="@string/add_quick_note" />
+                android:layout_height="40dp">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/icon_background_circle" />
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_notepad"
+                    android:padding="8dp"
+                    app:tint="@color/white"
+                    android:contentDescription="@string/add_quick_note" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="0dp"

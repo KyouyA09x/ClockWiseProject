@@ -15,15 +15,32 @@
         android:orientation="vertical"
         android:padding="@dimen/dialog_padding">
 
-        <!-- Title -->
-        <TextView
+        <!-- Header with Title and Close Button -->
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Convert Note to..."
-            android:textAppearance="?attr/textAppearanceHeadlineSmall"
-            android:textColor="?attr/colorOnSurface"
-            android:gravity="center"
-            android:layout_marginBottom="@dimen/spacing_sm" />
+            android:layout_marginBottom="@dimen/spacing_sm">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Convert Note to..."
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textColor="?attr/colorOnSurface" />
+
+            <ImageButton
+                android:id="@+id/closeButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_close"
+                android:contentDescription="Close"
+                app:tint="?attr/colorOnSurface" />
+
+        </RelativeLayout>
 
         <!-- Note Title -->
         <TextView

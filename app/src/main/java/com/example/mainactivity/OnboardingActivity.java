@@ -19,6 +19,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,9 +30,6 @@ import androidx.core.content.ContextCompat;
 public class OnboardingActivity extends AppCompatActivity {
 
     private static final int NOTIFICATION_PERMISSION_CODE = 100;
-    private static final int ALARM_PERMISSION_CODE = 101;
-    private static final int BATTERY_OPTIMIZATION_CODE = 102;
-    private static final int OVERLAY_PERMISSION_CODE = 103;
 
     private static final String PREFS_NAME = "ClockWisePrefs";
     private static final String KEY_ONBOARDING_COMPLETE = "onboarding_complete";
@@ -47,63 +46,77 @@ public class OnboardingActivity extends AppCompatActivity {
     private boolean batteryOptimizationDisabled = false;
     private boolean overlayPermissionGranted = false;
 
+    // Activity result launchers
+    private ActivityResultLauncher<Intent> alarmPermissionLauncher;
+    private ActivityResultLauncher<Intent> batteryOptimizationLauncher;
+    private ActivityResultLauncher<Intent> overlayPermissionLauncher;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Always refresh permission status first
-        refreshPermissionStatus();
-        
-        // If onboarding was completed but permissions were revoked, reset onboarding
-        if (isOnboardingComplete() && !areAllPermissionsGranted()) {
-            resetOnboarding();
-        }
+        try {
+            // Initialize activity result launchers
+            initializeActivityResultLaunchers();
 
-        // Check if onboarding was already completed and permissions are still granted
-        if (isOnboardingComplete() && areAllPermissionsGranted()) {
-            proceedToApp();
-            return;
-        }
+            // Always refresh permission status first
+            checkCurrentPermissions();
 
-        setContentView(R.layout.activity_onboarding);
+            // If onboarding was completed but permissions were revoked, reset onboarding
+            if (isOnboardingComplete() && !areAllPermissionsGranted()) {
+                resetOnboarding();
+            }
 
-        setupBackPressHandler();
-        initViews();
-        checkCurrentPermissions();
-        setupClickListeners();
-    }
-    
-    private void refreshPermissionStatus() {
-        // Check notification permission
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            notificationPermissionGranted = ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
-        } else {
-            notificationPermissionGranted = true;
-        }
+            // Check if onboarding was already completed and permissions are still granted
+            if (isOnboardingComplete() && areAllPermissionsGranted()) {
+                proceedToApp();
+                return;
+            }
 
-        // Check exact alarm permission
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            alarmPermissionGranted = alarmManager != null && alarmManager.canScheduleExactAlarms();
-        } else {
-            alarmPermissionGranted = true;
-        }
-
-        // Check battery optimization
-        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        if (powerManager != null) {
-            batteryOptimizationDisabled = powerManager.isIgnoringBatteryOptimizations(getPackageName());
-        }
-
-        // Check overlay permission
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            overlayPermissionGranted = Settings.canDrawOverlays(this);
-        } else {
-            overlayPermissionGranted = true;
+            setContentView(R.layout.activity_onboarding);
+            setupBackPressHandler();
+            initViews();
+            checkCurrentPermissions();
+            setupClickListeners();
+        } catch (Exception e) {
+            android.util.Log.e("OnboardingActivity", "Error in onCreate", e);
+            // If onboarding fails, try to proceed to app anyway
+            try {
+                proceedToApp();
+            } catch (Exception ex) {
+                android.util.Log.e("OnboardingActivity", "Fatal error", ex);
+                Toast.makeText(this, "Error starting app: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+                finish();
+            }
         }
     }
     
+    private void initializeActivityResultLaunchers() {
+        alarmPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    checkCurrentPermissions();
+                    updateUI();
+                }
+        );
+
+        batteryOptimizationLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    checkCurrentPermissions();
+                    updateUI();
+                }
+        );
+
+        overlayPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    checkCurrentPermissions();
+                    updateUI();
+                }
+        );
+    }
+
     private void resetOnboarding() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETE, false).apply();
@@ -177,6 +190,9 @@ public class OnboardingActivity extends AppCompatActivity {
             batteryOptimizationDisabled = powerManager.isIgnoringBatteryOptimizations(getPackageName());
         }
 
+        // Check overlay permission
+        overlayPermissionGranted = Settings.canDrawOverlays(this);
+
         updateUI();
     }
 
@@ -218,7 +234,7 @@ public class OnboardingActivity extends AppCompatActivity {
             }
             if (statusText != null) {
                 statusText.setText("All permissions are required to use the app");
-                statusText.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
+                statusText.setTextColor(ContextCompat.getColor(this, android.R.color.tab_indicator_text));
             }
         }
     }
@@ -272,7 +288,7 @@ public class OnboardingActivity extends AppCompatActivity {
                         () -> {
                             Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
                             intent.setData(Uri.parse("package:" + getPackageName()));
-                            startActivityForResult(intent, ALARM_PERMISSION_CODE);
+                            alarmPermissionLauncher.launch(intent);
                         });
             } else {
                 alarmPermissionGranted = true;
@@ -290,7 +306,7 @@ public class OnboardingActivity extends AppCompatActivity {
                     () -> {
                         Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                         intent.setData(Uri.parse("package:" + getPackageName()));
-                        startActivityForResult(intent, BATTERY_OPTIMIZATION_CODE);
+                        batteryOptimizationLauncher.launch(intent);
                     });
         } else {
             batteryOptimizationDisabled = true;
@@ -299,19 +315,14 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     private void requestOverlayPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!Settings.canDrawOverlays(this)) {
-                showPermissionRationale("Display Over Apps",
-                        "This allows ClockWise to show popup notifications when tasks are due, even over other apps.",
-                        () -> {
-                            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-                            intent.setData(Uri.parse("package:" + getPackageName()));
-                            startActivityForResult(intent, OVERLAY_PERMISSION_CODE);
-                        });
-            } else {
-                overlayPermissionGranted = true;
-                updateUI();
-            }
+        if (!Settings.canDrawOverlays(this)) {
+            showPermissionRationale("Display Over Apps",
+                    "This allows ClockWise to show popup notifications when tasks are due, even over other apps.",
+                    () -> {
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
+                        overlayPermissionLauncher.launch(intent);
+                    });
         } else {
             overlayPermissionGranted = true;
             updateUI();

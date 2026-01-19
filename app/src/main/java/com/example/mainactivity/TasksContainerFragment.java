@@ -103,8 +103,10 @@ public class TasksContainerFragment extends Fragment {
     }
 
     public void refreshTasks() {
-        // Refresh fragments
+        // Only refresh visible child fragments for instant performance
         for (Fragment fragment : getChildFragmentManager().getFragments()) {
+            if (!fragment.isVisible()) continue; // Skip invisible fragments
+
             if (fragment instanceof CurrentTasksFragment) {
                 ((CurrentTasksFragment) fragment).refreshTasks();
             } else if (fragment instanceof UpcomingTasksFragment) {

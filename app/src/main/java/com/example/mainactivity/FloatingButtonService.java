@@ -5,8 +5,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Build;
@@ -58,6 +60,18 @@ public class FloatingButtonService extends Service {
     private Context themedContext;
     private View timePickerView;
 
+    private final BroadcastReceiver themeChangeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (BaseThemedActivity.ACTION_THEME_CHANGED.equals(intent.getAction())) {
+                // Reset themed context so it gets recreated with new theme
+                themedContext = null;
+                // Recreate floating button and menu if visible
+                recreateFloatingViews();
+            }
+        }
+    };
+
     // Interface for time selection callback
     private interface TimeSelectedListener {
         void onTimeSelected(int hourOfDay, int minute);
@@ -69,7 +83,7 @@ public class FloatingButtonService extends Service {
      */
     private Context getThemedContext() {
         if (themedContext == null) {
-            themedContext = new ContextThemeWrapper(this, R.style.Theme_MainActivity);
+            themedContext = new ContextThemeWrapper(this, ThemeHelper.getThemeResource(this));
         }
         return themedContext;
     }
@@ -179,46 +193,89 @@ public class FloatingButtonService extends Service {
         taskDatabase = TaskDatabase.getInstance(this);
         taskRepository = TaskRepository.getInstance();
         taskRepository.initialize(this);
+
+        // Register theme change receiver
+        IntentFilter filter = new IntentFilter(BaseThemedActivity.ACTION_THEME_CHANGED);
+        registerReceiver(themeChangeReceiver, filter);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        android.util.Log.d("FloatingButtonService", "onStartCommand called");
         try {
             Notification notification = createNotification();
+            android.util.Log.d("FloatingButtonService", "Notification created");
+
             startForeground(NOTIFICATION_ID, notification);
+            android.util.Log.d("FloatingButtonService", "Started foreground");
+
             if (floatingView == null) {
+                android.util.Log.d("FloatingButtonService", "floatingView is null, creating...");
                 createFloatingButton();
+            } else {
+                android.util.Log.d("FloatingButtonService", "floatingView already exists");
             }
+
+            android.util.Log.d("FloatingButtonService", "onStartCommand completed successfully");
             return START_STICKY;
         } catch (Exception e) {
+            android.util.Log.e("FloatingButtonService", "ERROR in onStartCommand", e);
+            e.printStackTrace();
             stopSelf();
             return START_NOT_STICKY;
         }
     }
 
     private void createFloatingButton() {
-        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        floatingView = LayoutInflater.from(this).inflate(R.layout.floating_button_layout, null);
-        View floatingButton = floatingView.findViewById(R.id.floatingActionButton);
+        try {
+            android.util.Log.d("FloatingButtonService", "createFloatingButton: Starting...");
 
-        int LAYOUT_FLAG = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-                : WindowManager.LayoutParams.TYPE_PHONE;
+            windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+            android.util.Log.d("FloatingButtonService", "WindowManager obtained");
 
-        final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                LAYOUT_FLAG,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT
-        );
-        params.gravity = Gravity.TOP | Gravity.START;
-        params.x = 0;
-        params.y = 100;
+            floatingView = LayoutInflater.from(this).inflate(R.layout.floating_button_layout, null);
+            android.util.Log.d("FloatingButtonService", "Layout inflated successfully");
 
-        windowManager.addView(floatingView, params);
+            View floatingButton = floatingView.findViewById(R.id.floatingActionButton);
+            android.util.Log.d("FloatingButtonService", "FloatingButton view found: " + (floatingButton != null));
 
-        floatingButton.setOnTouchListener((v, event) -> {
+            // Set the background color programmatically to match theme
+            if (floatingButton != null) {
+                try {
+                    int primaryColor = getThemePrimaryColor();
+                    android.util.Log.d("FloatingButtonService", "Primary color: " + Integer.toHexString(primaryColor));
+
+                    android.graphics.drawable.GradientDrawable drawable = new android.graphics.drawable.GradientDrawable();
+                    drawable.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+                    drawable.setColor(primaryColor);
+                    drawable.setSize(dpToPx(56), dpToPx(56));
+                    floatingButton.setBackground(drawable);
+                    android.util.Log.d("FloatingButtonService", "Background set successfully");
+                } catch (Exception e) {
+                    android.util.Log.e("FloatingButtonService", "Error setting background", e);
+                    e.printStackTrace();
+                }
+            }
+
+            int LAYOUT_FLAG = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                    ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                    : WindowManager.LayoutParams.TYPE_PHONE;
+
+            final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    LAYOUT_FLAG,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                    PixelFormat.TRANSLUCENT
+            );
+            params.gravity = Gravity.TOP | Gravity.START;
+            params.x = 0;
+            params.y = 100;
+
+            windowManager.addView(floatingView, params);
+            android.util.Log.d("FloatingButtonService", "Floating button added to WindowManager successfully!");
+
+            floatingButton.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                     initialX = params.x;
@@ -244,11 +301,17 @@ public class FloatingButtonService extends Service {
                     windowManager.updateViewLayout(floatingView, params);
                     if (!isDragging) {
                         showMainMenu();
-                    }
-                    return true;
+                }
+                return true;
             }
             return false;
         });
+
+        } catch (Exception e) {
+            android.util.Log.e("FloatingButtonService", "FATAL ERROR in createFloatingButton", e);
+            e.printStackTrace();
+            throw e; // Re-throw to be caught by onStartCommand
+        }
     }
 
     private void showMainMenu() {
@@ -269,8 +332,10 @@ public class FloatingButtonService extends Service {
             isMenuVisible = true;
             View quickTaskCard = menuView.findViewById(R.id.quickTaskCard);
             View noteCard = menuView.findViewById(R.id.noteCard);
+            View closeButton = menuView.findViewById(R.id.closeButton);
             if (quickTaskCard != null) quickTaskCard.setOnClickListener(v -> showTaskTypeMenu());
             if (noteCard != null) noteCard.setOnClickListener(v -> showNoteForm());
+            if (closeButton != null) closeButton.setOnClickListener(v -> hideMenu());
             menuView.setOnClickListener(v -> hideMenu());
         } catch (Exception e) {
             menuView = null;
@@ -296,8 +361,10 @@ public class FloatingButtonService extends Service {
             
             // Back button - go back to main menu
             View backButton = menuView.findViewById(R.id.backButton);
+            View closeButton = menuView.findViewById(R.id.closeButton);
             if (backButton != null) backButton.setOnClickListener(v -> showMainMenu());
-            
+            if (closeButton != null) closeButton.setOnClickListener(v -> hideMenu());
+
             View taskTypeCard = menuView.findViewById(R.id.taskTypeCard);
             View focusTypeCard = menuView.findViewById(R.id.focusTypeCard);
             if (taskTypeCard != null) taskTypeCard.setOnClickListener(v -> showQuickTaskForm());
@@ -562,7 +629,14 @@ public class FloatingButtonService extends Service {
                 long id = taskRepository.addTask(task);
                 task.id = (int) id;
                 if (alarm) AlarmHelper.scheduleTaskAlarm(this, task);
-                runOnUiThread(() -> { Toast.makeText(this, "Task added!", Toast.LENGTH_SHORT).show(); hideMenu(); });
+                runOnUiThread(() -> {
+                    hideMenu();
+                    Toast.makeText(this, "Task added!", Toast.LENGTH_SHORT).show();
+                    // Send broadcast to refresh the main app immediately
+                    Intent refreshIntent = new Intent("com.example.mainactivity.REFRESH_TASKS");
+                    refreshIntent.setPackage(getPackageName());
+                    sendBroadcast(refreshIntent);
+                });
             } catch (Exception e) {
                 runOnUiThread(() -> Toast.makeText(this, "Error saving task", Toast.LENGTH_SHORT).show());
             }
@@ -671,12 +745,85 @@ public class FloatingButtonService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        // Unregister broadcast receiver
+        try {
+            unregisterReceiver(themeChangeReceiver);
+        } catch (Exception e) {
+            // Receiver might not be registered
+        }
+
         if (floatingView != null && windowManager != null) {
             try { windowManager.removeView(floatingView); } catch (Exception ignored) {}
         }
         if (menuView != null && windowManager != null) {
             try { windowManager.removeView(menuView); } catch (Exception ignored) {}
         }
+    }
+
+    /**
+     * Recreate floating views when theme changes
+     */
+    private void recreateFloatingViews() {
+        // Store current position
+        WindowManager.LayoutParams currentParams = null;
+        if (floatingView != null) {
+            currentParams = (WindowManager.LayoutParams) floatingView.getLayoutParams();
+        }
+
+        // Remove old views
+        if (floatingView != null && windowManager != null) {
+            try { windowManager.removeView(floatingView); } catch (Exception ignored) {}
+            floatingView = null;
+        }
+        if (menuView != null && windowManager != null) {
+            try { windowManager.removeView(menuView); } catch (Exception ignored) {}
+            menuView = null;
+            isMenuVisible = false;
+        }
+
+        // Recreate floating button
+        createFloatingButton();
+
+        // Restore position if available
+        if (currentParams != null && floatingView != null) {
+            WindowManager.LayoutParams newParams = (WindowManager.LayoutParams) floatingView.getLayoutParams();
+            newParams.x = currentParams.x;
+            newParams.y = currentParams.y;
+            try {
+                windowManager.updateViewLayout(floatingView, newParams);
+            } catch (Exception ignored) {}
+        }
+    }
+
+    /**
+     * Get the primary color for the current theme
+     */
+    private int getThemePrimaryColor() {
+        String themeColor = ThemeHelper.getThemeColor(this);
+
+        // Return color based on theme selection
+        switch (themeColor) {
+            case ThemeHelper.COLOR_CYAN:
+                return getResources().getColor(R.color.cyan_primary, null);
+            case ThemeHelper.COLOR_GREEN:
+                return getResources().getColor(R.color.green_primary, null);
+            case ThemeHelper.COLOR_PURPLE:
+                return getResources().getColor(R.color.purple_primary, null);
+            case ThemeHelper.COLOR_ORANGE:
+                return getResources().getColor(R.color.orange_primary, null);
+            case ThemeHelper.COLOR_DEFAULT:
+            default:
+                return getResources().getColor(R.color.blue_primary, null);
+        }
+    }
+
+    /**
+     * Convert dp to pixels
+     */
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round(dp * density);
     }
 
     @Override

@@ -399,6 +399,11 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
                 AlarmHelper.scheduleFocusTaskAlarms(requireContext(), editingTask);
             }
 
+            // Trigger UI refresh IMMEDIATELY before toast
+            if (listener != null) {
+                listener.onTaskSaved();
+            }
+
             Toast.makeText(requireContext(), "🎯 Focus session updated! Let's crush it!", Toast.LENGTH_SHORT).show();
         } else {
             // Create new Focus Task
@@ -416,12 +421,14 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
                 AlarmHelper.scheduleFocusTaskAlarms(requireContext(), focusTask);
             }
 
+            // Trigger UI refresh IMMEDIATELY before toast
+            if (listener != null) {
+                listener.onTaskSaved();
+            }
+
             Toast.makeText(requireContext(), "🎯 Focus session created! You've got this!", Toast.LENGTH_SHORT).show();
         }
 
-        if (listener != null) {
-            listener.onTaskSaved();
-        }
         dismiss();
     }
 

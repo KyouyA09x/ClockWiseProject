@@ -15,28 +15,45 @@
         android:orientation="vertical"
         android:padding="@dimen/dialog_padding">
 
-        <!-- Title -->
-        <TextView
+        <!-- Header with Title and Close Button -->
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Quick Task"
-            android:textAppearance="?attr/textAppearanceHeadlineSmall"
-            android:textColor="?attr/colorOnSurface"
-            android:gravity="center"
-            android:layout_marginBottom="@dimen/spacing_sm" />
+            android:layout_marginBottom="@dimen/spacing_sm">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Quick Task"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textColor="?attr/colorOnSurface" />
+
+            <ImageButton
+                android:id="@+id/closeButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_close"
+                android:contentDescription="Close"
+                app:tint="?attr/colorOnSurface" />
+
+        </RelativeLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Choose your action"
+            android:text="Select task type"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:gravity="center"
             android:layout_marginBottom="@dimen/spacing_lg" />
 
-        <!-- Convert Note to Task Option -->
+        <!-- Task Option -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/convertNoteOption"
+            android:id="@+id/taskOption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/spacing_md"
@@ -57,7 +74,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="56dp"
                     android:layout_height="56dp"
-                    app:cardBackgroundColor="@color/warning"
+                    app:cardBackgroundColor="?attr/colorPrimary"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="0dp">
 
@@ -65,9 +82,9 @@
                         android:layout_width="@dimen/icon_size_lg"
                         android:layout_height="@dimen/icon_size_lg"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_notepad"
+                        android:src="@drawable/ic_reminder"
                         app:tint="@color/white"
-                        android:contentDescription="Convert Note" />
+                        android:contentDescription="Task" />
 
                 </com.google.android.material.card.MaterialCardView>
 
@@ -81,14 +98,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Convert Note to Task"
+                        android:text="Task"
                         android:textAppearance="?attr/textAppearanceTitleMedium"
                         android:textColor="?attr/colorOnSurface" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Turn your note into a task"
+                        android:text="Create a quick reminder"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginTop="@dimen/spacing_xs" />
@@ -106,9 +123,9 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- New Quick Task Option -->
+        <!-- Focus Session Option -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/newQuickTaskOption"
+            android:id="@+id/focusSessionOption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true"
@@ -136,9 +153,9 @@
                         android:layout_width="@dimen/icon_size_lg"
                         android:layout_height="@dimen/icon_size_lg"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_flash"
-                        app:tint="?attr/colorOnPrimary"
-                        android:contentDescription="Quick Task" />
+                        android:src="@drawable/ic_focus"
+                        app:tint="@color/white"
+                        android:contentDescription="Focus Session" />
 
                 </com.google.android.material.card.MaterialCardView>
 
@@ -152,14 +169,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="New Quick Task"
+                        android:text="Focus Session"
                         android:textAppearance="?attr/textAppearanceTitleMedium"
                         android:textColor="?attr/colorOnSurface" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Create task with today's date"
+                        android:text="Create a quick focus session"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginTop="@dimen/spacing_xs" />
@@ -180,3 +197,4 @@
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
+

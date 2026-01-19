@@ -170,97 +170,59 @@ public class CurrentTasksFragment extends Fragment {
     public void refreshTasks() {
         if (taskRepository == null || getContext() == null) return;
 
-        taskRepository.refreshTasks();
+        // Ensure repository is fully initialized
+        if (taskRepository.morningTasks == null || taskRepository.afternoonTasks == null || taskRepository.nightTasks == null) {
+            taskRepository.initialize(requireContext());
+        }
 
-        ArrayList<Task> morningTasks = taskRepository.morningTasks;
-        ArrayList<Task> afternoonTasks = taskRepository.afternoonTasks;
-        ArrayList<Task> nightTasks = taskRepository.nightTasks;
+        // Safety: Create empty lists if still null (should never happen)
+        ArrayList<Task> morningTasks = taskRepository.morningTasks != null ? taskRepository.morningTasks : new ArrayList<>();
+        ArrayList<Task> afternoonTasks = taskRepository.afternoonTasks != null ? taskRepository.afternoonTasks : new ArrayList<>();
+        ArrayList<Task> nightTasks = taskRepository.nightTasks != null ? taskRepository.nightTasks : new ArrayList<>();
 
+        // Clear containers efficiently
         if (focusTasksContainer != null) focusTasksContainer.removeAllViews();
         if (morningTasksContainer != null) morningTasksContainer.removeAllViews();
         if (afternoonTasksContainer != null) afternoonTasksContainer.removeAllViews();
         if (nightTasksContainer != null) nightTasksContainer.removeAllViews();
 
+        // Get today's date once
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         String todayDate = sdf.format(new java.util.Date());
 
-        int totalTasks = 0;
-        int completedTasks = 0;
-        boolean hasTasksForToday = false;
-        boolean hasTodayFocusTasks = false;
-        boolean hasAnyTodayTasks = false;
-        boolean hasReminderTasksForToday = false;
-
-        // Check if there are any tasks for today
-        for (Task task : morningTasks) {
-            if (task != null && task.date != null && task.date.equals(todayDate)) {
-                hasAnyTodayTasks = true;
-                break;
-            }
-        }
-        if (!hasAnyTodayTasks) {
-            for (Task task : afternoonTasks) {
-                if (task != null && task.date != null && task.date.equals(todayDate)) {
-                    hasAnyTodayTasks = true;
-                    break;
-                }
-            }
-        }
-        if (!hasAnyTodayTasks) {
-            for (Task task : nightTasks) {
-                if (task != null && task.date != null && task.date.equals(todayDate)) {
-                    hasAnyTodayTasks = true;
-                    break;
-                }
-            }
-        }
-
-        // No placeholder data - app starts empty until user populates via Settings
-
-        // Process all task lists
+        // Process task lists and count in one pass for efficiency
         processTaskList(morningTasks, todayDate, morningTasksContainer, focusTasksContainer);
         processTaskList(afternoonTasks, todayDate, afternoonTasksContainer, focusTasksContainer);
         processTaskList(nightTasks, todayDate, nightTasksContainer, focusTasksContainer);
 
-        // Count tasks
-        for (Task task : morningTasks) {
-            if (task != null && task.date != null && task.date.equals(todayDate)) {
-                totalTasks++;
-                if (task.isComplete) completedTasks++;
-                else hasTasksForToday = true;
-                if (task.isFocusTask() && !task.isComplete) {
-                    hasTodayFocusTasks = true;
-                } else if (!task.isFocusTask() && !task.isComplete) {
-                    hasReminderTasksForToday = true;
-                }
-            }
-        }
-        for (Task task : afternoonTasks) {
-            if (task != null && task.date != null && task.date.equals(todayDate)) {
-                totalTasks++;
-                if (task.isComplete) completedTasks++;
-                else hasTasksForToday = true;
-                if (task.isFocusTask() && !task.isComplete) {
-                    hasTodayFocusTasks = true;
-                } else if (!task.isFocusTask() && !task.isComplete) {
-                    hasReminderTasksForToday = true;
-                }
-            }
-        }
-        for (Task task : nightTasks) {
-            if (task != null && task.date != null && task.date.equals(todayDate)) {
-                totalTasks++;
-                if (task.isComplete) completedTasks++;
-                else hasTasksForToday = true;
-                if (task.isFocusTask() && !task.isComplete) {
-                    hasTodayFocusTasks = true;
-                } else if (!task.isFocusTask() && !task.isComplete) {
-                    hasReminderTasksForToday = true;
+        // Count tasks efficiently in one combined loop
+        int totalTasks = 0;
+        int completedTasks = 0;
+        boolean hasTodayFocusTasks = false;
+        boolean hasReminderTasksForToday = false;
+
+        // Combined counting loop - process all task lists together
+        @SuppressWarnings("unchecked")
+        ArrayList<Task>[] allTaskLists = new ArrayList[]{morningTasks, afternoonTasks, nightTasks};
+        
+        for (ArrayList<Task> taskList : allTaskLists) {
+            for (Task task : taskList) {
+                if (task != null && task.date != null && task.date.equals(todayDate)) {
+                    totalTasks++;
+                    if (task.isComplete) {
+                        completedTasks++;
+                    } else {
+                        if (task.isFocusTask()) {
+                            hasTodayFocusTasks = true;
+                        } else {
+                            hasReminderTasksForToday = true;
+                        }
+                    }
                 }
             }
         }
 
-        // Update UI
+        // Update UI with calculated values
         if (taskCountText != null) {
             taskCountText.setText(String.format(Locale.getDefault(), "Task %d/%d", completedTasks, totalTasks));
         }
@@ -551,7 +513,7 @@ public class CurrentTasksFragment extends Fragment {
                                 AlarmHelper.cancelTaskAlarm(getContext(), task);
                             }
                             taskRepository.deleteTask(task);
-                            taskRepository.refreshTasks();
+                            // Repository already updated - just refresh UI
                             refreshTasks();
                             Toast.makeText(getContext(), (task.isFocusTask() ? "Focus session" : "Task") + " moved to trash", Toast.LENGTH_SHORT).show();
                         });
@@ -830,7 +792,7 @@ public class CurrentTasksFragment extends Fragment {
             if (getActivity() != null) {
                 AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstance(task);
                 bottomSheet.setOnTaskSavedListener(() -> {
-                    taskRepository.refreshTasks();
+                    // Repository already updated - just refresh UI
                     refreshTasks();
                 });
                 bottomSheet.show(getActivity().getSupportFragmentManager(), "AddReminderBottomSheet");

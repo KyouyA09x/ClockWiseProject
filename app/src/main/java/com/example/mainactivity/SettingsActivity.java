@@ -151,12 +151,16 @@ public class SettingsActivity extends BaseThemedActivity {
     }
     
     private void startFloatingButtonService() {
+        android.util.Log.d("SettingsActivity", "startFloatingButtonService called");
         Intent serviceIntent = new Intent(this, FloatingButtonService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            android.util.Log.d("SettingsActivity", "Starting foreground service");
             startForegroundService(serviceIntent);
         } else {
+            android.util.Log.d("SettingsActivity", "Starting regular service");
             startService(serviceIntent);
         }
+        android.util.Log.d("SettingsActivity", "Service start command sent");
     }
     
     private void stopFloatingButtonService() {

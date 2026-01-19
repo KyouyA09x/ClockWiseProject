@@ -33,28 +33,37 @@ public abstract class BaseThemedActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        // Apply theme BEFORE calling super.onCreate()
-        ThemeHelper.applyTheme(this);
-        setTheme(ThemeHelper.getThemeResource(this));
-        
+        try {
+            // Apply theme BEFORE calling super.onCreate()
+            ThemeHelper.applyTheme(this);
+            setTheme(ThemeHelper.getThemeResource(this));
+        } catch (Exception e) {
+            android.util.Log.e("BaseThemedActivity", "Error applying theme", e);
+            // Continue with default theme
+        }
+
         super.onCreate(savedInstanceState);
         
-        // Store current theme settings
-        currentThemeMode = ThemeHelper.getThemeMode(this);
-        currentThemeColor = ThemeHelper.getThemeColor(this);
-        isRecreating = false;
-        
-        // Register broadcast receiver for theme changes
         try {
-            IntentFilter filter = new IntentFilter(ACTION_THEME_CHANGED);
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(themeChangeReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
-            } else {
-                registerReceiver(themeChangeReceiver, filter);
+            // Store current theme settings
+            currentThemeMode = ThemeHelper.getThemeMode(this);
+            currentThemeColor = ThemeHelper.getThemeColor(this);
+            isRecreating = false;
+
+            // Register broadcast receiver for theme changes
+            try {
+                IntentFilter filter = new IntentFilter(ACTION_THEME_CHANGED);
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    registerReceiver(themeChangeReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+                } else {
+                    registerReceiver(themeChangeReceiver, filter);
+                }
+            } catch (Exception e) {
+                // Receiver registration failed, theme changes will still work via onResume
+                android.util.Log.w("BaseThemedActivity", "Failed to register theme receiver", e);
             }
         } catch (Exception e) {
-            // Receiver registration failed, theme changes will still work via onResume
-            e.printStackTrace();
+            android.util.Log.e("BaseThemedActivity", "Error in onCreate", e);
         }
     }
 

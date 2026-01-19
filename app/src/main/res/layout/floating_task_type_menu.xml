@@ -16,7 +16,8 @@
         android:background="@drawable/floating_menu_background"
         android:elevation="16dp"
         android:clickable="true"
-        android:focusable="true">
+        android:focusable="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <!-- Header with Back Button -->
         <LinearLayout
@@ -47,10 +48,18 @@
                 android:textColor="?attr/floatingMenuTextColor"
                 android:gravity="center" />
 
-            <!-- Spacer for symmetry -->
-            <View
+            <!-- Close Button -->
+            <ImageView
+                android:id="@+id/closeButton"
                 android:layout_width="32dp"
-                android:layout_height="32dp" />
+                android:layout_height="32dp"
+                android:src="@drawable/ic_close"
+                android:padding="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/close"
+                app:tint="?attr/floatingMenuTextColor"
+                android:clickable="true"
+                android:focusable="true" />
 
         </LinearLayout>
 
@@ -67,13 +76,23 @@
             android:clickable="true"
             android:focusable="true">
 
-            <ImageView
+            <FrameLayout
                 android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_reminder"
-                android:padding="8dp"
-                android:background="@drawable/icon_background_green"
-                android:contentDescription="@string/quick_task_header" />
+                android:layout_height="40dp">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/icon_background_circle" />
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_reminder"
+                    android:padding="8dp"
+                    app:tint="@color/white"
+                    android:contentDescription="@string/quick_task_header" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="0dp"
@@ -105,13 +124,23 @@
             android:clickable="true"
             android:focusable="true">
 
-            <ImageView
+            <FrameLayout
                 android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_focus"
-                android:padding="8dp"
-                android:background="@drawable/icon_background_blue"
-                android:contentDescription="@string/focus_task_header" />
+                android:layout_height="40dp">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/icon_background_circle" />
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_focus"
+                    android:padding="8dp"
+                    app:tint="@color/white"
+                    android:contentDescription="@string/focus_task_header" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="0dp"

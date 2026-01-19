@@ -119,11 +119,15 @@ public class UpcomingTasksFragment extends Fragment {
     public void refreshTasks() {
         if (taskRepository == null || getContext() == null) return;
 
-        taskRepository.refreshTasks();
+        // Ensure repository is fully initialized
+        if (taskRepository.morningTasks == null || taskRepository.afternoonTasks == null || taskRepository.nightTasks == null) {
+            taskRepository.initialize(requireContext());
+        }
 
-        ArrayList<Task> morningTasks = taskRepository.morningTasks;
-        ArrayList<Task> afternoonTasks = taskRepository.afternoonTasks;
-        ArrayList<Task> nightTasks = taskRepository.nightTasks;
+        // Safety: Create empty lists if still null (should never happen)
+        ArrayList<Task> morningTasks = taskRepository.morningTasks != null ? taskRepository.morningTasks : new ArrayList<>();
+        ArrayList<Task> afternoonTasks = taskRepository.afternoonTasks != null ? taskRepository.afternoonTasks : new ArrayList<>();
+        ArrayList<Task> nightTasks = taskRepository.nightTasks != null ? taskRepository.nightTasks : new ArrayList<>();
 
         // Clear containers
         if (focusSessionsContainer != null) focusSessionsContainer.removeAllViews();
@@ -558,7 +562,7 @@ public class UpcomingTasksFragment extends Fragment {
                     if (getActivity() != null) {
                         AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstance(task);
                         bottomSheet.setOnTaskSavedListener(() -> {
-                            taskRepository.refreshTasks();
+                            // Repository already updated - just refresh UI
                             refreshTasks();
                         });
                         bottomSheet.show(getActivity().getSupportFragmentManager(), "AddReminderBottomSheet");
@@ -591,7 +595,7 @@ public class UpcomingTasksFragment extends Fragment {
                                 AlarmHelper.cancelTaskAlarm(getContext(), task);
                             }
                             taskRepository.deleteTask(task);
-                            taskRepository.refreshTasks();
+                            // Repository already updated - just refresh UI
                             refreshTasks();
                             Toast.makeText(getContext(), typeName + " deleted", Toast.LENGTH_SHORT).show();
                         });
@@ -752,7 +756,7 @@ public class UpcomingTasksFragment extends Fragment {
                 if (getActivity() != null) {
                     AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstance(task);
                     bottomSheet.setOnTaskSavedListener(() -> {
-                        taskRepository.refreshTasks();
+                        // Repository already updated - just refresh UI
                         refreshTasks();
                     });
                     bottomSheet.show(getActivity().getSupportFragmentManager(), "AddReminderBottomSheet");
@@ -871,7 +875,7 @@ public class UpcomingTasksFragment extends Fragment {
             if (getActivity() != null) {
                 AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstance(task);
                 bottomSheet.setOnTaskSavedListener(() -> {
-                    taskRepository.refreshTasks();
+                    // Repository already updated - just refresh UI
                     refreshTasks();
                 });
                 bottomSheet.show(getActivity().getSupportFragmentManager(), "AddReminderBottomSheet");
