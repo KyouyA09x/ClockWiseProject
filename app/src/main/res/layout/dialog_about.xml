@@ -181,96 +181,55 @@
                     </LinearLayout>
 
                 </LinearLayout>
-                <!-- About Us Toggle Button -->
+
+
+                <!-- About Us Toggle Button (Classic Design Restored) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/aboutUsToggleButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="About the development team"
+                    android:text="About Us"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorPrimary"
-                    app:strokeColor="?attr/colorPrimary"
-                    app:icon="@drawable/ic_person"
+                    android:textStyle="bold"
+                    android:gravity="center_horizontal"
+                    app:icon="@drawable/ic_arrow_down"
                     app:iconTint="?attr/colorPrimary"
-                    app:iconGravity="start"
-                    android:layout_marginTop="@dimen/spacing_md" />
-                <!-- About Us Section (Hidden by default) -->
+                    app:iconGravity="end"
+                    android:layout_marginTop="@dimen/spacing_md"
+                    android:layout_marginBottom="@dimen/spacing_sm" />
+
+                <!-- About Us Section (Classic Design Restored) -->
                 <LinearLayout
                     android:id="@+id/aboutUsSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:visibility="gone"
-                    android:layout_marginTop="@dimen/spacing_md">
-                    <!-- App Icon in About Us -->
-                    <ImageView
-                        android:layout_width="80dp"
-                        android:layout_height="80dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/app_icon"
-                        android:layout_marginBottom="@dimen/spacing_md"
-                        android:contentDescription="ClockWise Icon" />
-                    <!-- Development Team Section -->
+                    android:paddingHorizontal="@dimen/spacing_md"
+                    android:layout_marginBottom="@dimen/spacing_lg">
+
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Development Team"
-                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textAppearance="?attr/textAppearanceTitleSmall"
                         android:textColor="?attr/colorPrimary"
                         android:textStyle="bold"
-                        android:gravity="center"
-                        android:layout_marginBottom="@dimen/spacing_md" />
-                    <!-- Team Members -->
-                    <LinearLayout
+                        android:layout_marginBottom="@dimen/spacing_sm" />
+
+                    <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:layout_marginBottom="@dimen/spacing_md">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Ferol, John Sebastian Khyle, M."
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?attr/colorOnSurface"
-                            android:paddingVertical="4dp" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Garcia, Lois Henricho, L."
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?attr/colorOnSurface"
-                            android:paddingVertical="4dp" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Imperial, Jherico, S."
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?attr/colorOnSurface"
-                            android:paddingVertical="4dp" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Lapez, Corvin Kyle, A."
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?attr/colorOnSurface"
-                            android:paddingVertical="4dp" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Millares, Jerome, P."
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?attr/colorOnSurface"
-                            android:paddingVertical="4dp" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Sia, Mavi Gabriel, A."
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?attr/colorOnSurface"
-                            android:paddingVertical="4dp" />
-                    </LinearLayout>
+                        android:text="@string/about_us_developers"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:lineSpacingExtra="6dp"
+                        android:paddingVertical="4dp" />
+
                 </LinearLayout>
+
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
     </LinearLayout>

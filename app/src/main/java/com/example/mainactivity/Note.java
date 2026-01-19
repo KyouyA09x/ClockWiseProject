@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "notes")
@@ -48,12 +49,14 @@ public class Note implements Parcelable {
         this.isDeleted = false;
     }
 
+    @Ignore
     public Note(String title, String description) {
         this();
         this.title = title;
         this.description = description;
     }
 
+    @Ignore
     protected Note(Parcel in) {
         id = in.readInt();
         title = in.readString();
@@ -74,7 +77,7 @@ public class Note implements Parcelable {
         isDeleted = in.readByte() != 0;
     }
 
-    public static final Creator<Note> CREATOR = new Creator<Note>() {
+    public static final Creator<Note> CREATOR = new Creator<>() {
         @Override
         public Note createFromParcel(Parcel in) {
             return new Note(in);

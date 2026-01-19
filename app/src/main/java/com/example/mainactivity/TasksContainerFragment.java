@@ -17,14 +17,22 @@ public class TasksContainerFragment extends Fragment {
 
     private ViewPager2 viewPager;
     private TabLayout tabLayout;
+    private View phoneTasksLayout;
+    private View tabletTasksLayout;
+    private WindowSizeHelper.WindowSizeClass currentWindowSize;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_tasks_container, container, false);
 
+        // Track current window size
+        if (getActivity() != null) {
+            currentWindowSize = WindowSizeHelper.getWidthSizeClass(getActivity());
+        }
+
         initViews(view);
-        setupViewPager();
+        setupAdaptiveLayout();
         setupBottomPadding(view);
 
         return view;
@@ -33,24 +41,54 @@ public class TasksContainerFragment extends Fragment {
     private void initViews(View view) {
         viewPager = view.findViewById(R.id.tasksViewPager);
         tabLayout = view.findViewById(R.id.tasksTabLayout);
+        phoneTasksLayout = view.findViewById(R.id.phoneTasksLayout);
+        tabletTasksLayout = view.findViewById(R.id.tabletTasksLayout);
+    }
+
+    private void setupAdaptiveLayout() {
+        if (getActivity() == null) return;
+
+        // Use WindowSizeHelper to detect if we should use the side-by-side layout
+        if (WindowSizeHelper.isLargeScreen(getActivity())) {
+            // TABLET/FOLDABLE: Show side-by-side panes
+            if (phoneTasksLayout != null) phoneTasksLayout.setVisibility(View.GONE);
+            if (tabletTasksLayout != null) {
+                tabletTasksLayout.setVisibility(View.VISIBLE);
+                
+                // Embed fragments directly into the side-by-side frames
+                getChildFragmentManager().beginTransaction()
+                        .replace(R.id.leftTasksPane, new CurrentTasksFragment())
+                        .replace(R.id.rightTasksPane, new UpcomingTasksFragment())
+                        .commit();
+            }
+        } else {
+            // PHONE: Standard tabbed view
+            if (phoneTasksLayout != null) phoneTasksLayout.setVisibility(View.VISIBLE);
+            if (tabletTasksLayout != null) tabletTasksLayout.setVisibility(View.GONE);
+            setupViewPager();
+        }
     }
 
     private void setupViewPager() {
+        if (viewPager == null) return;
+        
         TasksViewPagerAdapter adapter = new TasksViewPagerAdapter(requireActivity());
         viewPager.setAdapter(adapter);
 
-        new TabLayoutMediator(tabLayout, viewPager,
-                (tab, position) -> {
-                    switch (position) {
-                        case 0:
-                            tab.setText("📋 Current Tasks");
-                            break;
-                        case 1:
-                            tab.setText("📅 Upcoming");
-                            break;
+        if (tabLayout != null) {
+            new TabLayoutMediator(tabLayout, viewPager,
+                    (tab, position) -> {
+                        switch (position) {
+                            case 0:
+                                tab.setText("📋 Current Tasks");
+                                break;
+                            case 1:
+                                tab.setText("📅 Upcoming");
+                                break;
+                        }
                     }
-                }
-        ).attach();
+            ).attach();
+        }
     }
 
     private void setupBottomPadding(View view) {
@@ -86,13 +124,22 @@ public class TasksContainerFragment extends Fragment {
                     bottomNavHeight = (int) (56 * density);
                 }
 
-                // Set padding on ViewPager to account for bottom nav + system bars
+                // Set padding on ViewPager and tablet layout to account for bottom nav + system bars
+                int fabSpace = (int) (96 * density);
+                int totalBottomPadding = bottomNavHeight + systemBars.bottom + fabSpace;
+
                 if (viewPager != null) {
-                    // Add extra padding for FAB (80dp) + margins
-                    int fabSpace = (int) (96 * density);
-                    int totalBottomPadding = bottomNavHeight + systemBars.bottom + fabSpace;
                     viewPager.setPadding(0, 0, 0, totalBottomPadding);
                     viewPager.setClipToPadding(false);
+                }
+                
+                if (tabletTasksLayout != null) {
+                    tabletTasksLayout.setPadding(
+                        tabletTasksLayout.getPaddingLeft(),
+                        tabletTasksLayout.getPaddingTop(),
+                        tabletTasksLayout.getPaddingRight(),
+                        totalBottomPadding
+                    );
                 }
 
                 return insets;
@@ -110,6 +157,23 @@ public class TasksContainerFragment extends Fragment {
             } else if (fragment instanceof UpcomingTasksFragment) {
                 ((UpcomingTasksFragment) fragment).refreshTasks();
             }
+        }
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull android.content.res.Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        if (getActivity() == null) return;
+
+        // Check if window size class changed (e.g., folding/unfolding device)
+        WindowSizeHelper.WindowSizeClass newWindowSize = WindowSizeHelper.getWidthSizeClass(getActivity());
+
+        if (newWindowSize != currentWindowSize) {
+            currentWindowSize = newWindowSize;
+
+            // Re-setup the adaptive layout for the new screen size
+            setupAdaptiveLayout();
         }
     }
 }

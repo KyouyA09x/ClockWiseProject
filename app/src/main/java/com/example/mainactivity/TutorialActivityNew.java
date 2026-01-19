@@ -52,6 +52,10 @@ public class TutorialActivityNew extends BaseThemedActivity {
     private LinearProgressIndicator progressIndicator;
     private TextView stepCounter;
     
+    // TABLET SUPPORT: Visual area for side-by-side layout
+    private ImageView tutorialImage;
+    private boolean isTabletLayout = false;
+
     // References to actual app UI elements
     private DrawerLayout drawerLayout;
     private MaterialToolbar toolbar;
@@ -73,6 +77,9 @@ public class TutorialActivityNew extends BaseThemedActivity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private AnimatorSet currentAnimation;
     private android.widget.PopupWindow quickInfoPopup;
+
+    // Track current window size to detect changes
+    private WindowSizeHelper.WindowSizeClass currentWindowSize;
 
     // Tutorial step definitions
     private final TutorialStep[] steps = {
@@ -161,6 +168,23 @@ public class TutorialActivityNew extends BaseThemedActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tutorial_new);
 
+        // Track initial window size
+        currentWindowSize = WindowSizeHelper.getWidthSizeClass(this);
+        boolean isLargeScreen = WindowSizeHelper.isLargeScreen(this);
+
+        // TABLET SUPPORT: Load TasksContainerFragment for proper tablet layout
+        if (isLargeScreen && savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragmentContainer, new TasksContainerFragment())
+                    .commit();
+        } else {
+            // PHONE: Show inline scroll view with sample tasks
+            View scrollView = findViewById(R.id.tutorialScrollView);
+            if (scrollView != null) {
+                scrollView.setVisibility(View.VISIBLE);
+            }
+        }
+
         initializeViews();
         setupButtons();
         setupAppUI();
@@ -179,8 +203,20 @@ public class TutorialActivityNew extends BaseThemedActivity {
 
     private void initializeViews() {
         spotlightView = findViewById(R.id.spotlightView);
-        tutorialCard = findViewById(R.id.tutorialCard);
         tutorialCardContainer = findViewById(R.id.tutorialCardContainer);
+
+        boolean isLargeScreen = WindowSizeHelper.isLargeScreen(this);
+
+        // TABLET SUPPORT: Inflate appropriate tutorial card layout based on screen size
+        if (isLargeScreen) {
+            // Inflate tablet layout (side-by-side: 35% visual, 65% content)
+            tutorialCardContainer.removeAllViews();
+            LayoutInflater.from(this).inflate(R.layout.tutorial_card, tutorialCardContainer, true);
+            isTabletLayout = true;
+        }
+
+        // Now find views from the inflated card (either phone or tablet layout)
+        tutorialCard = findViewById(R.id.tutorialCard);
         tutorialTitle = findViewById(R.id.tutorialTitle);
         tutorialDescription = findViewById(R.id.tutorialDescription);
         nextButton = findViewById(R.id.nextButton);
@@ -188,6 +224,12 @@ public class TutorialActivityNew extends BaseThemedActivity {
         progressIndicator = findViewById(R.id.progressIndicator);
         stepCounter = findViewById(R.id.stepCounter);
         
+        // Check if using tablet layout with visual area
+        tutorialImage = findViewById(R.id.tutorialImage);
+        if (tutorialImage != null) {
+            isTabletLayout = true;
+        }
+
         // Get references to actual app UI
         drawerLayout = findViewById(R.id.drawerLayout);
         toolbar = findViewById(R.id.topBar);
@@ -195,31 +237,42 @@ public class TutorialActivityNew extends BaseThemedActivity {
         fabQuick = findViewById(R.id.fabQuickTask);
         bottomNav = findViewById(R.id.bottomNavigation);
         navigationView = findViewById(R.id.navigationView);
-        progressTracker = findViewById(R.id.progressTracker);
-        morningTasksContainer = findViewById(R.id.morningTasksContainer);
-        afternoonTasksContainer = findViewById(R.id.afternoonTasksContainer);
-        nightTasksContainer = findViewById(R.id.nightTasksContainer);
         scrollView = findViewById(R.id.tutorialScrollView);
-        tabLayout = findViewById(R.id.tasksTabLayout);
-        upcomingTasksSection = findViewById(R.id.upcomingTasksSection);
-        upcomingTasksContainer = findViewById(R.id.upcomingTasksContainer);
-        tasksContainerCard = findViewById(R.id.tasksContainerCard);
-        
-        // Setup tabs
-        if (tabLayout != null) {
-            tabLayout.addTab(tabLayout.newTab().setText("Current Tasks"));
-            tabLayout.addTab(tabLayout.newTab().setText("Upcoming"));
-            // Tab click listener disabled during tutorial, but we'll switch programmatically
-        }
-        
+
         // Configure progress indicator
         progressIndicator.setMax(steps.length);
         progressIndicator.setProgress(1, false);
         stepCounter.setText(String.format(Locale.getDefault(), "1 / %d", steps.length));
-        
-        // Populate with sample tasks
-        populateSampleTasks();
-        populateUpcomingTasks();
+
+        // TABLET: Wait for fragment to inflate, then find views
+        // PHONE: Populate inline content immediately
+        if (isTabletLayout) {
+            // Give fragment time to inflate
+            handler.postDelayed(() -> {
+                // Try to find fragment views (they may be in different panes)
+                // For tutorial, we just need the UI to look right, not be functional
+            }, 100);
+        } else {
+            // PHONE: Setup inline content
+            tabLayout = findViewById(R.id.tasksTabLayout);
+            progressTracker = findViewById(R.id.progressTracker);
+            morningTasksContainer = findViewById(R.id.morningTasksContainer);
+            afternoonTasksContainer = findViewById(R.id.afternoonTasksContainer);
+            nightTasksContainer = findViewById(R.id.nightTasksContainer);
+            upcomingTasksSection = findViewById(R.id.upcomingTasksSection);
+            upcomingTasksContainer = findViewById(R.id.upcomingTasksContainer);
+            tasksContainerCard = findViewById(R.id.tasksContainerCard);
+
+            // Setup tabs
+            if (tabLayout != null) {
+                tabLayout.addTab(tabLayout.newTab().setText("Current Tasks"));
+                tabLayout.addTab(tabLayout.newTab().setText("Upcoming"));
+            }
+
+            // Populate with sample tasks
+            populateSampleTasks();
+            populateUpcomingTasks();
+        }
     }
 
     private void setupButtons() {
@@ -426,6 +479,11 @@ public class TutorialActivityNew extends BaseThemedActivity {
         fadeTextUpdate(tutorialTitle, tutorialStep.title);
         fadeTextUpdate(tutorialDescription, tutorialStep.description);
         
+        // TABLET SUPPORT: Update visual area if in tablet layout
+        if (isTabletLayout && tutorialImage != null) {
+            updateTutorialVisual(tutorialStep.type);
+        }
+
         // Update button
         if (step == steps.length - 1) {
             nextButton.setText(R.string.start_using_clockwise);
@@ -971,6 +1029,14 @@ public class TutorialActivityNew extends BaseThemedActivity {
         cancelCurrentAnimation();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Update current window size when resuming (backup check)
+        currentWindowSize = WindowSizeHelper.getWidthSizeClass(this);
+    }
+
     // Data classes
     private static class TutorialStep {
         String title;
@@ -984,6 +1050,64 @@ public class TutorialActivityNew extends BaseThemedActivity {
             this.type = type;
             this.cardPosition = cardPosition;
         }
+    }
+
+    /**
+     * TABLET SUPPORT: Update visual area with appropriate icons/images for each tutorial step
+     * This provides visual context on the left side of the tutorial card on tablets
+     */
+    private void updateTutorialVisual(StepType stepType) {
+        if (tutorialImage == null) return;
+
+        int imageResource;
+
+        switch (stepType) {
+            case INTRO:
+                imageResource = R.drawable.app_icon;
+                break;
+            case HAMBURGER_MENU:
+                imageResource = R.drawable.ic_menu_hamburger;
+                break;
+            case FAB_CENTER:
+            case FAB_QUICK:
+                imageResource = R.drawable.ic_add_fab;
+                break;
+            case PROGRESS_TRACKER:
+                imageResource = R.drawable.ic_check;
+                break;
+            case TASK_SECTIONS:
+                imageResource = R.drawable.ic_morning;
+                break;
+            case TASK_CARD:
+            case LONG_PRESS_DEMO:
+            case DELETE_DEMO:
+                imageResource = R.drawable.ic_focus_task;
+                break;
+            case BOTTOM_NAV:
+            case UPCOMING_TAB:
+            case UPCOMING_TASKS:
+                imageResource = R.drawable.ic_reminder;
+                break;
+            case FINISH:
+                imageResource = R.drawable.app_icon;
+                break;
+            default:
+                imageResource = R.drawable.app_icon;
+                break;
+        }
+
+        // Animate visual change with fade
+        tutorialImage.animate()
+                .alpha(0f)
+                .setDuration(150)
+                .withEndAction(() -> {
+                    tutorialImage.setImageResource(imageResource);
+                    tutorialImage.animate()
+                            .alpha(1f)
+                            .setDuration(300)
+                            .start();
+                })
+                .start();
     }
 
     private enum StepType {

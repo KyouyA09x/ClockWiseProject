@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TABLET/FOLDABLE OPTIMIZED SETTINGS LAYOUT -->
+<!-- This layout is used for screens with width >= 600dp (tablets, foldables, large phones in landscape) -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/settingsRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/settingsToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="Settings"
+            app:titleCentered="true"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="?attr/colorOnSurface"
+            app:titleTextColor="?attr/colorOnSurface"
+            android:paddingStart="@dimen/screen_margin_horizontal"
+            android:paddingEnd="@dimen/screen_margin_horizontal" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Centered content with max width for better readability on large screens -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <!-- Max-width container for optimal layout on very large screens -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.slidingpanelayout.widget.SlidingPaneLayout
+                android:id="@+id/sliding_pane_layout"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintWidth_max="1200dp">
+
+                <!-- Master Pane - Wider on tablets -->
+                <FrameLayout
+                    android:id="@+id/settings_list_container"
+                    android:layout_width="360dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="1dp"
+                    android:background="?attr/colorSurface"
+                    android:minWidth="320dp"
+                    android:paddingStart="@dimen/screen_margin_horizontal"
+                    android:paddingEnd="@dimen/screen_margin_horizontal" />
+
+                <!-- Detail Pane - Takes remaining space -->
+                <FrameLayout
+                    android:id="@+id/detail_container"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?attr/backgroundColor"
+                    android:minWidth="400dp"
+                    android:paddingStart="@dimen/screen_margin_horizontal"
+                    android:paddingEnd="@dimen/screen_margin_horizontal" />
+
+            </androidx.slidingpanelayout.widget.SlidingPaneLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </FrameLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

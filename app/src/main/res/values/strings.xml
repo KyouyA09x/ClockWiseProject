@@ -36,6 +36,7 @@
     <string name="quick_task">Quick Task</string>
 
     <!-- Tutorial strings -->
+    <string name="tutorial_illustration">Tutorial illustration</string>
     <string name="next">Next</string>
     <string name="start_using_clockwise">Start Using ClockWise</string>
     <string name="skip">Skip</string>
@@ -56,5 +57,13 @@
     <string name="focus_task_header">Focus Task</string>
     <string name="quick_note_header">Quick Note</string>
     <string name="task_limited_to_today">This task is set for today only. To change the date, edit it from the app.</string>
+
+    <!-- About dialog strings -->
+    <string name="about_team_title">About the Development Team</string>
+    <string name="about_team_description">ClockWise is developed by a dedicated team of developers committed to creating intuitive and efficient productivity tools. Our mission is to help users manage their time effectively and achieve their goals.</string>
+    <string name="about_team_developers">• Alcantara, Aliyah Leandra B.\n• Daquioag, David Earl U.\n• De Leon, Karl Cyrus M.\n• Delgado, Cyril Denise F.\n• Fajardo, Marvic S.\n• Matias, Kirk Roswell L.\n• Veloso, Almond B.</string>
+
+    <!-- About Us section (Classic Design) -->
+    <string name="about_us_developers">Alcantara, Aliyah Leandra B.\nDaquioag, David Earl U.\nDe Leon, Karl Cyrus M.\nDelgado, Cyril Denise F.\nFajardo, Marvic S.\nMatias, Kirk Roswell L.\nVeloso, Almond B.</string>
 </resources>
 

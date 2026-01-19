@@ -7,34 +7,76 @@
     android:layout_height="match_parent"
     android:background="?attr/backgroundColor">
 
+    <!-- Wrapper for bottom padding logic -->
     <LinearLayout
         android:id="@+id/tasksContainerLinear"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Tab Navigation for Current/Upcoming - Fixed at top, never scrolls -->
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tasksTabLayout"
+        <!-- Standard Phone Layout (Tabs + ViewPager) -->
+        <LinearLayout
+            android:id="@+id/phoneTasksLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSurface"
-            android:elevation="4dp"
-            app:tabMode="fixed"
-            app:tabGravity="fill"
-            app:tabIndicatorColor="?attr/colorPrimary"
-            app:tabIndicatorHeight="3dp"
-            app:tabSelectedTextColor="?attr/colorPrimary"
-            app:tabTextColor="?attr/colorOnSurfaceVariant"
-            app:tabTextAppearance="@style/TextAppearance.Material3.TitleMedium" />
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        <!-- ViewPager2 for Current/Upcoming tabs -->
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/tasksViewPager"
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tasksTabLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/colorSurface"
+                android:elevation="4dp"
+                app:tabMode="fixed"
+                app:tabGravity="fill"
+                app:tabIndicatorColor="?attr/colorPrimary"
+                app:tabIndicatorHeight="3dp"
+                app:tabSelectedTextColor="?attr/colorPrimary"
+                app:tabTextColor="?attr/colorOnSurfaceVariant"
+                app:tabTextAppearance="@style/TextAppearance.Material3.TitleMedium" />
+
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/tasksViewPager"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false" />
+
+        </LinearLayout>
+
+        <!-- Tablet/Foldable Layout (Permanent Side-by-Side) -->
+        <LinearLayout
+            android:id="@+id/tabletTasksLayout"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false" />
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:baselineAligned="false"
+            android:visibility="gone"
+            android:paddingTop="8dp">
+
+            <!-- Left Page: Current Tasks -->
+            <FrameLayout
+                android:id="@+id/leftTasksPane"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <!-- Book Fold Divider -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:layout_marginVertical="24dp"
+                android:background="?attr/colorOutlineVariant"
+                android:alpha="0.5" />
+
+            <!-- Right Page: Upcoming Tasks -->
+            <FrameLayout
+                android:id="@+id/rightTasksPane"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

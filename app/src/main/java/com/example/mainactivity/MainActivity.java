@@ -310,6 +310,7 @@ public class MainActivity extends BaseThemedActivity {
         refreshAllFragments();
     }
 
+
     public void showTaskTypeChooser() {
         // Show custom dialog with icons for Task and Focus Session
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
@@ -1460,13 +1461,12 @@ public class MainActivity extends BaseThemedActivity {
         applyHtmlToTextView(dialogView, R.id.featureReminders, R.string.feature_reminders);
 
         // Get references to the sections
-        View aboutClockwiseSection = dialogView.findViewById(R.id.aboutClockwiseSection);
-        View aboutUsSection = dialogView.findViewById(R.id.aboutUsSection);
         View featuresSection = dialogView.findViewById(R.id.featuresSection);
-        com.google.android.material.button.MaterialButton toggleButton = 
-            dialogView.findViewById(R.id.aboutUsToggleButton);
-        com.google.android.material.button.MaterialButton featuresToggleButton = 
+        View aboutUsSection = dialogView.findViewById(R.id.aboutUsSection);
+        com.google.android.material.button.MaterialButton featuresToggleButton =
             dialogView.findViewById(R.id.featuresToggleButton);
+        com.google.android.material.button.MaterialButton aboutUsToggleButton =
+            dialogView.findViewById(R.id.aboutUsToggleButton);
 
         // Setup features toggle button click listener
         featuresToggleButton.setOnClickListener(v -> {
@@ -1481,22 +1481,21 @@ public class MainActivity extends BaseThemedActivity {
             }
         });
 
-        // Setup toggle button click listener
-        toggleButton.setOnClickListener(v -> {
-            if (aboutUsSection.getVisibility() == View.GONE) {
-                // Show About Us, hide About ClockWise
-                aboutUsSection.setVisibility(View.VISIBLE);
-                aboutClockwiseSection.setVisibility(View.GONE);
-                toggleButton.setText("About ClockWise");
-                toggleButton.setIcon(getDrawable(R.drawable.app_icon));
-            } else {
-                // Show About ClockWise, hide About Us
-                aboutUsSection.setVisibility(View.GONE);
-                aboutClockwiseSection.setVisibility(View.VISIBLE);
-                toggleButton.setText("About the development team");
-                toggleButton.setIcon(getDrawable(R.drawable.ic_person));
-            }
-        });
+        // Setup About Us toggle button click listener (Classic Design Restored)
+        if (aboutUsToggleButton != null && aboutUsSection != null) {
+            aboutUsToggleButton.setOnClickListener(v -> {
+                if (aboutUsSection.getVisibility() == View.GONE) {
+                    // Show About Us section
+                    aboutUsSection.setVisibility(View.VISIBLE);
+                    aboutUsToggleButton.setIcon(getDrawable(R.drawable.ic_arrow_up));
+                } else {
+                    // Hide About Us section
+                    aboutUsSection.setVisibility(View.GONE);
+                    aboutUsToggleButton.setIcon(getDrawable(R.drawable.ic_arrow_down));
+                }
+            });
+        }
+
 
         dialog.show();
     }
@@ -1505,11 +1504,7 @@ public class MainActivity extends BaseThemedActivity {
         TextView textView = rootView.findViewById(textViewId);
         if (textView != null) {
             String htmlText = getString(stringResId);
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                textView.setText(android.text.Html.fromHtml(htmlText, android.text.Html.FROM_HTML_MODE_COMPACT));
-            } else {
-                textView.setText(android.text.Html.fromHtml(htmlText));
-            }
+            textView.setText(android.text.Html.fromHtml(htmlText, android.text.Html.FROM_HTML_MODE_COMPACT));
         }
     }
 }
