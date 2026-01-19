@@ -67,37 +67,28 @@
 
             </com.google.android.material.appbar.AppBarLayout>
 
-            <!-- Tab Navigation for Current/Upcoming - EXACT MATCH -->
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tasksTabLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/colorSurface"
-                android:elevation="4dp"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior"
-                app:tabMode="fixed"
-                app:tabGravity="fill"
-                app:tabIndicatorColor="?attr/colorPrimary"
-                app:tabIndicatorHeight="3dp"
-                app:tabSelectedTextColor="?attr/colorPrimary"
-                app:tabTextColor="?attr/colorOnSurfaceVariant"
-                app:tabTextAppearance="@style/TextAppearance.Material3.TitleMedium" />
-
-            <!-- Main scrollable content -->
-            <androidx.core.widget.NestedScrollView
-                android:id="@+id/tutorialScrollView"
+            <!-- Fragment Container - Same as MainActivity for proper tablet/phone layout -->
+            <!-- Fragment will contain TabLayout for phone OR side-by-side for tablet -->
+            <FrameLayout
+                android:id="@+id/fragmentContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:fillViewport="true"
-                android:layout_marginTop="48dp"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-                <LinearLayout
-                    android:id="@+id/currentTasksContainer"
+                <!-- Phone fallback: Inline content (hidden on tablets when fragment loads) -->
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/tutorialScrollView"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="@dimen/screen_margin_horizontal"
+                    android:layout_height="match_parent"
+                    android:fillViewport="true"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:id="@+id/currentTasksContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="@dimen/screen_margin_horizontal"
                     android:paddingTop="@dimen/spacing_md"
                     android:paddingBottom="200dp"
                     android:clipToPadding="false">
@@ -308,6 +299,8 @@
 
             </androidx.core.widget.NestedScrollView>
 
+            </FrameLayout>
+
             <!-- Quick Task FAB -->
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fabQuickTask"
@@ -368,18 +361,20 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-            <!-- Tutorial Card Container -->
+            <!-- Tutorial Card Container - Responsive positioning -->
             <FrameLayout
                 android:id="@+id/tutorialCardContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="20dp">
+                android:padding="@dimen/spacing_lg"
+                android:paddingBottom="80dp">
 
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/tutorialCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:maxWidth="900dp"
                     app:cardBackgroundColor="?attr/colorSurface"
                     app:cardCornerRadius="28dp"
                     app:cardElevation="12dp"

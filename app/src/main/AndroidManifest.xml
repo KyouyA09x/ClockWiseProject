@@ -49,18 +49,34 @@
             android:exported="false">
         </activity>
 
-        <activity android:name=".AddTaskActivity" />
-        <activity android:name=".AddFocusTaskActivity" />
-        <activity android:name=".EditTaskActivity" />
-        <activity android:name=".EditFocusTaskActivity" />
-        <activity android:name=".HistoryActivity" />
-        <activity android:name=".HistoryMonthDetailActivity" />
-        <activity android:name=".CalendarActivity" />
-        <activity android:name=".SettingsActivity" />
+        <activity android:name=".AddTaskActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout" />
+        <activity android:name=".AddFocusTaskActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout" />
+        <activity android:name=".EditTaskActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout" />
+        <activity android:name=".EditFocusTaskActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout" />
+        <activity android:name=".HistoryActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout" />
+        <activity android:name=".HistoryMonthDetailActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout" />
+        <activity android:name=".CalendarActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout" />
+        <activity
+            android:name=".SettingsActivity"
+            android:parentActivityName=".MainActivity"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="false"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
         <activity android:name=".TrashBinActivity" />
         <activity android:name=".TutorialActivityNew"
             android:theme="@style/Theme.MainActivity" />
-        
+
         <!-- Popup Notification Activity for fullscreen popup alerts -->
         <activity
             android:name=".PopupNotificationActivity"
