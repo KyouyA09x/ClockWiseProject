@@ -308,6 +308,31 @@ public class TrashBinActivity extends AppCompatActivity {
         });
     }
 
+    private void showPermanentDeleteTaskConfirmation(Task task) {
+        String itemType = "focus".equals(task.taskType) ? "focus session" : "task";
+        ModernDialogHelper.showDestructiveDialog(
+                this,
+                "Permanently Delete?",
+                "This action cannot be undone. {item} will be permanently removed from trash.",
+                task.name,
+                R.drawable.ic_delete,
+                () -> permanentlyDeleteTask(task),
+                null
+        );
+    }
+
+    private void showPermanentDeleteNoteConfirmation(Note note) {
+        ModernDialogHelper.showDestructiveDialog(
+                this,
+                "Permanently Delete?",
+                "This action cannot be undone. {item} will be permanently removed from trash.",
+                note.title,
+                R.drawable.ic_delete,
+                () -> permanentlyDeleteNote(note),
+                null
+        );
+    }
+
     private void permanentlyDeleteTask(Task task) {
         Executors.newSingleThreadExecutor().execute(() -> {
             taskDao.deleteById(task.id);

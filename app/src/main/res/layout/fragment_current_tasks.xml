@@ -17,6 +17,39 @@
         android:paddingBottom="200dp"
         android:clipToPadding="false">
 
+        <!-- Today's Tasks Header with Filter -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/spacing_md">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Today's Tasks"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold" />
+
+            <!-- Priority Filter Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/priorityFilterButton"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                app:icon="@drawable/ic_filter"
+                app:iconSize="24dp"
+                app:iconTint="?attr/colorOnSurfaceVariant"
+                app:iconGravity="textStart"
+                app:strokeWidth="0dp"
+                android:backgroundTint="@android:color/transparent"
+                android:contentDescription="Filter by priority" />
+
+        </LinearLayout>
+
         <!-- Progress Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/progressTracker"

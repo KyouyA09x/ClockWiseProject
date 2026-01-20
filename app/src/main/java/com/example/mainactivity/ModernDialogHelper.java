@@ -149,6 +149,48 @@ public class ModernDialogHelper {
     }
 
     /**
+     * Shows a modern non-destructive dialog (for safe actions like "Move to Trash")
+     * Similar to warning dialog but with message formatting support
+     */
+    public static void showNonDestructiveDialog(
+            @NonNull Context context,
+            @NonNull String title,
+            @NonNull String message,
+            @Nullable String itemName,
+            @NonNull String confirmText,
+            @DrawableRes int iconRes,
+            @NonNull Runnable onConfirm,
+            @Nullable Runnable onCancel
+    ) {
+        // Build the message with proper formatting
+        String formattedMessage = itemName != null 
+            ? message.replace("{item}", "\"" + itemName + "\"")
+            : message;
+
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context)
+                .setTitle(title)
+                .setMessage(formattedMessage)
+                .setIcon(iconRes)
+                .setCancelable(true);
+
+        builder.setPositiveButton(confirmText, (dialog, which) -> {
+            if (onConfirm != null) {
+                onConfirm.run();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> {
+            if (onCancel != null) {
+                onCancel.run();
+            }
+        });
+
+        var dialog = builder.create();
+        dialog.show();
+        customizeWarningButtons(dialog);
+    }
+
+    /**
      * Customizes dialog buttons for destructive actions
      * Makes the delete button prominent with filled red style
      */

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Single pane settings layout for foldable phones when not in split screen -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -25,7 +26,7 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Single Fragment Container -->
+    <!-- Single Fragment Container for non-split mode -->
     <FrameLayout
         android:id="@+id/single_settings_container"
         android:layout_width="match_parent"

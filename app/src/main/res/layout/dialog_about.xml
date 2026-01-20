@@ -217,6 +217,7 @@
                         android:textAppearance="?attr/textAppearanceTitleSmall"
                         android:textColor="?attr/colorPrimary"
                         android:textStyle="bold"
+                        android:gravity="center"
                         android:layout_marginBottom="@dimen/spacing_sm" />
 
                     <TextView
@@ -226,6 +227,7 @@
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnSurface"
                         android:lineSpacingExtra="6dp"
+                        android:gravity="center"
                         android:paddingVertical="4dp" />
 
                 </LinearLayout>

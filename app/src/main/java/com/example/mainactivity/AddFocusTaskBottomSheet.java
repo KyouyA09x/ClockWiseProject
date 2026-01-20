@@ -64,6 +64,8 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
     private MaterialButton deleteButton;
     private TextView titleText;
     private TextView dateText;
+    private TextView alarmSoundText;
+    private String selectedAlarmSound = "Default Alarm";
 
     public static AddFocusTaskBottomSheet newInstance() {
         return new AddFocusTaskBottomSheet();
@@ -182,6 +184,7 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         saveButton = view.findViewById(R.id.saveButton);
         deleteButton = view.findViewById(R.id.deleteButton);
         dateText = view.findViewById(R.id.dateText);
+        alarmSoundText = view.findViewById(R.id.alarmSoundText);
 
         // Initialize time displays
         updateStartTimeDisplay();
@@ -213,6 +216,10 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         startTimeRow.setOnClickListener(v -> showStartTimePicker());
 
         endTimeRow.setOnClickListener(v -> showEndTimePicker());
+
+        if (alarmSoundText != null) {
+            alarmSoundText.setOnClickListener(v -> showAlarmSoundPicker());
+        }
 
         if (dateText != null) {
             if (isQuickTask) {
@@ -541,14 +548,60 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
                .show();
     }
 
+    private void showAlarmSoundPicker() {
+        android.media.RingtoneManager manager = new android.media.RingtoneManager(requireContext());
+        manager.setType(android.media.RingtoneManager.TYPE_ALARM);
+        android.database.Cursor cursor = manager.getCursor();
+
+        java.util.Map<String, android.net.Uri> ringtones = new java.util.TreeMap<>();
+        while (cursor.moveToNext()) {
+            String title = cursor.getString(android.media.RingtoneManager.TITLE_COLUMN_INDEX);
+            android.net.Uri uri = manager.getRingtoneUri(cursor.getPosition());
+            ringtones.put(title, uri);
+        }
+
+        String[] ringtoneNames = ringtones.keySet().toArray(new String[0]);
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+        builder.setTitle("Select Alarm Sound");
+        
+        builder.setItems(ringtoneNames, (dialog, which) -> {
+            selectedAlarmSound = ringtoneNames[which];
+            if (alarmSoundText != null) {
+                alarmSoundText.setText(selectedAlarmSound);
+            }
+            
+            // Play a preview of the selected sound
+            try {
+                android.net.Uri uri = ringtones.get(selectedAlarmSound);
+                android.media.Ringtone ringtone = android.media.RingtoneManager.getRingtone(requireContext(), uri);
+                ringtone.play();
+                
+                // Stop after 2 seconds
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    if (ringtone.isPlaying()) {
+                        ringtone.stop();
+                    }
+                }, 2000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
     private void showDeleteConfirmation() {
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Delete Focus Session?")
-                .setMessage("This action cannot be undone. This focus session will be permanently removed.")
-                .setIcon(R.drawable.ic_delete)
-                .setPositiveButton("Delete", (dialog, which) -> deleteTask())
-                .setNegativeButton("Cancel", null)
-                .show();
+        ModernDialogHelper.showDestructiveDialog(
+                requireContext(),
+                "Delete Focus Session?",
+                "This action cannot be undone. {item} will be permanently removed.",
+                editingTask != null ? editingTask.name : "This focus session",
+                R.drawable.ic_delete,
+                this::deleteTask,
+                null
+        );
     }
 
     private void deleteTask() {

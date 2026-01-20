@@ -58,6 +58,8 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
     private MaterialButton deleteButton;
     private TextView titleText;
     private TextView dateText;
+    private TextView alarmSoundText;
+    private String selectedAlarmSound = "Default Alarm";
 
     public static AddReminderBottomSheet newInstance() {
         return new AddReminderBottomSheet();
@@ -174,6 +176,7 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
         saveButton = view.findViewById(R.id.saveButton);
         deleteButton = view.findViewById(R.id.deleteButton);
         dateText = view.findViewById(R.id.dateText);
+        alarmSoundText = view.findViewById(R.id.alarmSoundText);
 
         // Update date display
         updateDateLabel();
@@ -201,6 +204,10 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
         deleteButton.setOnClickListener(v -> showDeleteConfirmation());
 
         repeatDaysText.setOnClickListener(v -> showRepeatDialog());
+
+        if (alarmSoundText != null) {
+            alarmSoundText.setOnClickListener(v -> showAlarmSoundPicker());
+        }
 
         if (dateText != null) {
             if (isQuickTask) {
@@ -279,6 +286,14 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
 
         vibrationSwitch.setChecked(editingTask.vibrationEnabled);
         alarmSwitch.setChecked(editingTask.isAlarmOn);
+        
+        // Set alarm sound
+        if (editingTask.alarmSound != null) {
+            selectedAlarmSound = editingTask.alarmSound;
+            if (alarmSoundText != null) {
+                alarmSoundText.setText(selectedAlarmSound);
+            }
+        }
     }
     
     private void populateFieldsFromTask() {
@@ -328,6 +343,14 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
 
         vibrationSwitch.setChecked(editingTask.vibrationEnabled);
         alarmSwitch.setChecked(editingTask.isAlarmOn);
+        
+        // Set alarm sound
+        if (editingTask.alarmSound != null) {
+            selectedAlarmSound = editingTask.alarmSound;
+            if (alarmSoundText != null) {
+                alarmSoundText.setText(selectedAlarmSound);
+            }
+        }
     }
 
     private void saveTask() {
@@ -370,6 +393,7 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
             editingTask.timeCategory = timeCategory;
             editingTask.vibrationEnabled = vibrationSwitch.isChecked();
             editingTask.isAlarmOn = alarmSwitch.isChecked();
+            editingTask.alarmSound = selectedAlarmSound;
 
             taskRepository.updateTask(editingTask);
 
@@ -390,6 +414,7 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
             newTask.timeCategory = timeCategory;
             newTask.vibrationEnabled = vibrationSwitch.isChecked();
             newTask.isAlarmOn = alarmSwitch.isChecked();
+            newTask.alarmSound = selectedAlarmSound;
 
             long taskId = taskRepository.addTask(newTask);
             newTask.id = (int) taskId;
@@ -465,6 +490,50 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
         } else {
             repeatDaysText.setText(String.join(", ", selectedDayNames));
         }
+    }
+
+    private void showAlarmSoundPicker() {
+        android.media.RingtoneManager manager = new android.media.RingtoneManager(requireContext());
+        manager.setType(android.media.RingtoneManager.TYPE_ALARM);
+        android.database.Cursor cursor = manager.getCursor();
+
+        java.util.Map<String, android.net.Uri> ringtones = new java.util.TreeMap<>();
+        while (cursor.moveToNext()) {
+            String title = cursor.getString(android.media.RingtoneManager.TITLE_COLUMN_INDEX);
+            android.net.Uri uri = manager.getRingtoneUri(cursor.getPosition());
+            ringtones.put(title, uri);
+        }
+
+        String[] ringtoneNames = ringtones.keySet().toArray(new String[0]);
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+        builder.setTitle("Select Alarm Sound");
+        
+        builder.setItems(ringtoneNames, (dialog, which) -> {
+            selectedAlarmSound = ringtoneNames[which];
+            if (alarmSoundText != null) {
+                alarmSoundText.setText(selectedAlarmSound);
+            }
+            
+            // Play a preview of the selected sound
+            try {
+                android.net.Uri uri = ringtones.get(selectedAlarmSound);
+                android.media.Ringtone ringtone = android.media.RingtoneManager.getRingtone(requireContext(), uri);
+                ringtone.play();
+                
+                // Stop after 2 seconds
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    if (ringtone.isPlaying()) {
+                        ringtone.stop();
+                    }
+                }, 2000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
     }
 
     private void showDeleteConfirmation() {

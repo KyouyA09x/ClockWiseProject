@@ -408,6 +408,32 @@
 
             </LinearLayout>
 
+            <!-- Alarm Sound Picker -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Alarm Sound"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginBottom="@dimen/spacing_sm"
+                android:layout_marginTop="@dimen/spacing_sm" />
+
+            <TextView
+                android:id="@+id/alarmSoundText"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Default Alarm"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurface"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="@dimen/spacing_md"
+                android:background="?attr/selectableItemBackground"
+                android:drawableStart="@drawable/ic_alarm"
+                android:drawableEnd="@drawable/ic_chevron_right"
+                android:drawableTint="?attr/colorPrimary"
+                android:drawablePadding="@dimen/spacing_md"
+                android:layout_marginBottom="@dimen/spacing_lg" />
+
             <!-- Motivational Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"

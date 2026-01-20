@@ -138,6 +138,10 @@ public class OverlayNotificationService extends Service {
             taskName = "Task Reminder";
         }
 
+        // Play alarm sound for ALL notifications (both actual tasks and previews)
+        AlarmSoundHelper.playAlarmSound(this);
+        android.util.Log.d("OverlayNotification", "🔔 Playing alarm sound (taskId=" + taskId + ", type=" + taskType + ")");
+
         if ("focus".equals(taskType)) {
             showFocusSessionOverlay(taskId, taskName, taskNote, priority, hour, minute, ampm, endHour, endMinute, endAmPm);
         } else {
@@ -531,6 +535,12 @@ public class OverlayNotificationService extends Service {
     }
 
     private void dismissOverlay() {
+        // Stop alarm sound immediately when dismissing (for preview mode)
+        if (currentTaskId < 0) {
+            AlarmSoundHelper.stopAlarmSound();
+            android.util.Log.d("OverlayNotification", "🔇 Stopping alarm sound on dismiss");
+        }
+        
         if (overlayView != null) {
             try {
                 windowManager.removeView(overlayView);
@@ -546,6 +556,11 @@ public class OverlayNotificationService extends Service {
     public void onDestroy() {
         super.onDestroy();
         stopTimer();
+        
+        // Stop alarm sound if playing - safety net for ALL tasks
+        AlarmSoundHelper.stopAlarmSound();
+        android.util.Log.d("OverlayNotification", "🔇 Stopping alarm sound on destroy (taskId=" + currentTaskId + ")");
+        
         if (overlayView != null) {
             try {
                 windowManager.removeView(overlayView);

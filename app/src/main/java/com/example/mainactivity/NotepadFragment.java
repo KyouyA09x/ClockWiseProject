@@ -705,11 +705,16 @@ public class NotepadFragment extends Fragment {
     }
     
     private void showDeleteConfirmation(Note note, View noteView) {
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Move to Trash?")
-                .setMessage((note.title != null && !note.title.isEmpty() ? "\"" + note.title + "\"" : "This note") + " will be moved to the trash bin. You can restore it later.")
-                .setIcon(R.drawable.ic_delete)
-                .setPositiveButton("Move to Trash", (dialog, which) -> {
+        String itemName = (note.title != null && !note.title.isEmpty()) ? note.title : "This note";
+        
+        ModernDialogHelper.showNonDestructiveDialog(
+                requireContext(),
+                "Move to Trash?",
+                "{item} will be moved to the trash bin. You can restore it later.",
+                itemName,
+                "Move to Trash",
+                R.drawable.ic_delete,
+                () -> {
                     if (noteView != null) {
                         // Animate slide-to-right deletion
                         animateNoteDeletion(noteView, () -> {
@@ -740,9 +745,9 @@ public class NotepadFragment extends Fragment {
                             }
                         }).start();
                     }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+                },
+                null
+        );
     }
     
     private void animateNoteDeletion(View noteView, Runnable onComplete) {

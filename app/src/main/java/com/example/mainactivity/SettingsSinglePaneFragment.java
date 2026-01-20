@@ -14,79 +14,43 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 
 /**
- * CRITICAL FIX: Settings Detail module.
- * Purpose: Restores all functional sections and implements the "Blindfold" sync guard.
- * Fixes: Infinite flashing loop and missing 'layout_settings_developer' symbol.
+ * Single pane settings fragment for foldable phones when not in split screen mode.
+ * Combines all settings in one scrollable view without the split screen layout.
  */
-public class SettingsDetailFragment extends Fragment {
-    private static final String ARG_TYPE = "category";
-    private String settingType;
+public class SettingsSinglePaneFragment extends Fragment {
     
-    // THE "BLINDFOLD" FIX: Suppresses automated listener triggers during setup
     private boolean isSystemUpdating = true;
-
-    // DEBOUNCE MECHANISM: Prevents rapid-fire events
     private boolean isThemeChangePending = false;
     private Handler debounceHandler = new Handler(Looper.getMainLooper());
     private Runnable pendingThemeChange = null;
 
-    public static SettingsDetailFragment newInstance(String category) {
-        SettingsDetailFragment fragment = new SettingsDetailFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_TYPE, category);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            settingType = getArguments().getString(ARG_TYPE);
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        // Clean up any pending callbacks to prevent memory leaks
-        if (debounceHandler != null && pendingThemeChange != null) {
-            debounceHandler.removeCallbacks(pendingThemeChange);
-        }
-        isThemeChangePending = false;
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_settings_detail, container, false);
+        // Use the detail fragment layout which has all settings combined
+        return inflater.inflate(R.layout.fragment_settings_single_pane, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
-        // Ensure root is present to avoid NPE
-        if (view.findViewById(R.id.settingsRoot) == null) return;
-
-        // Switch Logic: Determine which container to show
-        View appearanceSection = view.findViewById(R.id.layout_appearance);
-        View notificationSection = view.findViewById(R.id.layout_notifications);
-        View developerSection = view.findViewById(R.id.layout_developer);
-
-        if (appearanceSection != null) appearanceSection.setVisibility("Appearance".equals(settingType) ? View.VISIBLE : View.GONE);
-        if (notificationSection != null) notificationSection.setVisibility("Notifications".equals(settingType) ? View.VISIBLE : View.GONE);
-        if (developerSection != null) developerSection.setVisibility("Developer Options".equals(settingType) || "Developer Tools".equals(settingType) ? View.VISIBLE : View.GONE);
-
-        // BREAK THE LOOP: Begin silent initialization
         isSystemUpdating = true;
         
         initAppearanceSection(view);
         initDeveloperSection(view);
         initNotificationSection(view);
 
-        // Setup complete: Re-enable interaction triggers
         isSystemUpdating = false;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (debounceHandler != null && pendingThemeChange != null) {
+            debounceHandler.removeCallbacks(pendingThemeChange);
+        }
+        isThemeChangePending = false;
     }
 
     private void initAppearanceSection(View v) {
@@ -118,10 +82,8 @@ public class SettingsDetailFragment extends Fragment {
 
         RadioGroup group = v.findViewById(R.id.themeRadioGroup);
         if (group != null) {
-            // CRITICAL: Remove any existing listener first to prevent double-attachment
             group.setOnCheckedChangeListener(null);
             
-            // Set the currently selected theme based on saved preference
             String currentColor = ThemeHelper.getThemeColor(requireActivity());
             int selectedId = R.id.radioDefault;
             if (ThemeHelper.COLOR_CYAN.equals(currentColor)) selectedId = R.id.radioCyan;
@@ -129,56 +91,38 @@ public class SettingsDetailFragment extends Fragment {
             else if (ThemeHelper.COLOR_PURPLE.equals(currentColor)) selectedId = R.id.radioPurple;
             else if (ThemeHelper.COLOR_ORANGE.equals(currentColor)) selectedId = R.id.radioOrange;
 
-            // Check the correct radio button WITHOUT triggering the listener
             group.check(selectedId);
 
-            // Track the last selected color to prevent unnecessary recreate calls
             final String[] lastAppliedColor = {currentColor};
 
-            // Now set up the listener with comprehensive guards
             group.setOnCheckedChangeListener((rg, checkedId) -> {
-                // GUARD 1: Block during system updates
-                if (isSystemUpdating) return;
+                if (isSystemUpdating || isThemeChangePending) return;
 
-                // GUARD 2: Block if a theme change is already pending
-                if (isThemeChangePending) return;
-
-                // Determine the selected color
                 String color = ThemeHelper.COLOR_DEFAULT;
                 if (checkedId == R.id.radioCyan) color = ThemeHelper.COLOR_CYAN;
                 else if (checkedId == R.id.radioGreen) color = ThemeHelper.COLOR_GREEN;
                 else if (checkedId == R.id.radioPurple) color = ThemeHelper.COLOR_PURPLE;
                 else if (checkedId == R.id.radioOrange) color = ThemeHelper.COLOR_ORANGE;
 
-                // GUARD 3: Check if color actually changed (prevent re-selecting same color)
-                if (color.equals(lastAppliedColor[0])) {
-                    return;
-                }
+                if (color.equals(lastAppliedColor[0])) return;
 
-                // Set flags immediately to prevent re-entry
                 isSystemUpdating = true;
                 isThemeChangePending = true;
                 lastAppliedColor[0] = color;
 
-                // Disable the radio group to prevent additional clicks
                 rg.setEnabled(false);
 
-                // Cancel any pending theme change
                 if (pendingThemeChange != null) {
                     debounceHandler.removeCallbacks(pendingThemeChange);
                 }
 
-
-                // Save the color immediately
                 final String selectedColor = color;
                 ThemeHelper.setThemeColor(requireActivity(), selectedColor);
 
-                // Broadcast theme change to all activities
                 if (getActivity() instanceof BaseThemedActivity) {
                     ((BaseThemedActivity) getActivity()).notifyThemeChanged();
                 }
 
-                // DEBOUNCED REFRESH: Wait 300ms before recreating activity
                 pendingThemeChange = () -> {
                     if (isAdded() && getActivity() != null && !getActivity().isFinishing()) {
                         getActivity().recreate();
@@ -188,7 +132,6 @@ public class SettingsDetailFragment extends Fragment {
                 debounceHandler.postDelayed(pendingThemeChange, 300);
             });
 
-            // Post a delayed task to re-enable user interaction after initialization
             v.postDelayed(() -> {
                 isSystemUpdating = false;
                 group.setEnabled(true);
@@ -196,30 +139,23 @@ public class SettingsDetailFragment extends Fragment {
         }
     }
 
-
     private void triggerThemeApply(int delegateMode, int helperMode) {
-        // GUARD: Prevent execution if a change is already pending
         if (isSystemUpdating || isThemeChangePending) return;
 
-        // Set flags to prevent re-entry
         isSystemUpdating = true;
         isThemeChangePending = true;
 
-        // Cancel any pending theme change
         if (pendingThemeChange != null) {
             debounceHandler.removeCallbacks(pendingThemeChange);
         }
 
-        // Save the theme mode
         ThemeHelper.setThemeMode(requireActivity(), helperMode);
         AppCompatDelegate.setDefaultNightMode(delegateMode);
 
-        // Broadcast theme change to all activities
         if (getActivity() instanceof BaseThemedActivity) {
             ((BaseThemedActivity) getActivity()).notifyThemeChanged();
         }
 
-        // DEBOUNCED REFRESH: Wait 300ms before recreating activity
         pendingThemeChange = () -> {
             if (isAdded() && getActivity() != null && !getActivity().isFinishing()) {
                 getActivity().recreate();
@@ -227,19 +163,6 @@ public class SettingsDetailFragment extends Fragment {
         };
 
         debounceHandler.postDelayed(pendingThemeChange, 300);
-    }
-
-    @Deprecated
-    private void executeSafeRefresh() {
-        // This method is deprecated - use the debounced approach in triggerThemeApply instead
-        if (getActivity() == null || getActivity().isFinishing()) return;
-
-        // 250ms DELAY: Prevents "flashing" before UI refresh
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (isAdded() && getActivity() != null && !getActivity().isFinishing()) {
-                getActivity().recreate();
-            }
-        }, 250);
     }
 
     private void initDeveloperSection(View v) {
@@ -268,7 +191,6 @@ public class SettingsDetailFragment extends Fragment {
 
         if (previewTask != null) {
             previewTask.setOnClickListener(view -> {
-                // Use overlay for A15+, activity for A14 and below
                 if (android.os.Build.VERSION.SDK_INT >= 35 && OverlayNotificationService.canDrawOverlays(requireContext())) {
                     OverlayNotificationService.showNotificationWithTime(
                         requireContext(), -1, "Review Project Proposal",
@@ -286,7 +208,6 @@ public class SettingsDetailFragment extends Fragment {
         }
         if (previewFocus != null) {
             previewFocus.setOnClickListener(view -> {
-                // Use overlay for A15+, activity for A14 and below
                 if (android.os.Build.VERSION.SDK_INT >= 35 && OverlayNotificationService.canDrawOverlays(requireContext())) {
                     OverlayNotificationService.showNotificationWithTime(
                         requireContext(), -2, "Deep Work: Project Planning",

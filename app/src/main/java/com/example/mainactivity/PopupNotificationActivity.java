@@ -116,6 +116,10 @@ public class PopupNotificationActivity extends Activity {
         // Cancel the trigger notification now that popup is shown
         cancelTriggerNotification();
 
+        // Play alarm sound for ALL notifications (both preview and actual tasks)
+        AlarmSoundHelper.playAlarmSound(this);
+        android.util.Log.d("PopupNotification", "🔔 Playing alarm sound (taskId=" + taskId + ", type=" + taskType + ")");
+
         if ("focus".equals(taskType)) {
             showFocusSessionPopup();
         } else {
@@ -709,9 +713,20 @@ public class PopupNotificationActivity extends Activity {
     }
 
     @Override
+    public void finish() {
+        // Stop alarm sound when activity is finishing
+        AlarmSoundHelper.stopAlarmSound();
+        android.util.Log.d("PopupNotification", "🔇 Stopping alarm sound on finish()");
+        super.finish();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         stopTimer();
+        
+        // Stop alarm sound if it's playing - safety net
+        AlarmSoundHelper.stopAlarmSound();
     }
 
     /**

@@ -41,9 +41,11 @@ public class CurrentTasksFragment extends Fragment {
     private TextView taskCountText;
     private LinearProgressIndicator progressBar;
     private TextView completionText;
+    private com.google.android.material.button.MaterialButton priorityFilterButton;
 
     private TaskRepository taskRepository;
-    
+    private String currentPriorityFilter = "All"; // Track current filter: "All", "Low", "Medium", "High"
+
     // Broadcast receiver to refresh tasks when added from floating button
     private final BroadcastReceiver taskRefreshReceiver = new BroadcastReceiver() {
         @Override
@@ -103,9 +105,16 @@ public class CurrentTasksFragment extends Fragment {
         taskCountText = view.findViewById(R.id.taskCountText);
         progressBar = view.findViewById(R.id.progressBar);
         completionText = view.findViewById(R.id.completionText);
+        priorityFilterButton = view.findViewById(R.id.priorityFilterButton);
 
         if (progressTracker != null) {
             progressTracker.setOnClickListener(v -> showCompletedTasksDialog());
+        }
+
+        // Setup priority filter button
+        if (priorityFilterButton != null) {
+            updateFilterButtonText();
+            priorityFilterButton.setOnClickListener(v -> showPriorityFilterDialog());
         }
 
         // Setup dynamic padding for content to avoid being hidden by FABs
@@ -204,10 +213,13 @@ public class CurrentTasksFragment extends Fragment {
         // Combined counting loop - process all task lists together
         @SuppressWarnings("unchecked")
         ArrayList<Task>[] allTaskLists = new ArrayList[]{morningTasks, afternoonTasks, nightTasks};
-        
+
         for (ArrayList<Task> taskList : allTaskLists) {
             for (Task task : taskList) {
                 if (task != null && task.date != null && task.date.equals(todayDate)) {
+                    // Apply priority filter to count as well
+                    if (!shouldShowTask(task)) continue;
+                    
                     totalTasks++;
                     if (task.isComplete) {
                         completedTasks++;
@@ -805,5 +817,61 @@ public class CurrentTasksFragment extends Fragment {
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).triggerShowCompletedTasksDialog();
         }
+    }
+
+    private void showPriorityFilterDialog() {
+        String[] filterOptions = {"All", "Low Priority", "Medium Priority", "High Priority"};
+
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
+        builder.setTitle("Filter by Priority");
+
+        builder.setItems(filterOptions, (dialog, which) -> {
+            switch (which) {
+                case 0:
+                    currentPriorityFilter = "All";
+                    break;
+                case 1:
+                    currentPriorityFilter = "Low";
+                    break;
+                case 2:
+                    currentPriorityFilter = "Medium";
+                    break;
+                case 3:
+                    currentPriorityFilter = "High";
+                    break;
+            }
+            updateFilterButtonText();
+            refreshTasks();
+            Toast.makeText(getContext(), "Filtered by: " + currentPriorityFilter, Toast.LENGTH_SHORT).show();
+        });
+
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
+    private void updateFilterButtonText() {
+        if (priorityFilterButton != null) {
+            if ("All".equals(currentPriorityFilter)) {
+                priorityFilterButton.setText("Priority: All");
+                priorityFilterButton.setIconResource(R.drawable.ic_filter);
+            } else {
+                priorityFilterButton.setText("Priority: " + currentPriorityFilter);
+                priorityFilterButton.setIconResource(R.drawable.ic_filter);
+            }
+        }
+    }
+
+    private boolean shouldShowTask(Task task) {
+        if ("All".equals(currentPriorityFilter)) {
+            return true;
+        }
+
+        // Check if task priority matches current filter
+        if (task.urgency == null || task.urgency.isEmpty()) {
+            // If task has no priority, only show it when filter is "All" (already checked above)
+            return false;
+        }
+
+        return task.urgency.equalsIgnoreCase(currentPriorityFilter);
     }
 }

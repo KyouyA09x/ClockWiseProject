@@ -38,6 +38,10 @@ public class Task implements Parcelable {
     // Trash bin fields
     boolean isDeleted; // Whether this task is in the trash bin
     long deletedAt; // Timestamp when the task was deleted
+    
+    // Alarm sound fields
+    public String alarmSound; // Name of the alarm sound
+    public String alarmSoundUri; // URI of the alarm sound
 
     // Required empty constructor for Room
     public Task() {
@@ -45,6 +49,7 @@ public class Task implements Parcelable {
         this.endAmPm = "AM";
         this.isDeleted = false;
         this.deletedAt = 0;
+        this.alarmSound = "Default Alarm";
     }
 
     @Ignore
@@ -64,6 +69,7 @@ public class Task implements Parcelable {
         this.endAmPm = "AM";
         this.isFocusTaskActive = false;
         this.extendedMinutes = 0;
+        this.alarmSound = "Default Alarm";
     }
 
     // Constructor for Focus Task
@@ -85,6 +91,7 @@ public class Task implements Parcelable {
         this.taskType = "focus";
         this.isFocusTaskActive = false;
         this.extendedMinutes = 0;
+        this.alarmSound = "Default Alarm";
     }
 
     @Ignore
@@ -108,6 +115,10 @@ public class Task implements Parcelable {
         isFocusTaskActive = in.readByte() != 0;
         extendedMinutes = in.readInt();
         noteContent = in.readString();
+        isDeleted = in.readByte() != 0;
+        deletedAt = in.readLong();
+        alarmSound = in.readString();
+        alarmSoundUri = in.readString();
     }
 
     public static final Creator<Task> CREATOR = new Creator<Task>() {
@@ -150,6 +161,8 @@ public class Task implements Parcelable {
         dest.writeString(noteContent);
         dest.writeByte((byte) (isDeleted ? 1 : 0));
         dest.writeLong(deletedAt);
+        dest.writeString(alarmSound);
+        dest.writeString(alarmSoundUri);
     }
 
     // Helper method to get formatted start time
