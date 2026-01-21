@@ -1179,7 +1179,15 @@ public class MainActivity extends BaseThemedActivity {
         if (task == null) return new View(this);
         
         LayoutInflater inflater = LayoutInflater.from(this);
-        View taskView = inflater.inflate(R.layout.task_item, null, false);
+        
+        // Create a temporary parent to properly apply layout parameters
+        LinearLayout tempParent = new LinearLayout(this);
+        tempParent.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+        
+        View taskView = inflater.inflate(R.layout.task_item, tempParent, false);
 
         // Set layout params with margins for spacing between tasks
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
@@ -1192,7 +1200,19 @@ public class MainActivity extends BaseThemedActivity {
         taskView.setLayoutParams(layoutParams);
 
         TextView taskNameTextView = taskView.findViewById(R.id.taskName);
+        
+        // Ensure text wrapping is enabled for full visibility
+        if (taskNameTextView != null) {
+            taskNameTextView.setSingleLine(false);
+            taskNameTextView.setEllipsize(null); // Disable ellipsizing
+        }
         TextView taskTimeTextView = taskView.findViewById(R.id.taskTime);
+        
+        // Also ensure time text shows fully
+        if (taskTimeTextView != null) {
+            taskTimeTextView.setSingleLine(false);
+            taskTimeTextView.setEllipsize(null);
+        }
         android.widget.ImageView taskTypeIcon = taskView.findViewById(R.id.taskTypeIcon);
         TextView repeatDaysTextView = taskView.findViewById(R.id.repeatDays);
         final View taskContent = taskView.findViewById(R.id.taskContent);
@@ -1558,10 +1578,10 @@ public class MainActivity extends BaseThemedActivity {
         // Get references to the sections
         View featuresSection = dialogView.findViewById(R.id.featuresSection);
         View aboutUsSection = dialogView.findViewById(R.id.aboutUsSection);
+        View aboutClockwiseSection = dialogView.findViewById(R.id.aboutClockwiseSection);
         com.google.android.material.button.MaterialButton featuresToggleButton =
             dialogView.findViewById(R.id.featuresToggleButton);
-        com.google.android.material.button.MaterialButton aboutUsToggleButton =
-            dialogView.findViewById(R.id.aboutUsToggleButton);
+        TextView aboutUsToggleButton = dialogView.findViewById(R.id.aboutUsToggleButton);
 
         // Setup features toggle button click listener
         featuresToggleButton.setOnClickListener(v -> {
@@ -1576,17 +1596,18 @@ public class MainActivity extends BaseThemedActivity {
             }
         });
 
-        // Setup About Us toggle button click listener (Classic Design Restored)
-        if (aboutUsToggleButton != null && aboutUsSection != null) {
+        // Setup About Us toggle click listener
+        // When clicked, hide "About ClockWise" section and show only development team card
+        if (aboutUsToggleButton != null && aboutUsSection != null && aboutClockwiseSection != null) {
             aboutUsToggleButton.setOnClickListener(v -> {
                 if (aboutUsSection.getVisibility() == View.GONE) {
-                    // Show About Us section
+                    // Show development team card and hide About ClockWise section
                     aboutUsSection.setVisibility(View.VISIBLE);
-                    aboutUsToggleButton.setIcon(getDrawable(R.drawable.ic_arrow_up));
+                    aboutClockwiseSection.setVisibility(View.GONE);
                 } else {
-                    // Hide About Us section
+                    // Hide development team card and show About ClockWise section
                     aboutUsSection.setVisibility(View.GONE);
-                    aboutUsToggleButton.setIcon(getDrawable(R.drawable.ic_arrow_down));
+                    aboutClockwiseSection.setVisibility(View.VISIBLE);
                 }
             });
         }

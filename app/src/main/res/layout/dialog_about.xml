@@ -81,6 +81,7 @@
                         android:textColor="?attr/colorPrimary"
                         android:textStyle="bold"
                         android:gravity="center"
+                        android:textAlignment="center"
                         android:layout_marginBottom="@dimen/spacing_sm" />
                     <TextView
                         android:layout_width="match_parent"
@@ -89,6 +90,7 @@
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnSurface"
                         android:gravity="center"
+                        android:textAlignment="center"
                         android:lineSpacingExtra="4dp"
                         android:layout_marginBottom="@dimen/spacing_lg" />
 
@@ -183,54 +185,78 @@
                 </LinearLayout>
 
 
-                <!-- About Us Toggle Button (Classic Design Restored) -->
-                <com.google.android.material.button.MaterialButton
+                <!-- Meet the Development Team Section -->
+                <TextView
                     android:id="@+id/aboutUsToggleButton"
-                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="About Us"
+                    android:text="Meet the Development Team"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorPrimary"
                     android:textStyle="bold"
-                    android:gravity="center_horizontal"
-                    app:icon="@drawable/ic_arrow_down"
-                    app:iconTint="?attr/colorPrimary"
-                    app:iconGravity="end"
+                    android:gravity="center"
+                    android:textAlignment="center"
+                    android:padding="@dimen/spacing_md"
                     android:layout_marginTop="@dimen/spacing_md"
-                    android:layout_marginBottom="@dimen/spacing_sm" />
+                    android:layout_marginBottom="@dimen/spacing_sm"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground" />
 
-                <!-- About Us Section (Classic Design Restored) -->
-                <LinearLayout
+                <!-- Meet the Development Team Card -->
+                <com.google.android.material.card.MaterialCardView
                     android:id="@+id/aboutUsSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:visibility="gone"
-                    android:paddingHorizontal="@dimen/spacing_md"
-                    android:layout_marginBottom="@dimen/spacing_lg">
+                    android:layout_marginBottom="@dimen/spacing_lg"
+                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                    app:cardCornerRadius="@dimen/card_corner_radius"
+                    app:cardElevation="0dp">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Development Team"
-                        android:textAppearance="?attr/textAppearanceTitleSmall"
-                        android:textColor="?attr/colorPrimary"
-                        android:textStyle="bold"
-                        android:gravity="center"
-                        android:layout_marginBottom="@dimen/spacing_sm" />
+                        android:orientation="vertical"
+                        android:gravity="center_horizontal"
+                        android:padding="@dimen/card_padding">
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/about_us_developers"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurface"
-                        android:lineSpacingExtra="6dp"
-                        android:gravity="center"
-                        android:paddingVertical="4dp" />
+                        <!-- App Icon -->
+                        <ImageView
+                            android:layout_width="96dp"
+                            android:layout_height="96dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/app_icon"
+                            android:layout_marginBottom="@dimen/spacing_md"
+                            android:contentDescription="ClockWise Icon" />
 
-                </LinearLayout>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:text="Development Team"
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textColor="?attr/colorPrimary"
+                            android:textStyle="bold"
+                            android:gravity="center"
+                            android:textAlignment="center"
+                            android:layout_marginBottom="@dimen/spacing_sm" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:text="@string/about_us_developers"
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:gravity="center"
+                            android:textAlignment="center"
+                            android:lineSpacingExtra="6dp"
+                            android:paddingVertical="4dp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>

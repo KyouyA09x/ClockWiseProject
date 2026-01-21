@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Current tasks fragment optimized for tablets and unfolded foldable devices (>= 600dp width) -->
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="?attr/backgroundColor">
+
+    <LinearLayout
+        android:id="@+id/currentTasksContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="200dp"
+        android:clipToPadding="false">
+
+        <!-- Today's Tasks Header with Filter - MUCH LARGER for maximum visibility -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Today's Tasks"
+                android:textAppearance="?attr/textAppearanceHeadlineLarge"
+                android:textSize="36sp"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold" />
+
+            <!-- Priority Filter Button - Larger touch target -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/priorityFilterButton"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                app:icon="@drawable/ic_filter"
+                app:iconSize="28dp"
+                app:iconTint="?attr/colorOnSurfaceVariant"
+                app:iconGravity="textStart"
+                app:strokeWidth="0dp"
+                android:backgroundTint="@android:color/transparent"
+                android:contentDescription="Filter by priority" />
+
+        </LinearLayout>
+
+        <!-- Progress Card - Larger and more readable -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/progressTracker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:rippleColor="?attr/colorPrimary">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:id="@+id/taskCountText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:text="@string/task_progress"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/progressBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:indicatorColor="?attr/colorPrimary"
+                    app:trackColor="?attr/colorSurface"
+                    app:trackCornerRadius="6dp"
+                    app:trackThickness="12dp" />
+
+                <TextView
+                    android:id="@+id/completionText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/progress_zero"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textSize="18sp"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Empty State - Larger -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/emptyStateCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="48dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="48dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎉"
+                    android:textSize="80sp"
+                    android:layout_marginBottom="20dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="All done for today!"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                    android:textSize="28sp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:gravity="center"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tap + to add new tasks"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textSize="18sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:gravity="center" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Focus Sessions Section - Larger text -->
+        <LinearLayout
+            android:id="@+id/focusTasksSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎯 Focus Sessions Today"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textSize="26sp"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your dedicated deep work time blocks"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textSize="16sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:id="@+id/focusTasksContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:divider="@android:color/transparent"
+                android:dividerHeight="0dp"
+                android:showDividers="middle" />
+
+        </LinearLayout>
+
+        <!-- Tasks Container Card - Better spacing -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/tasksContainerCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- Morning Tasks - Larger header -->
+                <TextView
+                    android:id="@+id/morningTasksHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    app:drawableStartCompat="@drawable/ic_morning"
+                    android:drawablePadding="12dp"
+                    android:text="@string/morning_tasks_header"
+                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnSurface"
+                    app:drawableTint="?attr/colorPrimary" />
+
+                <LinearLayout
+                    android:id="@+id/morningTasksContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical" />
+
+                <!-- Afternoon Tasks - Larger header -->
+                <TextView
+                    android:id="@+id/afternoonTasksHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    app:drawableStartCompat="@drawable/ic_afternoon"
+                    android:drawablePadding="12dp"
+                    android:text="@string/afternoon_tasks_header"
+                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnSurface"
+                    app:drawableTint="?attr/colorPrimary" />
+
+                <LinearLayout
+                    android:id="@+id/afternoonTasksContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical" />
+
+                <!-- Night Tasks - Larger header -->
+                <TextView
+                    android:id="@+id/nightTasksHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    app:drawableStartCompat="@drawable/ic_night"
+                    android:drawablePadding="12dp"
+                    android:text="@string/night_tasks_header"
+                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnSurface"
+                    app:drawableTint="?attr/colorPrimary" />
+
+                <LinearLayout
+                    android:id="@+id/nightTasksContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

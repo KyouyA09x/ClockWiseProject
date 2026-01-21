@@ -25,12 +25,30 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Single Fragment Container -->
-    <FrameLayout
-        android:id="@+id/single_settings_container"
+    <androidx.slidingpanelayout.widget.SlidingPaneLayout
+        android:id="@+id/sliding_pane_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?attr/backgroundColor"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <!-- Master Pane - More flexible width for single screen -->
+        <FrameLayout
+            android:id="@+id/settings_list_container"
+            android:layout_width="280dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="1dp"
+            android:background="?attr/colorSurface"
+            android:minWidth="240dp" />
+
+        <!-- Detail Pane - Takes remaining space -->
+        <FrameLayout
+            android:id="@+id/detail_container"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/backgroundColor"
+            android:minWidth="280dp" />
+
+    </androidx.slidingpanelayout.widget.SlidingPaneLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
