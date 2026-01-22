@@ -1,36 +1,48 @@
 package com.example.mainactivity;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.util.DisplayMetrics;
-import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.core.util.Consumer;
 import androidx.fragment.app.Fragment;
 import androidx.slidingpanelayout.widget.SlidingPaneLayout;
+import androidx.window.layout.FoldingFeature;
+import androidx.window.layout.WindowInfoTracker;
+import androidx.window.layout.WindowLayoutInfo;
+import androidx.window.java.layout.WindowInfoTrackerCallbackAdapter;
 
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.switchmaterial.SwitchMaterial;
+
+import java.util.concurrent.Executor;
 
 public class SettingsActivity extends BaseThemedActivity {
     
     private SlidingPaneLayout slidingPaneLayout;
-    private SwitchMaterial floatingButtonSwitch;
     private SharedPreferences prefs;
     private boolean useSinglePane = false;
+    private int lastScreenWidthDp = 0;
     
-    private static final int REQUEST_OVERLAY_PERMISSION = 1234;
+    // Jetpack WindowManager for foldable detection
+    private WindowInfoTrackerCallbackAdapter windowInfoTracker;
+    private final Consumer<WindowLayoutInfo> layoutStateChangeCallback = this::onLayoutStateChanged;
+    private boolean isFolded = false;
+    private boolean isInitialized = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        // Initialize WindowInfoTracker for foldable detection
+        windowInfoTracker = new WindowInfoTrackerCallbackAdapter(
+                WindowInfoTracker.getOrCreate(this)
+        );
+        
         // Check if we should use single pane mode for foldable phones
         useSinglePane = shouldUseSinglePaneForFoldable();
+        lastScreenWidthDp = getCurrentScreenWidthDp();
         
         if (useSinglePane) {
             // Use single pane layout for foldables in closed/single screen mode
@@ -48,6 +60,115 @@ public class SettingsActivity extends BaseThemedActivity {
         }
 
         prefs = getSharedPreferences("settings", MODE_PRIVATE);
+        isInitialized = true;
+    }
+    
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Start listening for window layout changes (fold/unfold events)
+        if (windowInfoTracker != null) {
+            Executor mainExecutor = androidx.core.content.ContextCompat.getMainExecutor(this);
+            windowInfoTracker.addWindowLayoutInfoListener(this, mainExecutor, layoutStateChangeCallback);
+        }
+    }
+    
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Stop listening for window layout changes
+        if (windowInfoTracker != null) {
+            windowInfoTracker.removeWindowLayoutInfoListener(layoutStateChangeCallback);
+        }
+    }
+    
+    /**
+     * Called when the window layout changes (e.g., phone is folded/unfolded)
+     */
+    private void onLayoutStateChanged(WindowLayoutInfo windowLayoutInfo) {
+        if (!isInitialized) return;
+        
+        boolean wasFolded = isFolded;
+        boolean hasHinge = false;
+        boolean isTableTopMode = false;
+        
+        // Check for folding features
+        for (androidx.window.layout.DisplayFeature feature : windowLayoutInfo.getDisplayFeatures()) {
+            if (feature instanceof FoldingFeature) {
+                FoldingFeature foldingFeature = (FoldingFeature) feature;
+                hasHinge = true;
+                
+                // Check the state of the fold
+                FoldingFeature.State state = foldingFeature.getState();
+                if (state == FoldingFeature.State.HALF_OPENED) {
+                    isTableTopMode = true;
+                }
+                
+                // Determine if phone is in "folded" (narrow screen) mode
+                // FLAT = fully open, HALF_OPENED = partially open
+                isFolded = false; // If we have a folding feature visible, the device is unfolded
+            }
+        }
+        
+        // If no folding features detected, the device might be folded (single screen mode)
+        if (!hasHinge) {
+            // Check screen width to determine if we're in folded mode
+            int currentWidthDp = getCurrentScreenWidthDp();
+            isFolded = currentWidthDp < 600;
+        }
+        
+        // If fold state changed, update the layout
+        if (wasFolded != isFolded || shouldLayoutChange()) {
+            android.util.Log.d("SettingsActivity", "Fold state changed - wasFolded: " + wasFolded + ", isFolded: " + isFolded);
+            updateLayoutForFoldState();
+        }
+    }
+    
+    /**
+     * Check if the layout mode needs to change based on current screen size
+     */
+    private boolean shouldLayoutChange() {
+        int newScreenWidthDp = getCurrentScreenWidthDp();
+        boolean shouldBeMultiPane = newScreenWidthDp >= 600;
+        boolean isCurrentlyMultiPane = !useSinglePane;
+        return shouldBeMultiPane != isCurrentlyMultiPane;
+    }
+    
+    /**
+     * Update the layout when fold state changes
+     */
+    private void updateLayoutForFoldState() {
+        int currentWidthDp = getCurrentScreenWidthDp();
+        boolean shouldUseSingle = currentWidthDp < 600;
+        
+        if (shouldUseSingle != useSinglePane) {
+            // Need to switch layouts - recreate the activity
+            android.util.Log.d("SettingsActivity", "Switching layout mode - recreating activity");
+            recreate();
+        }
+    }
+    
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        
+        // Check if screen width changed significantly (foldable state change)
+        int newScreenWidthDp = getCurrentScreenWidthDp();
+        boolean shouldBeMultiPane = newScreenWidthDp >= 600;
+        boolean isCurrentlyMultiPane = !useSinglePane;
+        
+        android.util.Log.d("SettingsActivity", "onConfigurationChanged - width: " + newScreenWidthDp + 
+                ", shouldBeMultiPane: " + shouldBeMultiPane + ", isCurrentlyMultiPane: " + isCurrentlyMultiPane);
+        
+        // If the layout mode needs to change, recreate the activity
+        if (shouldBeMultiPane != isCurrentlyMultiPane) {
+            recreate();
+        }
+    }
+    
+    private int getCurrentScreenWidthDp() {
+        DisplayMetrics metrics = getResources().getDisplayMetrics();
+        return (int) (metrics.widthPixels / metrics.density);
     }
     
     /**
@@ -61,7 +182,7 @@ public class SettingsActivity extends BaseThemedActivity {
         float heightDp = metrics.heightPixels / metrics.density;
         
         // Check if in multi-window mode (split screen)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode()) {
+        if (isInMultiWindowMode()) {
             return false; // Use split pane in multi-window mode
         }
         
@@ -84,17 +205,13 @@ public class SettingsActivity extends BaseThemedActivity {
         
         // For foldable in single screen mode (not unfolded), use single pane
         // This prevents the stretched settings on narrow foldable screens
-        if (isPossibleFoldable && widthDp < 500) {
+        if (isPossibleFoldable) {
             return true;
         }
         
         // Regular phones (< 600dp width) - use single pane
-        if (widthDp < 600) {
-            return true;
-        }
-        
         // Tablets and unfolded foldables (>= 600dp) - use split pane
-        return false;
+        return widthDp < 600;
     }
     
     private void loadSinglePaneSettings() {
@@ -151,89 +268,5 @@ public class SettingsActivity extends BaseThemedActivity {
                 slidingPaneLayout.openPane();
             }
         }
-    }
-    
-    private void setupFloatingButtonToggle() {
-        if (floatingButtonSwitch == null) return;
-        
-        // Set initial state from preferences WITHOUT triggering the listener
-        boolean isEnabled = prefs.getBoolean("floating_button_enabled", false);
-        
-        // Set the checked state without listener first
-        floatingButtonSwitch.setOnCheckedChangeListener(null);
-        floatingButtonSwitch.setChecked(isEnabled);
-        
-        // NOW set up the listener
-        floatingButtonSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                // Check overlay permission
-                if (!Settings.canDrawOverlays(this)) {
-                    // Need to request overlay permission
-                    floatingButtonSwitch.setChecked(false);
-                    showOverlayPermissionDialog();
-                    return;
-                }
-                
-                // Permission granted, start service
-                startFloatingButtonService();
-                prefs.edit().putBoolean("floating_button_enabled", true).apply();
-                Toast.makeText(this, "Floating button enabled", Toast.LENGTH_SHORT).show();
-            } else {
-                // Stop service
-                stopFloatingButtonService();
-                prefs.edit().putBoolean("floating_button_enabled", false).apply();
-                Toast.makeText(this, "Floating button disabled", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-    
-    private void showOverlayPermissionDialog() {
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                .setTitle("Overlay Permission Required")
-                .setMessage("The floating button requires permission to display over other apps. This allows quick access to ClockWise actions from anywhere on your device.")
-                .setIcon(R.drawable.ic_flash)
-                .setPositiveButton("Grant Permission", (dialog, which) -> requestOverlayPermission())
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-    
-    private void requestOverlayPermission() {
-        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:" + getPackageName()));
-        startActivityForResult(intent, REQUEST_OVERLAY_PERMISSION);
-    }
-    
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        
-        if (requestCode == REQUEST_OVERLAY_PERMISSION) {
-            if (Settings.canDrawOverlays(this)) {
-                // Permission granted
-                if (floatingButtonSwitch != null) {
-                    floatingButtonSwitch.setChecked(true);
-                }
-                startFloatingButtonService();
-                prefs.edit().putBoolean("floating_button_enabled", true).apply();
-                Toast.makeText(this, "Floating button enabled", Toast.LENGTH_SHORT).show();
-            } else {
-                // Permission denied
-                Toast.makeText(this, "Overlay permission is required for floating button", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-    
-    private void startFloatingButtonService() {
-        Intent serviceIntent = new Intent(this, FloatingButtonService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent);
-        } else {
-            startService(serviceIntent);
-        }
-    }
-    
-    private void stopFloatingButtonService() {
-        Intent serviceIntent = new Intent(this, FloatingButtonService.class);
-        stopService(serviceIntent);
     }
 }

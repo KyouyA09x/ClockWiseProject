@@ -1,8 +1,13 @@
 package com.example.mainactivity;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +17,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
+import com.google.android.material.switchmaterial.SwitchMaterial;
+
+import static android.content.Context.MODE_PRIVATE;
 
 /**
  * CRITICAL FIX: Settings Detail module.
@@ -20,6 +28,7 @@ import androidx.fragment.app.Fragment;
  */
 public class SettingsDetailFragment extends Fragment {
     private static final String ARG_TYPE = "category";
+    private static final int REQUEST_OVERLAY_PERMISSION = 1234;
     private String settingType;
     
     // THE "BLINDFOLD" FIX: Suppresses automated listener triggers during setup
@@ -27,9 +36,13 @@ public class SettingsDetailFragment extends Fragment {
 
     // DEBOUNCE MECHANISM: Prevents rapid-fire events
     private boolean isThemeChangePending = false;
-    private Handler debounceHandler = new Handler(Looper.getMainLooper());
+    private final Handler debounceHandler = new Handler(Looper.getMainLooper());
     private Runnable pendingThemeChange = null;
-
+    
+    // Floating button switch
+    private SwitchMaterial floatingButtonSwitch;
+    private SharedPreferences prefs;
+    
     public static SettingsDetailFragment newInstance(String category) {
         SettingsDetailFragment fragment = new SettingsDetailFragment();
         Bundle args = new Bundle();
@@ -68,6 +81,9 @@ public class SettingsDetailFragment extends Fragment {
         
         // Ensure root is present to avoid NPE
         if (view.findViewById(R.id.settingsRoot) == null) return;
+
+        // Initialize preferences
+        prefs = requireActivity().getSharedPreferences("settings", MODE_PRIVATE);
 
         // Switch Logic: Determine which container to show
         View appearanceSection = view.findViewById(R.id.layout_appearance);
@@ -305,6 +321,113 @@ public class SettingsDetailFragment extends Fragment {
         if (previewQuickInfo != null) {
             previewQuickInfo.setOnClickListener(view -> showPreviewQuickInfoPopup(view));
         }
+        
+        // Setup floating button toggle
+        setupFloatingButtonToggle(v);
+    }
+    
+    private void setupFloatingButtonToggle(View v) {
+        floatingButtonSwitch = v.findViewById(R.id.floatingButtonSwitch);
+        if (floatingButtonSwitch == null) return;
+        
+        // Set initial state from preferences WITHOUT triggering the listener
+        boolean isEnabled = prefs.getBoolean("floating_button_enabled", false);
+        
+        // Set the checked state without listener first
+        floatingButtonSwitch.setOnCheckedChangeListener(null);
+        floatingButtonSwitch.setChecked(isEnabled);
+        
+        // NOW set up the listener
+        floatingButtonSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                // Check overlay permission
+                if (!Settings.canDrawOverlays(requireContext())) {
+                    // Need to request overlay permission
+                    floatingButtonSwitch.setChecked(false);
+                    showOverlayPermissionDialog();
+                    return;
+                }
+                
+                // Permission granted, start service
+                startFloatingButtonService();
+                prefs.edit().putBoolean("floating_button_enabled", true).apply();
+                Toast.makeText(requireContext(), "Floating button enabled", Toast.LENGTH_SHORT).show();
+            } else {
+                // Stop service
+                stopFloatingButtonService();
+                prefs.edit().putBoolean("floating_button_enabled", false).apply();
+                Toast.makeText(requireContext(), "Floating button disabled", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    
+    private void showOverlayPermissionDialog() {
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Overlay Permission Required")
+                .setMessage("The floating button requires permission to display over other apps. This allows quick access to ClockWise actions from anywhere on your device.")
+                .setIcon(R.drawable.ic_flash)
+                .setPositiveButton("Grant Permission", (dialog, which) -> requestOverlayPermission())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+    
+    private void requestOverlayPermission() {
+        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + requireContext().getPackageName()));
+        startActivityForResult(intent, REQUEST_OVERLAY_PERMISSION);
+    }
+    
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == REQUEST_OVERLAY_PERMISSION) {
+            if (Settings.canDrawOverlays(requireContext())) {
+                // Permission granted
+                if (floatingButtonSwitch != null) {
+                    floatingButtonSwitch.setChecked(true);
+                }
+                startFloatingButtonService();
+                prefs.edit().putBoolean("floating_button_enabled", true).apply();
+                Toast.makeText(requireContext(), "Floating button enabled", Toast.LENGTH_SHORT).show();
+            } else {
+                // Permission denied
+                Toast.makeText(requireContext(), "Overlay permission is required for floating button", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+    
+    private void startFloatingButtonService() {
+        try {
+            // Double-check overlay permission before starting
+            if (!Settings.canDrawOverlays(requireContext())) {
+                Toast.makeText(requireContext(), "Overlay permission not granted", Toast.LENGTH_SHORT).show();
+                if (floatingButtonSwitch != null) {
+                    floatingButtonSwitch.setChecked(false);
+                }
+                prefs.edit().putBoolean("floating_button_enabled", false).apply();
+                return;
+            }
+            
+            Intent serviceIntent = new Intent(requireContext(), FloatingButtonService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                requireContext().startForegroundService(serviceIntent);
+            } else {
+                requireContext().startService(serviceIntent);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(requireContext(), "Failed to start floating button: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            if (floatingButtonSwitch != null) {
+                floatingButtonSwitch.setChecked(false);
+            }
+            prefs.edit().putBoolean("floating_button_enabled", false).apply();
+        }
+    }
+    
+    private void stopFloatingButtonService() {
+        Intent serviceIntent = new Intent(requireContext(), FloatingButtonService.class);
+        requireContext().stopService(serviceIntent);
     }
     
     private void showPreviewQuickInfoPopup(android.view.View anchorView) {

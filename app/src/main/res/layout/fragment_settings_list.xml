@@ -118,12 +118,15 @@
                         android:src="@drawable/ic_delete"
                         app:tint="?attr/colorPrimary" />
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:text="Developer Options"
                         android:layout_marginStart="@dimen/spacing_md"
                         android:textColor="?attr/colorOnSurface"
-                        android:textAppearance="?attr/textAppearanceTitleMedium" />
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:maxLines="2"
+                        android:ellipsize="end" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

@@ -1072,6 +1072,9 @@ public class TutorialActivityNew extends BaseThemedActivity {
             case FAB_QUICK:
                 imageResource = R.drawable.ic_add_fab;
                 break;
+            case FLOATING_BUTTON:
+                imageResource = R.drawable.ic_flash;
+                break;
             case PROGRESS_TRACKER:
                 imageResource = R.drawable.ic_check;
                 break;
@@ -1115,6 +1118,7 @@ public class TutorialActivityNew extends BaseThemedActivity {
         HAMBURGER_MENU,
         FAB_CENTER,
         FAB_QUICK,
+        FLOATING_BUTTON,
         PROGRESS_TRACKER,
         TASK_SECTIONS,
         TASK_CARD,

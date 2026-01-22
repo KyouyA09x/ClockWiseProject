@@ -194,9 +194,17 @@ public class FloatingButtonService extends Service {
         taskRepository = TaskRepository.getInstance();
         taskRepository.initialize(this);
 
-        // Register theme change receiver
-        IntentFilter filter = new IntentFilter(BaseThemedActivity.ACTION_THEME_CHANGED);
-        registerReceiver(themeChangeReceiver, filter);
+        // Register theme change receiver with proper flags for Android 14+
+        try {
+            IntentFilter filter = new IntentFilter(BaseThemedActivity.ACTION_THEME_CHANGED);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(themeChangeReceiver, filter, android.content.Context.RECEIVER_NOT_EXPORTED);
+            } else {
+                registerReceiver(themeChangeReceiver, filter);
+            }
+        } catch (Exception e) {
+            android.util.Log.e("FloatingButtonService", "Failed to register theme receiver", e);
+        }
     }
 
     @Override
