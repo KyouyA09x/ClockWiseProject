@@ -7,7 +7,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
-@Database(entities = {Task.class, Note.class}, version = 11, exportSchema = false)
+@Database(entities = {Task.class, Note.class}, version = 13, exportSchema = false)
 @TypeConverters(Converters.class)
 public abstract class TaskDatabase extends RoomDatabase {
     private static volatile TaskDatabase INSTANCE;

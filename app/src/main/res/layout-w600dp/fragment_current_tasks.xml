@@ -36,6 +36,30 @@
                 android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold" />
 
+            <!-- Smart View Toggle - Larger for wide screens -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginEnd="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⏰ Smart"
+                    android:textSize="14sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:layout_marginEnd="8dp" />
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/smartViewToggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true" />
+
+            </LinearLayout>
+
             <!-- Priority Filter Button - Larger touch target -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/priorityFilterButton"
@@ -155,12 +179,124 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Focus Sessions Section - Larger text -->
+        <!-- ⏰ RIGHT NOW Section - Current time period tasks (both focus + regular) -->
+        <LinearLayout
+            android:id="@+id/rightNowSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⏰ Right Now"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textSize="26sp"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/rightNowSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tasks for this time period"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textSize="16sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Container for current period task cards -->
+            <LinearLayout
+                android:id="@+id/rightNowContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+
+        <!-- ⚠️ MISSED Section - Past due tasks that weren't completed -->
+        <LinearLayout
+            android:id="@+id/missedTasksSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️ Missed"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textSize="26sp"
+                android:textColor="@color/error"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tasks from earlier that need attention"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textSize="16sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Container for missed task cards -->
+            <LinearLayout
+                android:id="@+id/missedTasksContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+
+        <!-- 📅 LATER TODAY Section - Future time period tasks -->
+        <LinearLayout
+            android:id="@+id/laterTodaySection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📅 Later Today"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textSize="26sp"
+                android:textColor="?attr/colorTertiary"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Upcoming tasks for later"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textSize="16sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Container for later task cards -->
+            <LinearLayout
+                android:id="@+id/laterTodayContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+
+        <!-- Focus Sessions Section - Hidden when time-aware mode active -->
         <LinearLayout
             android:id="@+id/focusTasksSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:layout_marginTop="24dp"
             android:visibility="gone">
 
             <TextView

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AI Suggestion Chip Layout for Task Creation Forms -->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/aiSuggestionCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    app:cardBackgroundColor="?attr/colorTertiaryContainer"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- Header with AI icon -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🧠"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/aiSuggestionTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="AI Suggestions"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="?attr/colorOnTertiaryContainer"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/aiConfidenceText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎯 High confidence"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnTertiaryContainer" />
+        </LinearLayout>
+
+        <!-- Suggestion Chips -->
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/aiSuggestionChipGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="4dp"
+            app:singleLine="false">
+
+            <!-- Priority Suggestion Chip -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPrioritySuggestion"
+                style="@style/Widget.Material3.Chip.Suggestion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Priority: High"
+                android:checkable="true"
+                app:chipBackgroundColor="?attr/colorSurfaceVariant"
+                app:chipStrokeColor="?attr/colorPrimary"
+                app:chipStrokeWidth="1dp"
+                app:chipIcon="@drawable/ic_priority_high"
+                app:chipIconTint="@color/error" />
+
+            <!-- Category Suggestion Chip -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCategorySuggestion"
+                style="@style/Widget.Material3.Chip.Suggestion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Category: Work"
+                android:checkable="true"
+                app:chipBackgroundColor="?attr/colorSurfaceVariant"
+                app:chipStrokeColor="?attr/colorPrimary"
+                app:chipStrokeWidth="1dp" />
+
+            <!-- Time Suggestion Chip -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipTimeSuggestion"
+                style="@style/Widget.Material3.Chip.Suggestion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Best time: Morning"
+                android:checkable="true"
+                app:chipBackgroundColor="?attr/colorSurfaceVariant"
+                app:chipStrokeColor="?attr/colorPrimary"
+                app:chipStrokeWidth="1dp"
+                app:chipIcon="@drawable/ic_clock"
+                app:chipIconTint="?attr/colorPrimary" />
+
+            <!-- Duration Suggestion Chip (for focus tasks) -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipDurationSuggestion"
+                style="@style/Widget.Material3.Chip.Suggestion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Duration: 60 min"
+                android:checkable="true"
+                android:visibility="gone"
+                app:chipBackgroundColor="?attr/colorSurfaceVariant"
+                app:chipStrokeColor="?attr/colorPrimary"
+                app:chipStrokeWidth="1dp"
+                app:chipIcon="@drawable/ic_focus"
+                app:chipIconTint="?attr/colorPrimary" />
+
+        </com.google.android.material.chip.ChipGroup>
+
+        <!-- AI Reason Text -->
+        <TextView
+            android:id="@+id/aiReasonText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Tap a suggestion to apply it"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnTertiaryContainer"
+            android:alpha="0.8" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

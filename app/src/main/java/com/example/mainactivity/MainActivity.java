@@ -4,13 +4,20 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.util.Consumer;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.window.layout.FoldingFeature;
+import androidx.window.layout.WindowInfoTracker;
+import androidx.window.layout.WindowLayoutInfo;
+import androidx.window.java.layout.WindowInfoTrackerCallbackAdapter;
 
 import android.graphics.Paint;
 import android.os.Build;
@@ -27,6 +34,7 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.Executor;
 
 public class MainActivity extends BaseThemedActivity {
 
@@ -59,12 +67,25 @@ public class MainActivity extends BaseThemedActivity {
 
     private TaskRepository taskRepository;
     private final ArrayList<Task> completedTasksToday = new ArrayList<>();
+    
+    // Jetpack WindowManager for foldable detection
+    private WindowInfoTrackerCallbackAdapter windowInfoTracker;
+    private final Consumer<WindowLayoutInfo> layoutStateChangeCallback = this::onLayoutStateChanged;
+    private WindowSizeHelper.WindowSizeClass currentWindowSizeClass = null;
 
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        // Initialize WindowInfoTracker for foldable detection
+        windowInfoTracker = new WindowInfoTrackerCallbackAdapter(
+                WindowInfoTracker.getOrCreate(this)
+        );
+        
+        // Track initial window size class
+        currentWindowSizeClass = WindowSizeHelper.getWidthSizeClass(this);
 
         // Initialize views
         drawerLayout = findViewById(R.id.drawerLayout);
@@ -317,6 +338,25 @@ public class MainActivity extends BaseThemedActivity {
     public void triggerShowCompletedTasksDialog() {
         showCompletedTasksDialog();
     }
+    
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Start listening for window layout changes (fold/unfold events)
+        if (windowInfoTracker != null) {
+            Executor mainExecutor = ContextCompat.getMainExecutor(this);
+            windowInfoTracker.addWindowLayoutInfoListener(this, mainExecutor, layoutStateChangeCallback);
+        }
+    }
+    
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Stop listening for window layout changes
+        if (windowInfoTracker != null) {
+            windowInfoTracker.removeWindowLayoutInfoListener(layoutStateChangeCallback);
+        }
+    }
 
     @Override
     protected void onResume() {
@@ -324,9 +364,175 @@ public class MainActivity extends BaseThemedActivity {
         taskRepository.refreshTasks();
         refreshAllFragments();
     }
+    
+    /**
+     * Called when the window layout changes (e.g., phone is folded/unfolded).
+     * This provides immediate response to fold state changes.
+     */
+    private void onLayoutStateChanged(WindowLayoutInfo windowLayoutInfo) {
+        // Check the new window size class
+        WindowSizeHelper.WindowSizeClass newWindowSizeClass = WindowSizeHelper.getWidthSizeClass(this);
+        
+        // If size class changed, update the UI immediately
+        if (currentWindowSizeClass != newWindowSizeClass) {
+            android.util.Log.d("MainActivity", "Window size class changed from " + currentWindowSizeClass + " to " + newWindowSizeClass);
+            currentWindowSizeClass = newWindowSizeClass;
+            
+            // Update the TasksContainerFragment layout immediately
+            updateFragmentsForNewScreenSize();
+        }
+    }
+    
+    /**
+     * Updates all visible fragments to adapt to the new screen size.
+     */
+    private void updateFragmentsForNewScreenSize() {
+        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+        
+        if (currentFragment instanceof TasksContainerFragment) {
+            // Replace the fragment to trigger layout recalculation
+            TasksContainerFragment newFragment = new TasksContainerFragment();
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragmentContainer, newFragment)
+                    .commitNow();
+        }
+    }
+    
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        
+        // Check if window size class changed
+        WindowSizeHelper.WindowSizeClass newWindowSizeClass = WindowSizeHelper.getWidthSizeClass(this);
+        
+        if (currentWindowSizeClass != newWindowSizeClass) {
+            currentWindowSizeClass = newWindowSizeClass;
+            updateFragmentsForNewScreenSize();
+        }
+    }
 
 
     public void showTaskTypeChooser() {
+        try {
+            // Use modern bottom sheet design
+            com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog = 
+                new com.google.android.material.bottomsheet.BottomSheetDialog(this);
+            
+            View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_actions_modern, null);
+            bottomSheetDialog.setContentView(dialogView);
+            
+            // Make bottom sheet expanded by default
+            bottomSheetDialog.getBehavior().setState(
+                com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED);
+            bottomSheetDialog.getBehavior().setSkipCollapsed(true);
+
+            // Setup Quick Task option
+            View quickTaskOption = dialogView.findViewById(R.id.quickTaskOption);
+            if (quickTaskOption != null) {
+                quickTaskOption.setOnClickListener(v -> {
+                    // Add scale animation on click
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                        .withEndAction(() -> {
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            bottomSheetDialog.dismiss();
+                            showQuickTaskBottomSheet();
+                        }).start();
+                });
+            }
+
+            // Setup Reminder/Task option
+            View reminderOption = dialogView.findViewById(R.id.reminderOption);
+            if (reminderOption != null) {
+                reminderOption.setOnClickListener(v -> {
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                        .withEndAction(() -> {
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            bottomSheetDialog.dismiss();
+                            showReminderBottomSheet(null);
+                        }).start();
+                });
+            }
+
+            // Setup Focus Task option
+            View focusTaskOption = dialogView.findViewById(R.id.focusTaskOption);
+            if (focusTaskOption != null) {
+                focusTaskOption.setOnClickListener(v -> {
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                        .withEndAction(() -> {
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            bottomSheetDialog.dismiss();
+                            showFocusTaskBottomSheet(null);
+                        }).start();
+                });
+            }
+
+            // Setup Note option
+            View noteOption = dialogView.findViewById(R.id.noteOption);
+            if (noteOption != null) {
+                noteOption.setOnClickListener(v -> {
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                        .withEndAction(() -> {
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            bottomSheetDialog.dismiss();
+                            // Navigate to notepad and start new note
+                            navigateToNotepad();
+                        }).start();
+                });
+            }
+            
+            // Setup AI Smart Task option (NEW)
+            View aiSmartTaskOption = dialogView.findViewById(R.id.aiSmartTaskOption);
+            if (aiSmartTaskOption != null) {
+                aiSmartTaskOption.setOnClickListener(v -> {
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                        .withEndAction(() -> {
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            bottomSheetDialog.dismiss();
+                            showNaturalLanguageTaskBottomSheet();
+                        }).start();
+                });
+            }
+            
+            // Setup Convert Note to Task option (NEW)
+            View convertNoteOption = dialogView.findViewById(R.id.convertNoteOption);
+            if (convertNoteOption != null) {
+                convertNoteOption.setOnClickListener(v -> {
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                        .withEndAction(() -> {
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            bottomSheetDialog.dismiss();
+                            showConvertNoteDialog();
+                        }).start();
+                });
+            }
+
+            // Show bottom sheet with animation
+            bottomSheetDialog.show();
+
+        } catch (Exception e) {
+            android.util.Log.e("MainActivity", "ERROR in showTaskTypeChooser", e);
+            Toast.makeText(this, "Error showing task chooser: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+    
+    /**
+     * Show the AI-powered Natural Language Task creation bottom sheet.
+     */
+    public void showNaturalLanguageTaskBottomSheet() {
+        NaturalLanguageTaskBottomSheet bottomSheet = NaturalLanguageTaskBottomSheet.newInstance();
+        bottomSheet.setOnTaskCreatedListener(() -> {
+            refreshAllFragments();
+        });
+        bottomSheet.show(getSupportFragmentManager(), "NaturalLanguageTask");
+    }
+    
+    /**
+     * Legacy task type chooser - kept for rollback capability.
+     * To use: Change showTaskTypeChooser() to call this method.
+     */
+    @SuppressWarnings("unused")
+    private void showTaskTypeChooserLegacy() {
         try {
             // Create and show dialog INSTANTLY - no delays, no animations
             View dialogView = getLayoutInflater().inflate(R.layout.dialog_task_type_chooser, null);
@@ -338,11 +544,9 @@ public class MainActivity extends BaseThemedActivity {
 
             if (dialog.getWindow() != null) {
                 dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-                // Use custom no-animation style for INSTANT appearance
                 dialog.getWindow().setWindowAnimations(R.style.NoAnimationDialog);
             }
 
-            // Setup Quick Task option
             View quickTaskOption = dialogView.findViewById(R.id.quickTaskOption);
             if (quickTaskOption != null) {
                 quickTaskOption.setOnClickListener(v -> {
@@ -351,7 +555,6 @@ public class MainActivity extends BaseThemedActivity {
                 });
             }
 
-            // Setup Reminder/Task option
             View reminderOption = dialogView.findViewById(R.id.reminderOption);
             if (reminderOption != null) {
                 reminderOption.setOnClickListener(v -> {
@@ -360,7 +563,6 @@ public class MainActivity extends BaseThemedActivity {
                 });
             }
 
-            // Setup Focus Task option
             View focusTaskOption = dialogView.findViewById(R.id.focusTaskOption);
             if (focusTaskOption != null) {
                 focusTaskOption.setOnClickListener(v -> {
@@ -369,7 +571,6 @@ public class MainActivity extends BaseThemedActivity {
                 });
             }
 
-            // Setup Convert Note to Task option
             View quickNoteOption = dialogView.findViewById(R.id.quickNoteOption);
             if (quickNoteOption != null) {
                 quickNoteOption.setOnClickListener(v -> {
@@ -378,13 +579,29 @@ public class MainActivity extends BaseThemedActivity {
                 });
             }
 
-            // Show dialog IMMEDIATELY
             dialog.show();
 
         } catch (Exception e) {
-            android.util.Log.e("MainActivity", "ERROR in showTaskTypeChooser", e);
-            Toast.makeText(this, "Error showing task chooser: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            android.util.Log.e("MainActivity", "ERROR in showTaskTypeChooserLegacy", e);
         }
+    }
+    
+    /**
+     * Navigate to Notepad tab and optionally start a new note.
+     */
+    private void navigateToNotepad() {
+        // Select notepad tab in bottom navigation
+        if (bottomNavigation != null) {
+            bottomNavigation.setSelectedItemId(R.id.navigation_notepad);
+        }
+        
+        // After a brief delay, trigger new note dialog
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+            if (fragment instanceof NotepadFragment && fragment.isVisible()) {
+                ((NotepadFragment) fragment).showAddNoteDialog();
+            }
+        }, 300);
     }
     
     private void showConvertNoteDialog() {
@@ -759,8 +976,8 @@ public class MainActivity extends BaseThemedActivity {
 
     public void showQuickTaskBottomSheet() {
         try {
-            // Inflate custom layout
-            View dialogView = getLayoutInflater().inflate(R.layout.dialog_quick_task_chooser, null);
+            // Inflate modern custom layout
+            View dialogView = getLayoutInflater().inflate(R.layout.dialog_quick_task_chooser_modern, null);
 
             androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
             builder.setView(dialogView);
@@ -769,7 +986,6 @@ public class MainActivity extends BaseThemedActivity {
 
             if (dialog.getWindow() != null) {
                 dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-                // Use custom no-animation style for INSTANT appearance
                 dialog.getWindow().setWindowAnimations(R.style.NoAnimationDialog);
             }
 
@@ -783,28 +999,29 @@ public class MainActivity extends BaseThemedActivity {
             View taskOption = dialogView.findViewById(R.id.taskOption);
             if (taskOption != null) {
                 taskOption.setOnClickListener(v -> {
-                    dialog.dismiss();
-                    // Create quick reminder with today's date
-                    Task quickTask = new Task();
-                    quickTask.taskType = "reminder";
-                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-                    quickTask.date = sdf.format(new java.util.Date());
-                    java.util.Calendar cal = java.util.Calendar.getInstance();
-                    quickTask.hour = cal.get(java.util.Calendar.HOUR);
-                    if (quickTask.hour == 0) quickTask.hour = 12;
-                    quickTask.minute = cal.get(java.util.Calendar.MINUTE);
-                    quickTask.amPm = cal.get(java.util.Calendar.AM_PM) == java.util.Calendar.AM ? "AM" : "PM";
-                    quickTask.isAlarmOn = true;
-                    quickTask.urgency = "None";
-                    quickTask.selectedDays = new boolean[7];
+                    // Add scale animation
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                        .withEndAction(() -> {
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            dialog.dismiss();
+                            // Create quick reminder with today's date
+                            Task quickTask = new Task();
+                            quickTask.taskType = "reminder";
+                            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                            quickTask.date = sdf.format(new java.util.Date());
+                            java.util.Calendar cal = java.util.Calendar.getInstance();
+                            quickTask.hour = cal.get(java.util.Calendar.HOUR);
+                            if (quickTask.hour == 0) quickTask.hour = 12;
+                            quickTask.minute = cal.get(java.util.Calendar.MINUTE);
+                            quickTask.amPm = cal.get(java.util.Calendar.AM_PM) == java.util.Calendar.AM ? "AM" : "PM";
+                            quickTask.isAlarmOn = true;
+                            quickTask.urgency = "None";
+                            quickTask.selectedDays = new boolean[7];
 
-                    // Use newInstance with hideDate flag
-                    AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstance(quickTask, true);
-                    bottomSheet.setOnTaskSavedListener(() -> {
-                        // Repository already updated - just refresh UI
-                        refreshAllFragments();
-                    });
-                    bottomSheet.show(getSupportFragmentManager(), "QuickTaskReminder");
+                            AddReminderBottomSheet bottomSheet = AddReminderBottomSheet.newInstance(quickTask, true);
+                            bottomSheet.setOnTaskSavedListener(this::refreshAllFragments);
+                            bottomSheet.show(getSupportFragmentManager(), "QuickTaskReminder");
+                        }).start();
                 });
             }
 
@@ -812,38 +1029,37 @@ public class MainActivity extends BaseThemedActivity {
             View focusSessionOption = dialogView.findViewById(R.id.focusSessionOption);
             if (focusSessionOption != null) {
                 focusSessionOption.setOnClickListener(v -> {
-                    dialog.dismiss();
-                    // Create quick focus task with today's date
-                    Task quickTask = new Task();
-                    quickTask.taskType = "focus";
-                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-                    quickTask.date = sdf.format(new java.util.Date());
-                    java.util.Calendar cal = java.util.Calendar.getInstance();
-                    quickTask.hour = cal.get(java.util.Calendar.HOUR);
-                    if (quickTask.hour == 0) quickTask.hour = 12;
-                    quickTask.minute = cal.get(java.util.Calendar.MINUTE);
-                    quickTask.amPm = cal.get(java.util.Calendar.AM_PM) == java.util.Calendar.AM ? "AM" : "PM";
-                    // Set end time 1 hour later
-                    cal.add(java.util.Calendar.HOUR, 1);
-                    quickTask.endHour = cal.get(java.util.Calendar.HOUR);
-                    if (quickTask.endHour == 0) quickTask.endHour = 12;
-                    quickTask.endMinute = cal.get(java.util.Calendar.MINUTE);
-                    quickTask.endAmPm = cal.get(java.util.Calendar.AM_PM) == java.util.Calendar.AM ? "AM" : "PM";
-                    quickTask.isAlarmOn = true;
-                    quickTask.urgency = "None";
-                    quickTask.selectedDays = new boolean[7];
+                    // Add scale animation
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                        .withEndAction(() -> {
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            dialog.dismiss();
+                            // Create quick focus task with today's date
+                            Task quickTask = new Task();
+                            quickTask.taskType = "focus";
+                            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                            quickTask.date = sdf.format(new java.util.Date());
+                            java.util.Calendar cal = java.util.Calendar.getInstance();
+                            quickTask.hour = cal.get(java.util.Calendar.HOUR);
+                            if (quickTask.hour == 0) quickTask.hour = 12;
+                            quickTask.minute = cal.get(java.util.Calendar.MINUTE);
+                            quickTask.amPm = cal.get(java.util.Calendar.AM_PM) == java.util.Calendar.AM ? "AM" : "PM";
+                            cal.add(java.util.Calendar.HOUR, 1);
+                            quickTask.endHour = cal.get(java.util.Calendar.HOUR);
+                            if (quickTask.endHour == 0) quickTask.endHour = 12;
+                            quickTask.endMinute = cal.get(java.util.Calendar.MINUTE);
+                            quickTask.endAmPm = cal.get(java.util.Calendar.AM_PM) == java.util.Calendar.AM ? "AM" : "PM";
+                            quickTask.isAlarmOn = true;
+                            quickTask.urgency = "None";
+                            quickTask.selectedDays = new boolean[7];
 
-                    // Use newInstance with hideDate flag
-                    AddFocusTaskBottomSheet bottomSheet = AddFocusTaskBottomSheet.newInstance(quickTask, true);
-                    bottomSheet.setOnTaskSavedListener(() -> {
-                        // Repository already updated - just refresh UI
-                        refreshAllFragments();
-                    });
-                    bottomSheet.show(getSupportFragmentManager(), "QuickTaskFocus");
+                            AddFocusTaskBottomSheet bottomSheet = AddFocusTaskBottomSheet.newInstance(quickTask, true);
+                            bottomSheet.setOnTaskSavedListener(this::refreshAllFragments);
+                            bottomSheet.show(getSupportFragmentManager(), "QuickTaskFocus");
+                        }).start();
                 });
             }
 
-            // Show dialog IMMEDIATELY
             dialog.show();
 
         } catch (Exception e) {
@@ -1561,6 +1777,15 @@ public class MainActivity extends BaseThemedActivity {
             params.gravity = android.view.Gravity.CENTER;
             params.width = android.view.WindowManager.LayoutParams.WRAP_CONTENT;
             params.height = android.view.WindowManager.LayoutParams.WRAP_CONTENT;
+            
+            // Configure for large screens - make dialog more compact
+            if (WindowSizeHelper.isLargeScreen(this)) {
+                float density = getResources().getDisplayMetrics().density;
+                int maxWidthPx = (int) (400 * density);
+                int screenWidth = getResources().getDisplayMetrics().widthPixels;
+                params.width = Math.min(maxWidthPx, (int) (screenWidth * 0.8));
+            }
+            
             dialog.getWindow().setAttributes(params);
         }
 

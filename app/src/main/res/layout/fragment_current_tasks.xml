@@ -34,6 +34,29 @@
                 android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold" />
 
+            <!-- Smart View Toggle -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginEnd="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⏰"
+                    android:textSize="16sp"
+                    android:layout_marginEnd="4dp" />
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/smartViewToggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true" />
+
+            </LinearLayout>
+
             <!-- Priority Filter Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/priorityFilterButton"
@@ -148,12 +171,118 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Focus Sessions Section -->
+        <!-- ⏰ RIGHT NOW Section - Current time period tasks (both focus + regular) -->
+        <LinearLayout
+            android:id="@+id/rightNowSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⏰ Right Now"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/rightNowSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tasks for this time period"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="14sp"
+                android:layout_marginBottom="@dimen/spacing_md" />
+
+            <!-- Container for current period task cards -->
+            <LinearLayout
+                android:id="@+id/rightNowContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+
+        <!-- ⚠️ MISSED Section - Past due tasks that weren't completed -->
+        <LinearLayout
+            android:id="@+id/missedTasksSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/spacing_lg"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️ Missed"
+                android:textColor="@color/error"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tasks from earlier that need attention"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="14sp"
+                android:layout_marginBottom="@dimen/spacing_md" />
+
+            <!-- Container for missed task cards -->
+            <LinearLayout
+                android:id="@+id/missedTasksContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+
+        <!-- 📅 LATER TODAY Section - Future time period tasks -->
+        <LinearLayout
+            android:id="@+id/laterTodaySection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/spacing_lg"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📅 Later Today"
+                android:textColor="?attr/colorTertiary"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Upcoming tasks for later"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="14sp"
+                android:layout_marginBottom="@dimen/spacing_md" />
+
+            <!-- Container for later task cards -->
+            <LinearLayout
+                android:id="@+id/laterTodayContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+
+        <!-- Focus Sessions Section - Hidden when time-aware mode active -->
         <LinearLayout
             android:id="@+id/focusTasksSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:layout_marginTop="@dimen/spacing_lg"
             android:visibility="gone">
 
             <TextView
@@ -171,7 +300,42 @@
                 android:text="Your dedicated deep work time blocks"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:layout_marginBottom="@dimen/spacing_md" />
+                android:layout_marginBottom="@dimen/spacing_sm" />
+            
+            <!-- Smart Insight Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/smartInsightCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_md"
+                app:cardBackgroundColor="?attr/colorTertiaryContainer"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp">
+                
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:gravity="center_vertical">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🧠"
+                        android:textSize="20sp"
+                        android:layout_marginEnd="8dp" />
+                    
+                    <TextView
+                        android:id="@+id/smartInsightText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Loading smart insight..."
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnTertiaryContainer" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <LinearLayout
                 android:id="@+id/focusTasksContainer"
@@ -259,6 +423,147 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_sm"
                     android:orientation="vertical" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Filtered Out Tasks Section (shown when priority filter is active) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/filteredOutCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:visibility="gone"
+            app:cardBackgroundColor="?attr/colorSurface"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/colorOutline">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_md">
+
+                <!-- Collapsed Header (clickable to expand/collapse) -->
+                <LinearLayout
+                    android:id="@+id/filteredOutHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground"
+                    android:padding="@dimen/spacing_sm">
+
+                    <ImageView
+                        android:id="@+id/filteredOutExpandIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_arrow_down"
+                        app:tint="?attr/colorOnSurfaceVariant"
+                        android:contentDescription="Expand" />
+
+                    <TextView
+                        android:id="@+id/filteredOutTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="@dimen/spacing_sm"
+                        android:text="Other Tasks"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:id="@+id/filteredOutCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:background="@drawable/badge_background"
+                        android:paddingHorizontal="@dimen/spacing_sm"
+                        android:paddingVertical="2dp"
+                        android:minWidth="24dp"
+                        android:gravity="center" />
+
+                </LinearLayout>
+
+                <!-- Expandable Content Container -->
+                <LinearLayout
+                    android:id="@+id/filteredOutContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+                    <!-- Filtered Morning Tasks -->
+                    <TextView
+                        android:id="@+id/filteredMorningHeader"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        app:drawableStartCompat="@drawable/ic_morning"
+                        android:drawablePadding="@dimen/spacing_sm"
+                        android:text="@string/morning_tasks_header"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:visibility="gone"
+                        app:drawableTint="?attr/colorOnSurfaceVariant" />
+
+                    <LinearLayout
+                        android:id="@+id/filteredMorningContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:orientation="vertical" />
+
+                    <!-- Filtered Afternoon Tasks -->
+                    <TextView
+                        android:id="@+id/filteredAfternoonHeader"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        app:drawableStartCompat="@drawable/ic_afternoon"
+                        android:drawablePadding="@dimen/spacing_sm"
+                        android:text="@string/afternoon_tasks_header"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:visibility="gone"
+                        app:drawableTint="?attr/colorOnSurfaceVariant" />
+
+                    <LinearLayout
+                        android:id="@+id/filteredAfternoonContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:orientation="vertical" />
+
+                    <!-- Filtered Night Tasks -->
+                    <TextView
+                        android:id="@+id/filteredNightHeader"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        app:drawableStartCompat="@drawable/ic_night"
+                        android:drawablePadding="@dimen/spacing_sm"
+                        android:text="@string/night_tasks_header"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:visibility="gone"
+                        app:drawableTint="?attr/colorOnSurfaceVariant" />
+
+                    <LinearLayout
+                        android:id="@+id/filteredNightContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:orientation="vertical" />
+
+                </LinearLayout>
 
             </LinearLayout>
 

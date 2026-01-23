@@ -48,12 +48,57 @@
         android:background="?attr/cardBackgroundColor"
         android:layout_margin="16dp" />
 
+    <!-- Dates with Tasks Summary -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/taskDatesCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/calendarView"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp"
+        app:cardBackgroundColor="?attr/colorSurfaceVariant"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:gravity="center_vertical">
+
+            <View
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:background="@drawable/calendar_dot_indicator" />
+
+            <TextView
+                android:id="@+id/taskDatesInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:text="Dates with tasks are highlighted"
+                android:textSize="13sp"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <TextView
+                android:id="@+id/totalTasksCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 upcoming"
+                android:textSize="13sp"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <!-- Selected Date Header -->
     <TextView
         android:id="@+id/selectedDateHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/calendarView"
+        android:layout_below="@id/taskDatesCard"
         android:text="Tasks for Today"
         android:textSize="18sp"
         android:textStyle="bold"

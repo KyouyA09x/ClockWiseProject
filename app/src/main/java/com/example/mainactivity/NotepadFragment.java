@@ -605,8 +605,8 @@ public class NotepadFragment extends Fragment {
     }
 
     private void applyFormatting(TextView textView, Note note) {
-        // Apply text size
-        textView.setTextSize(note.textSize);
+        // Apply text size (using SP for proper DPI scaling)
+        textView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, note.textSize);
 
         // Apply font family
         switch (note.fontFamily) {

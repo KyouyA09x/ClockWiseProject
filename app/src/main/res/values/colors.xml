@@ -12,6 +12,8 @@
     <color name="background_light">#FFFBFE</color>
     <color name="surface_light">#FFFBFE</color>
     <color name="surface_variant_light">#E7E0EC</color>
+    <color name="surface_variant">#E7E0EC</color>
+    <color name="surface_selected">#D1E4FF</color>
     <color name="on_surface_light">#1C1B1F</color>
     <color name="on_surface_variant_light">#49454F</color>
     <color name="outline_light">#79747E</color>
@@ -98,4 +100,8 @@
     <color name="priority_border_low">#4CAF50</color>
     <color name="priority_border_medium">#FF9800</color>
     <color name="priority_border_high">#F44336</color>
+    
+    <!-- Tertiary Container for Category Chips -->
+    <color name="tertiary_container">#FFD8E4</color>
+    <color name="on_tertiary_container">#31111D</color>
 </resources>

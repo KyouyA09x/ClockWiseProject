@@ -304,7 +304,8 @@ public class AddTaskActivity extends BaseThemedActivity {
         }
 
         // Change save button text to indicate update
-        saveButton.setText("Update");
+        saveButton.setText("✓ Save Changes");
+        saveButton.setVisibility(View.VISIBLE);
     }
 
     // **** NEW METHOD: SHOW DATE PICKER ****

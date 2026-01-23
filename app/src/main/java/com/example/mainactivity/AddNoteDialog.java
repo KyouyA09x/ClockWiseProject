@@ -583,8 +583,8 @@ public class AddNoteDialog extends Dialog {
     private void applyFormattingToInput() {
         if (noteDescriptionInput == null) return;
 
-        // Apply text size
-        noteDescriptionInput.setTextSize(textSize);
+        // Apply text size (using SP for proper DPI scaling)
+        noteDescriptionInput.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, textSize);
 
         // Apply font family
         switch (fontFamily) {

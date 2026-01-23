@@ -31,6 +31,7 @@ public class Note implements Parcelable {
     public String dueDate; // due date in yyyy-MM-dd format (null if not set)
     public boolean isDeleted; // whether this note is in trash bin
     public long deletedAt; // timestamp when the note was deleted
+    public int linkedTaskId; // ID of the task this note is linked to (0 if not linked)
 
     public Note() {
         this.createdTimestamp = System.currentTimeMillis();
@@ -47,6 +48,7 @@ public class Note implements Parcelable {
         this.taskType = "None";
         this.dueDate = null;
         this.isDeleted = false;
+        this.linkedTaskId = 0;
     }
 
     @Ignore
@@ -114,5 +116,6 @@ public class Note implements Parcelable {
         dest.writeString(dueDate);
         dest.writeByte((byte) (isDeleted ? 1 : 0));
         dest.writeLong(deletedAt);
+        dest.writeInt(linkedTaskId);
     }
 }

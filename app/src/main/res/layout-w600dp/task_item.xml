@@ -78,6 +78,19 @@
                 android:maxLines="1"
                 android:ellipsize="end" />
 
+            <!-- Category Chip -->
+            <TextView
+                android:id="@+id/categoryChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp"
+                android:background="@drawable/category_chip_background"
+                android:textSize="12sp"
+                android:textColor="@color/on_tertiary_container"
+                android:visibility="gone" />
+
             <!-- Repeat Days -->
             <TextView
                 android:id="@+id/repeatDays"

@@ -55,5 +55,13 @@ public interface TaskDao {
     // Permanently delete all items in trash
     @Query("DELETE FROM tasks WHERE isDeleted = 1")
     void emptyTrash();
+    
+    // Delete all completed tasks
+    @Query("DELETE FROM tasks WHERE isComplete = 1")
+    void deleteCompletedTasks();
+    
+    // Delete all tasks
+    @Query("DELETE FROM tasks")
+    void deleteAllTasks();
 }
 

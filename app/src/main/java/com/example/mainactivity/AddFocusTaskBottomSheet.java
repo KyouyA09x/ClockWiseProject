@@ -2,6 +2,10 @@ package com.example.mainactivity;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,12 +64,26 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
     private MaterialSwitch vibrationSwitch;
     private MaterialSwitch alarmSwitch;
     private MaterialButton saveButton;
+    private MaterialButton headerSaveButton;
     private MaterialButton closeButton;
     private MaterialButton deleteButton;
     private TextView titleText;
+    private TextView subtitleText;
     private TextView dateText;
     private TextView alarmSoundText;
     private String selectedAlarmSound = "Default Alarm";
+    
+    // AI Suggestion Views
+    private View aiSuggestionCard;
+    private TextView aiConfidenceText;
+    private Chip chipPrioritySuggestion;
+    private Chip chipCategorySuggestion;
+    private Chip chipTimeSuggestion;
+    private Chip chipDurationSuggestion;
+    private TextView aiReasonText;
+    private Handler aiDebounceHandler = new Handler(Looper.getMainLooper());
+    private Runnable aiSuggestionRunnable;
+    private AIModelHelper aiHelper;
 
     public static AddFocusTaskBottomSheet newInstance() {
         return new AddFocusTaskBottomSheet();
@@ -139,7 +157,7 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.bottom_sheet_focus_task, container, false);
+        return inflater.inflate(R.layout.bottom_sheet_focus_task_modern, container, false);
     }
 
     @Override
@@ -151,6 +169,11 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
             BottomSheetDialog dialog = (BottomSheetDialog) getDialog();
             dialog.getBehavior().setState(BottomSheetBehavior.STATE_EXPANDED);
             dialog.getBehavior().setSkipCollapsed(true);
+            
+            // Configure for large screens - make dialog more compact
+            if (getActivity() != null && WindowSizeHelper.isLargeScreen(getActivity())) {
+                configureForLargeScreen(dialog);
+            }
         }
 
         initViews(view);
@@ -162,10 +185,35 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
             populateFieldsFromTask();
         }
     }
+    
+    /**
+     * Configures the dialog for large screens (foldables unfolded, tablets).
+     * Makes the dialog appear as a compact centered popup instead of full-width bottom sheet.
+     */
+    private void configureForLargeScreen(BottomSheetDialog dialog) {
+        if (dialog == null || dialog.getWindow() == null || getActivity() == null) return;
+        
+        // Set maximum width for the dialog
+        float density = getResources().getDisplayMetrics().density;
+        int maxWidthPx = (int) (400 * density); // 400dp max width
+        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+        int dialogWidth = Math.min(maxWidthPx, (int) (screenWidth * 0.85));
+        
+        android.view.Window window = dialog.getWindow();
+        android.view.WindowManager.LayoutParams params = window.getAttributes();
+        params.width = dialogWidth;
+        params.gravity = android.view.Gravity.CENTER;
+        window.setAttributes(params);
+        
+        // Make background transparent for rounded corners effect
+        window.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+    }
 
     private void initViews(View view) {
         titleText = view.findViewById(R.id.titleText);
+        subtitleText = view.findViewById(R.id.subtitleText);
         closeButton = view.findViewById(R.id.closeButton);
+        headerSaveButton = view.findViewById(R.id.headerSaveButton);
         taskNameEditText = view.findViewById(R.id.taskNameEditText);
         
         startTimeRow = view.findViewById(R.id.startTimeRow);
@@ -185,11 +233,274 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         deleteButton = view.findViewById(R.id.deleteButton);
         dateText = view.findViewById(R.id.dateText);
         alarmSoundText = view.findViewById(R.id.alarmSoundText);
+        
+        // Initialize AI Suggestion Views
+        aiSuggestionCard = view.findViewById(R.id.aiSuggestionCard);
+        aiConfidenceText = view.findViewById(R.id.aiConfidenceText);
+        chipPrioritySuggestion = view.findViewById(R.id.chipPrioritySuggestion);
+        chipCategorySuggestion = view.findViewById(R.id.chipCategorySuggestion);
+        chipTimeSuggestion = view.findViewById(R.id.chipTimeSuggestion);
+        chipDurationSuggestion = view.findViewById(R.id.chipDurationSuggestion);
+        aiReasonText = view.findViewById(R.id.aiReasonText);
+        
+        // Handle Quick Task Mode - simplify UI
+        if (isQuickTask) {
+            setupQuickTaskMode(view);
+        } else {
+            // Initialize AI Helper - always initialize to show/hide based on settings
+            aiHelper = AIModelHelper.getInstance(requireContext());
+            if (AIModelHelper.isEnabled(requireContext())) {
+                setupAISuggestions();
+                // Show a subtle hint that AI is available
+                if (aiSuggestionCard != null) {
+                    aiSuggestionCard.setVisibility(View.VISIBLE);
+                    if (aiReasonText != null) {
+                        aiReasonText.setText("💡 Start typing to get AI suggestions...");
+                    }
+                    // Hide chips until suggestions are ready
+                    if (chipPrioritySuggestion != null) chipPrioritySuggestion.setVisibility(View.GONE);
+                    if (chipCategorySuggestion != null) chipCategorySuggestion.setVisibility(View.GONE);
+                    if (chipTimeSuggestion != null) chipTimeSuggestion.setVisibility(View.GONE);
+                    if (chipDurationSuggestion != null) chipDurationSuggestion.setVisibility(View.GONE);
+                    if (aiConfidenceText != null) aiConfidenceText.setVisibility(View.GONE);
+                }
+            } else {
+                if (aiSuggestionCard != null) {
+                    aiSuggestionCard.setVisibility(View.GONE);
+                }
+            }
+        }
 
         // Initialize time displays
         updateStartTimeDisplay();
         updateEndTimeDisplay();
         updateDateLabel();
+    }
+    
+    /**
+     * Configure UI for Quick Focus mode - minimal options for fast session creation
+     */
+    private void setupQuickTaskMode(View view) {
+        // Update title
+        if (titleText != null) {
+            titleText.setText("🎯 Quick Focus");
+        }
+        
+        // Show "Today only" indicator
+        View quickTaskIndicator = view.findViewById(R.id.quickTaskIndicator);
+        if (quickTaskIndicator != null) {
+            quickTaskIndicator.setVisibility(View.VISIBLE);
+        }
+        
+        // Hide date picker
+        if (dateText != null) {
+            dateText.setVisibility(View.GONE);
+        }
+        
+        // Hide date card section
+        View dateCard = view.findViewById(R.id.dateText);
+        if (dateCard != null && dateCard.getParent() != null) {
+            View dateCardParent = (View) dateCard.getParent();
+            if (dateCardParent != null && dateCardParent.getParent() != null) {
+                View dateSection = (View) dateCardParent.getParent();
+                if (dateSection != null) {
+                    dateSection.setVisibility(View.GONE);
+                }
+            }
+        }
+        
+        // Hide AI suggestions card in quick mode
+        if (aiSuggestionCard != null) {
+            aiSuggestionCard.setVisibility(View.GONE);
+        }
+        
+        // Hide priority card - use default Medium priority
+        View priorityCard = view.findViewById(R.id.priorityCard);
+        if (priorityCard != null) {
+            priorityCard.setVisibility(View.GONE);
+        }
+        selectedUrgency = "Medium"; // Default to medium priority
+        
+        // Hide options card entirely for quick mode
+        View optionsCard = view.findViewById(R.id.optionsCard);
+        if (optionsCard != null) {
+            optionsCard.setVisibility(View.GONE);
+        }
+        
+        // Set sensible defaults for quick mode
+        if (alarmSwitch != null) {
+            alarmSwitch.setChecked(true); // Enable alarm by default
+        }
+        
+        // Update save button text
+        if (saveButton != null) {
+            saveButton.setText("🎯 Start Quick Focus");
+        }
+    }
+    
+    /**
+     * Setup AI suggestion functionality with debounced text watching
+     */
+    private void setupAISuggestions() {
+        if (taskNameEditText == null || aiSuggestionCard == null) return;
+        
+        taskNameEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (aiSuggestionRunnable != null) {
+                    aiDebounceHandler.removeCallbacks(aiSuggestionRunnable);
+                }
+                aiSuggestionRunnable = () -> updateAISuggestions(s.toString());
+                aiDebounceHandler.postDelayed(aiSuggestionRunnable, 300);
+            }
+        });
+        
+        if (chipPrioritySuggestion != null) {
+            chipPrioritySuggestion.setOnClickListener(v -> applyPrioritySuggestion());
+        }
+        if (chipDurationSuggestion != null) {
+            chipDurationSuggestion.setOnClickListener(v -> applyDurationSuggestion());
+        }
+    }
+    
+    private void updateAISuggestions(String taskName) {
+        if (aiHelper == null || getContext() == null) return;
+        
+        // Check if task name is too short
+        if (taskName == null || taskName.trim().length() < 2) {
+            // Show hint state
+            if (aiSuggestionCard != null && AIModelHelper.isEnabled(requireContext())) {
+                aiSuggestionCard.setVisibility(View.VISIBLE);
+                if (aiReasonText != null) aiReasonText.setText("💡 Start typing to get AI suggestions...");
+                if (chipPrioritySuggestion != null) chipPrioritySuggestion.setVisibility(View.GONE);
+                if (chipCategorySuggestion != null) chipCategorySuggestion.setVisibility(View.GONE);
+                if (chipTimeSuggestion != null) chipTimeSuggestion.setVisibility(View.GONE);
+                if (chipDurationSuggestion != null) chipDurationSuggestion.setVisibility(View.GONE);
+                if (aiConfidenceText != null) aiConfidenceText.setVisibility(View.GONE);
+            }
+            return;
+        }
+        
+        AIModelHelper.TaskSuggestions suggestions = aiHelper.getTaskSuggestions(taskName);
+        
+        if (aiSuggestionCard != null) aiSuggestionCard.setVisibility(View.VISIBLE);
+        if (aiConfidenceText != null) aiConfidenceText.setVisibility(View.VISIBLE);
+        
+        // Update priority suggestion (if enabled)
+        if (chipPrioritySuggestion != null && suggestions.priority != null) {
+            if (AIModelHelper.isPriorityEnabled(requireContext())) {
+                chipPrioritySuggestion.setVisibility(View.VISIBLE);
+                String priorityText = suggestions.priority.getEmoji() + " Priority: " + suggestions.priority.getValue();
+                chipPrioritySuggestion.setText(priorityText);
+                chipPrioritySuggestion.setTag(suggestions.priority.getValue());
+            } else {
+                chipPrioritySuggestion.setVisibility(View.GONE);
+            }
+        }
+        
+        // Update category suggestion (if enabled)
+        if (chipCategorySuggestion != null && suggestions.category != null) {
+            if (AIModelHelper.isCategoryEnabled(requireContext())) {
+                chipCategorySuggestion.setVisibility(View.VISIBLE);
+                String categoryEmoji = getCategoryEmoji(suggestions.category.getValue());
+                chipCategorySuggestion.setText(categoryEmoji + " " + suggestions.category.getValue());
+            } else {
+                chipCategorySuggestion.setVisibility(View.GONE);
+            }
+        }
+        
+        // Update duration suggestion (if enabled - special for focus tasks)
+        if (chipDurationSuggestion != null && suggestions.focusDuration != null) {
+            if (AIModelHelper.isDurationEnabled(requireContext())) {
+                chipDurationSuggestion.setVisibility(View.VISIBLE);
+                chipDurationSuggestion.setText("⏱️ " + suggestions.focusDuration.getValue() + " min");
+                chipDurationSuggestion.setTag(Integer.parseInt(suggestions.focusDuration.getValue()));
+            } else {
+                chipDurationSuggestion.setVisibility(View.GONE);
+            }
+        }
+        
+        // Update confidence and reason
+        if (aiConfidenceText != null && suggestions.priority != null) {
+            aiConfidenceText.setText(suggestions.priority.getEmoji() + " " + suggestions.priority.getConfidenceLevel() + " confidence");
+        }
+        if (aiReasonText != null && suggestions.focusDuration != null) {
+            aiReasonText.setText("💡 " + suggestions.focusDuration.getReason());
+        }
+    }
+    
+    private void applyPrioritySuggestion() {
+        if (chipPrioritySuggestion == null) return;
+        String priority = (String) chipPrioritySuggestion.getTag();
+        if (priority == null) return;
+        
+        selectedUrgency = priority;
+        switch (priority) {
+            case "High": priorityChipGroup.check(R.id.priorityHigh); break;
+            case "Medium": priorityChipGroup.check(R.id.priorityMedium); break;
+            case "Low": priorityChipGroup.check(R.id.priorityLow); break;
+            default: priorityChipGroup.check(R.id.priorityNone);
+        }
+        Toast.makeText(getContext(), "Applied: " + priority + " priority", Toast.LENGTH_SHORT).show();
+        chipPrioritySuggestion.setChecked(true);
+    }
+    
+    private void applyDurationSuggestion() {
+        if (chipDurationSuggestion == null) return;
+        Integer duration = (Integer) chipDurationSuggestion.getTag();
+        if (duration == null) return;
+        
+        // Calculate end time based on suggested duration
+        int totalStartMinutes = convertTo24Hour(startHour, startAmPm) * 60 + startMinute;
+        int totalEndMinutes = totalStartMinutes + duration;
+        
+        int endHour24 = (totalEndMinutes / 60) % 24;
+        int endMin = totalEndMinutes % 60;
+        
+        // Convert back to 12-hour format
+        if (endHour24 == 0) {
+            endHour = 12;
+            endAmPm = "AM";
+        } else if (endHour24 < 12) {
+            endHour = endHour24;
+            endAmPm = "AM";
+        } else if (endHour24 == 12) {
+            endHour = 12;
+            endAmPm = "PM";
+        } else {
+            endHour = endHour24 - 12;
+            endAmPm = "PM";
+        }
+        endMinute = endMin;
+        
+        updateEndTimeDisplay();
+        Toast.makeText(getContext(), "Applied: " + duration + " min duration", Toast.LENGTH_SHORT).show();
+        chipDurationSuggestion.setChecked(true);
+    }
+    
+    private int convertTo24Hour(int hour, String amPm) {
+        if (amPm.equals("AM")) {
+            return hour == 12 ? 0 : hour;
+        } else {
+            return hour == 12 ? 12 : hour + 12;
+        }
+    }
+    
+    private String getCategoryEmoji(String category) {
+        switch (category) {
+            case "Work": return "💼";
+            case "Personal": return "🏠";
+            case "Health": return "💪";
+            case "Finance": return "💰";
+            case "Learning": return "📚";
+            default: return "📋";
+        }
     }
 
     private void updateStartTimeDisplay() {
@@ -210,12 +521,23 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         closeButton.setOnClickListener(v -> dismiss());
 
         saveButton.setOnClickListener(v -> saveTask());
+        
+        // Header save button - same action as bottom save button
+        if (headerSaveButton != null) {
+            headerSaveButton.setOnClickListener(v -> saveTask());
+        }
 
-        deleteButton.setOnClickListener(v -> showDeleteConfirmation());
+        if (deleteButton != null) {
+            deleteButton.setOnClickListener(v -> showDeleteConfirmation());
+        }
 
-        startTimeRow.setOnClickListener(v -> showStartTimePicker());
+        if (startTimeRow != null) {
+            startTimeRow.setOnClickListener(v -> showStartTimePicker());
+        }
 
-        endTimeRow.setOnClickListener(v -> showEndTimePicker());
+        if (endTimeRow != null) {
+            endTimeRow.setOnClickListener(v -> showEndTimePicker());
+        }
 
         if (alarmSoundText != null) {
             alarmSoundText.setOnClickListener(v -> showAlarmSoundPicker());
@@ -252,9 +574,23 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
     }
 
     private void populateFieldsForEditing() {
-        titleText.setText("Edit Focus Session");
-        saveButton.setText("Update");
-        deleteButton.setVisibility(View.VISIBLE);
+        titleText.setText("✏️ Edit Focus Session");
+        
+        // Update subtitle for edit mode
+        if (subtitleText != null) {
+            subtitleText.setText("Modify your focus session details");
+        }
+        
+        // Show save button with update text
+        if (saveButton != null) {
+            saveButton.setText("✓ Save Changes");
+            saveButton.setVisibility(View.VISIBLE);
+        }
+        
+        // Show delete button in edit mode
+        if (deleteButton != null) {
+            deleteButton.setVisibility(View.VISIBLE);
+        }
 
         taskNameEditText.setText(editingTask.name);
         
@@ -363,6 +699,12 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
             return;
         }
 
+        // Validate start time is not in the past for today
+        if (isTimeInPastForToday(startHour, startMinute, startAmPm)) {
+            Toast.makeText(requireContext(), "⚠️ Start time cannot be in the past for today", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // Validate time range
         if (!isValidTimeRange(startHour, startMinute, startAmPm, endHour, endMinute, endAmPm)) {
             Toast.makeText(requireContext(), "⏰ End time must be after start time", Toast.LENGTH_SHORT).show();
@@ -420,6 +762,16 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
             focusTask.timeCategory = timeCategory;
             focusTask.vibrationEnabled = vibrationSwitch.isChecked();
             focusTask.isAlarmOn = alarmSwitch.isChecked();
+            
+            // AI-powered category detection
+            android.content.Context ctx = getContext();
+            if (ctx != null && AIModelHelper.isEnabled(ctx)) {
+                AIModelHelper aiHelper = AIModelHelper.getInstance(ctx);
+                AIModelHelper.AIPrediction categoryPrediction = aiHelper.predictCategory(taskName);
+                if (categoryPrediction != null && categoryPrediction.getValue() != null) {
+                    focusTask.category = categoryPrediction.getValue();
+                }
+            }
 
             long taskId = taskRepository.addTask(focusTask);
             focusTask.id = (int) taskId;
@@ -444,14 +796,6 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
         int start24 = convertTo24Hour(startHour, startAmPm) * 60 + startMinute;
         int end24 = convertTo24Hour(endHour, endAmPm) * 60 + endMinute;
         return end24 > start24;
-    }
-
-    private int convertTo24Hour(int hour, String amPm) {
-        if (amPm.equals("AM")) {
-            return hour == 12 ? 0 : hour;
-        } else {
-            return hour == 12 ? 12 : hour + 12;
-        }
     }
 
     private void showDatePicker() {
@@ -619,5 +963,42 @@ public class AddFocusTaskBottomSheet extends BottomSheetDialogFragment {
             }
             dismiss();
         }
+    }
+    
+    /**
+     * Check if the selected time is in the past for today's date.
+     * @return true if selected date is today AND selected time is before current time
+     */
+    private boolean isTimeInPastForToday(int hour, int minute, String amPm) {
+        // Check if selected date is today
+        java.util.Calendar today = java.util.Calendar.getInstance();
+        java.util.Calendar selected = (java.util.Calendar) selectedDate.clone();
+        
+        boolean isToday = today.get(java.util.Calendar.YEAR) == selected.get(java.util.Calendar.YEAR) &&
+                          today.get(java.util.Calendar.DAY_OF_YEAR) == selected.get(java.util.Calendar.DAY_OF_YEAR);
+        
+        if (!isToday) {
+            return false; // Not today, so time can be anything
+        }
+        
+        // Convert selected time to 24-hour format for comparison
+        int selectedHour24 = hour;
+        if (amPm.equals("PM") && hour != 12) {
+            selectedHour24 = hour + 12;
+        } else if (amPm.equals("AM") && hour == 12) {
+            selectedHour24 = 0;
+        }
+        
+        int currentHour = today.get(java.util.Calendar.HOUR_OF_DAY);
+        int currentMinute = today.get(java.util.Calendar.MINUTE);
+        
+        // Check if selected time is in the past
+        if (selectedHour24 < currentHour) {
+            return true;
+        } else if (selectedHour24 == currentHour && minute < currentMinute) {
+            return true;
+        }
+        
+        return false;
     }
 }

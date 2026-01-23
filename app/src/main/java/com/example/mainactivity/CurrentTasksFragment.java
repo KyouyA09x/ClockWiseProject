@@ -32,6 +32,22 @@ public class CurrentTasksFragment extends Fragment {
     private View tasksContainerCard;
     private LinearLayout focusTasksSection;
     private LinearLayout focusTasksContainer;
+    
+    // Time-aware sections
+    private LinearLayout rightNowSection;
+    private LinearLayout rightNowContainer;
+    private TextView rightNowSubtitle;
+    private LinearLayout missedTasksSection;
+    private LinearLayout missedTasksContainer;
+    private LinearLayout laterTodaySection;
+    private LinearLayout laterTodayContainer;
+    
+    // Smart View toggle
+    private com.google.android.material.materialswitch.MaterialSwitch smartViewToggle;
+    private boolean isSmartViewEnabled = true;
+    private static final String PREFS_NAME = "clockwise_prefs";
+    private static final String PREF_SMART_VIEW = "smart_view_enabled";
+    
     private LinearLayout morningTasksContainer;
     private LinearLayout afternoonTasksContainer;
     private LinearLayout nightTasksContainer;
@@ -42,6 +58,25 @@ public class CurrentTasksFragment extends Fragment {
     private LinearProgressIndicator progressBar;
     private TextView completionText;
     private com.google.android.material.button.MaterialButton priorityFilterButton;
+    
+    // Smart insight views
+    private View smartInsightCard;
+    private TextView smartInsightText;
+    
+    // Filtered out tasks views
+    private com.google.android.material.card.MaterialCardView filteredOutCard;
+    private View filteredOutHeader;
+    private ImageView filteredOutExpandIcon;
+    private TextView filteredOutTitle;
+    private TextView filteredOutCount;
+    private LinearLayout filteredOutContent;
+    private LinearLayout filteredMorningContainer;
+    private LinearLayout filteredAfternoonContainer;
+    private LinearLayout filteredNightContainer;
+    private TextView filteredMorningHeader;
+    private TextView filteredAfternoonHeader;
+    private TextView filteredNightHeader;
+    private boolean isFilteredSectionExpanded = false;
 
     private TaskRepository taskRepository;
     private String currentPriorityFilter = "All"; // Track current filter: "All", "Low", "Medium", "High"
@@ -96,6 +131,32 @@ public class CurrentTasksFragment extends Fragment {
         tasksContainerCard = view.findViewById(R.id.tasksContainerCard);
         focusTasksSection = view.findViewById(R.id.focusTasksSection);
         focusTasksContainer = view.findViewById(R.id.focusTasksContainer);
+        
+        // Initialize time-aware sections
+        rightNowSection = view.findViewById(R.id.rightNowSection);
+        rightNowContainer = view.findViewById(R.id.rightNowContainer);
+        rightNowSubtitle = view.findViewById(R.id.rightNowSubtitle);
+        missedTasksSection = view.findViewById(R.id.missedTasksSection);
+        missedTasksContainer = view.findViewById(R.id.missedTasksContainer);
+        laterTodaySection = view.findViewById(R.id.laterTodaySection);
+        laterTodayContainer = view.findViewById(R.id.laterTodayContainer);
+        
+        // Initialize Smart View toggle
+        smartViewToggle = view.findViewById(R.id.smartViewToggle);
+        loadSmartViewPreference();
+        if (smartViewToggle != null) {
+            smartViewToggle.setChecked(isSmartViewEnabled);
+            smartViewToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                isSmartViewEnabled = isChecked;
+                saveSmartViewPreference(isChecked);
+                
+                // AI Sparkle animation effect
+                playAISparkleAnimation(buttonView, isChecked);
+                
+                refreshTasksWithAnimation(); // Use animated refresh for smooth transition
+            });
+        }
+        
         morningTasksContainer = view.findViewById(R.id.morningTasksContainer);
         afternoonTasksContainer = view.findViewById(R.id.afternoonTasksContainer);
         nightTasksContainer = view.findViewById(R.id.nightTasksContainer);
@@ -106,6 +167,29 @@ public class CurrentTasksFragment extends Fragment {
         progressBar = view.findViewById(R.id.progressBar);
         completionText = view.findViewById(R.id.completionText);
         priorityFilterButton = view.findViewById(R.id.priorityFilterButton);
+        
+        // Initialize smart insight views
+        smartInsightCard = view.findViewById(R.id.smartInsightCard);
+        smartInsightText = view.findViewById(R.id.smartInsightText);
+        
+        // Initialize filtered out tasks views
+        filteredOutCard = view.findViewById(R.id.filteredOutCard);
+        filteredOutHeader = view.findViewById(R.id.filteredOutHeader);
+        filteredOutExpandIcon = view.findViewById(R.id.filteredOutExpandIcon);
+        filteredOutTitle = view.findViewById(R.id.filteredOutTitle);
+        filteredOutCount = view.findViewById(R.id.filteredOutCount);
+        filteredOutContent = view.findViewById(R.id.filteredOutContent);
+        filteredMorningContainer = view.findViewById(R.id.filteredMorningContainer);
+        filteredAfternoonContainer = view.findViewById(R.id.filteredAfternoonContainer);
+        filteredNightContainer = view.findViewById(R.id.filteredNightContainer);
+        filteredMorningHeader = view.findViewById(R.id.filteredMorningHeader);
+        filteredAfternoonHeader = view.findViewById(R.id.filteredAfternoonHeader);
+        filteredNightHeader = view.findViewById(R.id.filteredNightHeader);
+        
+        // Setup filtered section expand/collapse
+        if (filteredOutHeader != null) {
+            filteredOutHeader.setOnClickListener(v -> toggleFilteredSection());
+        }
 
         if (progressTracker != null) {
             progressTracker.setOnClickListener(v -> showCompletedTasksDialog());
@@ -119,6 +203,38 @@ public class CurrentTasksFragment extends Fragment {
 
         // Setup dynamic padding for content to avoid being hidden by FABs
         setupDynamicPadding(view);
+    }
+    
+    /**
+     * Toggle the filtered out section expand/collapse state with animation.
+     */
+    private void toggleFilteredSection() {
+        isFilteredSectionExpanded = !isFilteredSectionExpanded;
+        
+        if (filteredOutContent != null) {
+            if (isFilteredSectionExpanded) {
+                filteredOutContent.setVisibility(View.VISIBLE);
+                filteredOutContent.setAlpha(0f);
+                filteredOutContent.animate()
+                    .alpha(1f)
+                    .setDuration(200)
+                    .start();
+            } else {
+                filteredOutContent.animate()
+                    .alpha(0f)
+                    .setDuration(200)
+                    .withEndAction(() -> filteredOutContent.setVisibility(View.GONE))
+                    .start();
+            }
+        }
+        
+        // Rotate the expand icon
+        if (filteredOutExpandIcon != null) {
+            filteredOutExpandIcon.animate()
+                .rotation(isFilteredSectionExpanded ? 180f : 0f)
+                .setDuration(200)
+                .start();
+        }
     }
 
     private void setupDynamicPadding(View view) {
@@ -176,6 +292,279 @@ public class CurrentTasksFragment extends Fragment {
         });
     }
 
+    /**
+     * Refresh tasks with smooth fade animation when switching between views.
+     * Fades out current content, refreshes data, then fades in new content.
+     */
+    private void refreshTasksWithAnimation() {
+        if (getView() == null) {
+            refreshTasks();
+            return;
+        }
+        
+        // Collect all visible containers to animate
+        java.util.List<View> containersToAnimate = new java.util.ArrayList<>();
+        
+        // Smart view containers
+        if (rightNowSection != null && rightNowSection.getVisibility() == View.VISIBLE) {
+            containersToAnimate.add(rightNowSection);
+        }
+        if (missedTasksSection != null && missedTasksSection.getVisibility() == View.VISIBLE) {
+            containersToAnimate.add(missedTasksSection);
+        }
+        if (laterTodaySection != null && laterTodaySection.getVisibility() == View.VISIBLE) {
+            containersToAnimate.add(laterTodaySection);
+        }
+        
+        // Traditional view containers
+        if (focusTasksSection != null && focusTasksSection.getVisibility() == View.VISIBLE) {
+            containersToAnimate.add(focusTasksSection);
+        }
+        if (tasksContainerCard != null && tasksContainerCard.getVisibility() == View.VISIBLE) {
+            containersToAnimate.add(tasksContainerCard);
+        }
+        
+        // Animation duration
+        final long FADE_DURATION = 200L;
+        
+        if (containersToAnimate.isEmpty()) {
+            // No visible containers, just refresh with fade in
+            refreshTasks();
+            fadeInNewContainers(FADE_DURATION);
+            return;
+        }
+        
+        // Fade out all visible containers
+        final int[] completedAnimations = {0};
+        final int totalAnimations = containersToAnimate.size();
+        
+        for (View container : containersToAnimate) {
+            container.animate()
+                .alpha(0f)
+                .setDuration(FADE_DURATION)
+                .setInterpolator(new android.view.animation.AccelerateInterpolator())
+                .withEndAction(() -> {
+                    completedAnimations[0]++;
+                    if (completedAnimations[0] >= totalAnimations) {
+                        // All fade-out animations complete, now refresh and fade in
+                        refreshTasks();
+                        fadeInNewContainers(FADE_DURATION);
+                    }
+                })
+                .start();
+        }
+    }
+    
+    /**
+     * Fade in all newly visible containers after refresh.
+     */
+    private void fadeInNewContainers(long duration) {
+        java.util.List<View> containersToFadeIn = new java.util.ArrayList<>();
+        
+        // Check which containers are now visible and need fade-in
+        if (rightNowSection != null && rightNowSection.getVisibility() == View.VISIBLE) {
+            rightNowSection.setAlpha(0f);
+            containersToFadeIn.add(rightNowSection);
+        }
+        if (missedTasksSection != null && missedTasksSection.getVisibility() == View.VISIBLE) {
+            missedTasksSection.setAlpha(0f);
+            containersToFadeIn.add(missedTasksSection);
+        }
+        if (laterTodaySection != null && laterTodaySection.getVisibility() == View.VISIBLE) {
+            laterTodaySection.setAlpha(0f);
+            containersToFadeIn.add(laterTodaySection);
+        }
+        if (focusTasksSection != null && focusTasksSection.getVisibility() == View.VISIBLE) {
+            focusTasksSection.setAlpha(0f);
+            containersToFadeIn.add(focusTasksSection);
+        }
+        if (tasksContainerCard != null && tasksContainerCard.getVisibility() == View.VISIBLE) {
+            tasksContainerCard.setAlpha(0f);
+            containersToFadeIn.add(tasksContainerCard);
+        }
+        
+        // Stagger the fade-in animations for a smoother effect
+        long staggerDelay = 50L;
+        for (int i = 0; i < containersToFadeIn.size(); i++) {
+            View container = containersToFadeIn.get(i);
+            container.animate()
+                .alpha(1f)
+                .setDuration(duration)
+                .setStartDelay(i * staggerDelay)
+                .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                .start();
+        }
+    }
+    
+    /**
+     * Play AI sparkle animation when Smart View toggle is switched.
+     * Creates a visual "AI magic" effect with multiple sparkles bursting from center.
+     */
+    private void playAISparkleAnimation(View toggleView, boolean isEnabled) {
+        if (toggleView == null || getContext() == null || getActivity() == null) return;
+        
+        try {
+            // Haptic feedback
+            toggleView.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY);
+            
+            // Use Activity's DecorView as overlay container
+            android.widget.FrameLayout rootView = (android.widget.FrameLayout) 
+                getActivity().getWindow().getDecorView().findViewById(android.R.id.content);
+            if (rootView == null) {
+                animateTogglePulse(toggleView, isEnabled);
+                return;
+            }
+            
+            // Get screen dimensions for center positioning
+            int screenWidth = rootView.getWidth();
+            int screenHeight = rootView.getHeight();
+            int centerX = screenWidth / 2;
+            int centerY = screenHeight / 3; // Upper third for visibility
+            
+            // Create multiple sparkle particles for burst effect
+            int particleCount = 5;
+            int mainSparkleSize = (int) (80 * getResources().getDisplayMetrics().density);
+            int smallSparkleSize = (int) (40 * getResources().getDisplayMetrics().density);
+            
+            // Main center sparkle (large)
+            android.widget.ImageView mainSparkle = createSparkleView(mainSparkleSize, isEnabled);
+            android.widget.FrameLayout.LayoutParams mainParams = new android.widget.FrameLayout.LayoutParams(
+                mainSparkleSize, mainSparkleSize
+            );
+            mainParams.gravity = android.view.Gravity.TOP | android.view.Gravity.START;
+            mainParams.leftMargin = centerX - (mainSparkleSize / 2);
+            mainParams.topMargin = centerY - (mainSparkleSize / 2);
+            mainSparkle.setLayoutParams(mainParams);
+            rootView.addView(mainSparkle);
+            
+            // Animate main sparkle - big burst
+            mainSparkle.animate()
+                .alpha(1f)
+                .scaleX(2f)
+                .scaleY(2f)
+                .rotation(isEnabled ? 360f : -360f)
+                .setDuration(500)
+                .setInterpolator(new android.view.animation.OvershootInterpolator(1.5f))
+                .withEndAction(() -> {
+                    mainSparkle.animate()
+                        .alpha(0f)
+                        .scaleX(3f)
+                        .scaleY(3f)
+                        .setDuration(400)
+                        .withEndAction(() -> safeRemoveView(rootView, mainSparkle))
+                        .start();
+                })
+                .start();
+            
+            // Create surrounding particle sparkles
+            float[] angles = {0f, 72f, 144f, 216f, 288f}; // 5 sparkles around
+            int radius = (int) (120 * getResources().getDisplayMetrics().density);
+            
+            for (int i = 0; i < particleCount; i++) {
+                final android.widget.ImageView particle = createSparkleView(smallSparkleSize, isEnabled);
+                android.widget.FrameLayout.LayoutParams particleParams = new android.widget.FrameLayout.LayoutParams(
+                    smallSparkleSize, smallSparkleSize
+                );
+                particleParams.gravity = android.view.Gravity.TOP | android.view.Gravity.START;
+                particleParams.leftMargin = centerX - (smallSparkleSize / 2);
+                particleParams.topMargin = centerY - (smallSparkleSize / 2);
+                particle.setLayoutParams(particleParams);
+                particle.setAlpha(0f);
+                particle.setScaleX(0.2f);
+                particle.setScaleY(0.2f);
+                rootView.addView(particle);
+                
+                // Calculate end position for radial burst
+                double angleRad = Math.toRadians(angles[i]);
+                float endX = (float) (Math.cos(angleRad) * radius);
+                float endY = (float) (Math.sin(angleRad) * radius);
+                
+                // Stagger the animation start
+                final int delay = i * 60;
+                particle.postDelayed(() -> {
+                    particle.animate()
+                        .alpha(1f)
+                        .scaleX(1.2f)
+                        .scaleY(1.2f)
+                        .translationX(endX)
+                        .translationY(endY)
+                        .rotation(isEnabled ? 180f : -180f)
+                        .setDuration(400)
+                        .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                        .withEndAction(() -> {
+                            particle.animate()
+                                .alpha(0f)
+                                .scaleX(0.5f)
+                                .scaleY(0.5f)
+                                .setDuration(300)
+                                .withEndAction(() -> safeRemoveView(rootView, particle))
+                                .start();
+                        })
+                        .start();
+                }, delay);
+            }
+            
+            // Animate the toggle itself
+            animateTogglePulse(toggleView, isEnabled);
+            
+        } catch (Exception e) {
+            android.util.Log.e("CurrentTasksFragment", "Sparkle animation error", e);
+        }
+        
+        // Show AI toast message
+        String message = isEnabled ? "🤖 Smart View activated!" : "📋 Classic View";
+        android.widget.Toast.makeText(getContext(), message, android.widget.Toast.LENGTH_SHORT).show();
+    }
+    
+    /**
+     * Create a sparkle ImageView with proper styling.
+     */
+    private android.widget.ImageView createSparkleView(int size, boolean isEnabled) {
+        android.widget.ImageView sparkle = new android.widget.ImageView(getContext());
+        sparkle.setImageResource(R.drawable.ic_ai_sparkle_base);
+        sparkle.setColorFilter(isEnabled ? 
+            androidx.core.content.ContextCompat.getColor(getContext(), R.color.purple_primary) : 
+            androidx.core.content.ContextCompat.getColor(getContext(), R.color.text_secondary));
+        sparkle.setAlpha(0f);
+        sparkle.setScaleX(0.3f);
+        sparkle.setScaleY(0.3f);
+        return sparkle;
+    }
+    
+    /**
+     * Safely remove a view from parent, handling exceptions.
+     */
+    private void safeRemoveView(android.view.ViewGroup parent, View child) {
+        try {
+            if (parent != null && child != null) {
+                parent.removeView(child);
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
+    
+    /**
+     * Animate the toggle button with a subtle pulse effect.
+     */
+    private void animateTogglePulse(View toggleView, boolean isEnabled) {
+        if (toggleView == null) return;
+        
+        toggleView.animate()
+            .scaleX(1.2f)
+            .scaleY(1.2f)
+            .setDuration(200)
+            .setInterpolator(new android.view.animation.OvershootInterpolator())
+            .withEndAction(() -> {
+                toggleView.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(200)
+                    .start();
+            })
+            .start();
+    }
+
     public void refreshTasks() {
         if (taskRepository == null || getContext() == null) return;
 
@@ -189,8 +578,11 @@ public class CurrentTasksFragment extends Fragment {
         ArrayList<Task> afternoonTasks = taskRepository.afternoonTasks != null ? taskRepository.afternoonTasks : new ArrayList<>();
         ArrayList<Task> nightTasks = taskRepository.nightTasks != null ? taskRepository.nightTasks : new ArrayList<>();
 
-        // Clear containers efficiently
+        // Clear all containers
         if (focusTasksContainer != null) focusTasksContainer.removeAllViews();
+        if (rightNowContainer != null) rightNowContainer.removeAllViews();
+        if (missedTasksContainer != null) missedTasksContainer.removeAllViews();
+        if (laterTodayContainer != null) laterTodayContainer.removeAllViews();
         if (morningTasksContainer != null) morningTasksContainer.removeAllViews();
         if (afternoonTasksContainer != null) afternoonTasksContainer.removeAllViews();
         if (nightTasksContainer != null) nightTasksContainer.removeAllViews();
@@ -198,16 +590,120 @@ public class CurrentTasksFragment extends Fragment {
         // Get today's date once
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         String todayDate = sdf.format(new java.util.Date());
+        
+        // Determine if we're actively filtering by priority
+        final boolean isFiltering = !"All".equals(currentPriorityFilter);
+        
+        // Clear filtered containers
+        if (filteredMorningContainer != null) filteredMorningContainer.removeAllViews();
+        if (filteredAfternoonContainer != null) filteredAfternoonContainer.removeAllViews();
+        if (filteredNightContainer != null) filteredNightContainer.removeAllViews();
+        
+        // Get current time period
+        String currentPeriod = getCurrentTimePeriod();
+        
+        // Collect ALL tasks for today (both focus and regular)
+        ArrayList<Task> allTodayTasks = new ArrayList<>();
+        collectAllTasksForToday(morningTasks, todayDate, allTodayTasks);
+        collectAllTasksForToday(afternoonTasks, todayDate, allTodayTasks);
+        collectAllTasksForToday(nightTasks, todayDate, allTodayTasks);
+        
+        // Categorize tasks into: current period, missed (past), and later (future)
+        ArrayList<Task> currentPeriodTasks = new ArrayList<>();
+        ArrayList<Task> missedTasks = new ArrayList<>();
+        ArrayList<Task> laterTasks = new ArrayList<>();
+        
+        categorizeTasksByTimePeriod(allTodayTasks, currentPeriod, currentPeriodTasks, missedTasks, laterTasks);
+        
+        // Sort each list by start time
+        sortTasksByStartTime(currentPeriodTasks);
+        sortTasksByStartTime(missedTasks);
+        sortTasksByStartTime(laterTasks);
+        
+        // Populate time-aware sections when smart view is ON and not filtering
+        if (isSmartViewEnabled && !isFiltering) {
+            // Populate "Right Now" section - current period tasks (both focus + regular)
+            if (rightNowContainer != null) {
+                for (Task task : currentPeriodTasks) {
+                    if (task.isComplete) continue; // Skip completed tasks
+                    View taskView = createTaskView(task, task.isFocusTask(), rightNowContainer);
+                    rightNowContainer.addView(taskView);
+                }
+            }
+            
+            // Update subtitle with current period name
+            if (rightNowSubtitle != null) {
+                String periodName = getPeriodDisplayName(currentPeriod);
+                rightNowSubtitle.setText(periodName + " tasks • Focus sessions & reminders");
+            }
+            
+            // Populate "Missed" section - past period incomplete tasks
+            if (missedTasksContainer != null) {
+                for (Task task : missedTasks) {
+                    if (task.isComplete) continue; // Skip completed tasks
+                    View taskView = createTaskViewWithMissedBadge(task, task.isFocusTask(), missedTasksContainer);
+                    missedTasksContainer.addView(taskView);
+                }
+            }
+            
+            // Populate "Later Today" section - future period tasks
+            if (laterTodayContainer != null) {
+                for (Task task : laterTasks) {
+                    if (task.isComplete) continue; // Skip completed tasks
+                    View taskView = createTaskView(task, task.isFocusTask(), laterTodayContainer);
+                    laterTodayContainer.addView(taskView);
+                }
+            }
+            
+            // Update smart insight
+            updateSmartInsight();
+        }
+        
+        // Process regular task lists when:
+        // 1. Smart view is OFF (traditional view)
+        // 2. Priority filtering is active
+        boolean useTraditionalView = !isSmartViewEnabled || isFiltering;
+        
+        // In traditional view, also populate focus tasks container
+        if (useTraditionalView && focusTasksContainer != null) {
+            ArrayList<Task> todayFocusTasks = new ArrayList<>();
+            collectFocusTasksForToday(morningTasks, todayDate, todayFocusTasks);
+            collectFocusTasksForToday(afternoonTasks, todayDate, todayFocusTasks);
+            collectFocusTasksForToday(nightTasks, todayDate, todayFocusTasks);
+            
+            for (Task focusTask : todayFocusTasks) {
+                if (focusTask.isComplete) continue;
+                View taskView = createTaskView(focusTask, true, focusTasksContainer);
+                focusTasksContainer.addView(taskView);
+            }
+        }
+        
+        int filteredCount = 0;
+        filteredCount += processTaskListWithFilter(morningTasks, todayDate, morningTasksContainer, 
+            filteredMorningContainer, isFiltering, useTraditionalView);
+        filteredCount += processTaskListWithFilter(afternoonTasks, todayDate, afternoonTasksContainer, 
+            filteredAfternoonContainer, isFiltering, useTraditionalView);
+        filteredCount += processTaskListWithFilter(nightTasks, todayDate, nightTasksContainer, 
+            filteredNightContainer, isFiltering, useTraditionalView);
+        final int finalFilteredCount = filteredCount;
 
-        // Process task lists and count in one pass for efficiency
-        processTaskList(morningTasks, todayDate, morningTasksContainer, focusTasksContainer);
-        processTaskList(afternoonTasks, todayDate, afternoonTasksContainer, focusTasksContainer);
-        processTaskList(nightTasks, todayDate, nightTasksContainer, focusTasksContainer);
-
-        // Count tasks efficiently in one combined loop
+        // Count tasks efficiently
         int totalTasks = 0;
         int completedTasks = 0;
-        boolean hasTodayFocusTasks = false;
+        boolean hasCurrentPeriodTasks = false;
+        boolean hasMissedTasks = false;
+        boolean hasLaterTasks = false;
+        
+        for (Task task : currentPeriodTasks) {
+            if (!task.isComplete) hasCurrentPeriodTasks = true;
+        }
+        for (Task task : missedTasks) {
+            if (!task.isComplete) hasMissedTasks = true;
+        }
+        for (Task task : laterTasks) {
+            if (!task.isComplete) hasLaterTasks = true;
+        }
+        
         boolean hasReminderTasksForToday = false;
 
         // Combined counting loop - process all task lists together
@@ -224,11 +720,7 @@ public class CurrentTasksFragment extends Fragment {
                     if (task.isComplete) {
                         completedTasks++;
                     } else {
-                        if (task.isFocusTask()) {
-                            hasTodayFocusTasks = true;
-                        } else {
-                            hasReminderTasksForToday = true;
-                        }
+                        hasReminderTasksForToday = true;
                     }
                 }
             }
@@ -248,19 +740,47 @@ public class CurrentTasksFragment extends Fragment {
             completionText.setText("0% completed");
         }
 
-        if (focusTasksSection != null) {
-            focusTasksSection.setVisibility(hasTodayFocusTasks ? View.VISIBLE : View.GONE);
+        // Show/hide time-aware sections based on smart view toggle
+        boolean showSmartView = isSmartViewEnabled && !isFiltering;
+        
+        if (rightNowSection != null) {
+            rightNowSection.setVisibility(hasCurrentPeriodTasks && showSmartView ? View.VISIBLE : View.GONE);
+        }
+        
+        if (missedTasksSection != null) {
+            missedTasksSection.setVisibility(hasMissedTasks && showSmartView ? View.VISIBLE : View.GONE);
+        }
+        
+        if (laterTodaySection != null) {
+            laterTodaySection.setVisibility(hasLaterTasks && showSmartView ? View.VISIBLE : View.GONE);
         }
 
-        if (!hasReminderTasksForToday) {
-            // No reminder tasks, hide the tasks container card
+        // Show focus sessions section in traditional view if there are focus tasks
+        boolean hasFocusTasks = focusTasksContainer != null && focusTasksContainer.getChildCount() > 0;
+        if (focusTasksSection != null) {
+            // Show focus section in traditional view (smart view OFF), hide in smart view
+            focusTasksSection.setVisibility(!showSmartView && hasFocusTasks ? View.VISIBLE : View.GONE);
+        }
+
+        // Handle task containers visibility
+        boolean hasTimeAwareTasks = (hasCurrentPeriodTasks || hasMissedTasks || hasLaterTasks) && showSmartView;
+        
+        if (hasTimeAwareTasks) {
+            // Hide regular task containers when time-aware mode is active
             if (tasksContainerCard != null) tasksContainerCard.setVisibility(View.GONE);
-            // Show empty state only if there are no tasks at all (no focus sessions either)
-            if (emptyStateCard != null) emptyStateCard.setVisibility(!hasTodayFocusTasks ? View.VISIBLE : View.GONE);
-        } else {
-            // Has reminder tasks, show the container
+            if (emptyStateCard != null) emptyStateCard.setVisibility(View.GONE);
+        } else if (!isSmartViewEnabled && hasReminderTasksForToday) {
+            // Smart view OFF - show traditional morning/afternoon/night containers
             if (emptyStateCard != null) emptyStateCard.setVisibility(View.GONE);
             if (tasksContainerCard != null) tasksContainerCard.setVisibility(View.VISIBLE);
+        } else if (!hasReminderTasksForToday && !isFiltering) {
+            // No tasks at all
+            if (tasksContainerCard != null) tasksContainerCard.setVisibility(View.GONE);
+            if (emptyStateCard != null) emptyStateCard.setVisibility(View.VISIBLE);
+        } else if (isFiltering) {
+            // Filtering mode - show regular containers
+            if (emptyStateCard != null) emptyStateCard.setVisibility(View.GONE);
+            if (tasksContainerCard != null) tasksContainerCard.setVisibility(hasReminderTasksForToday ? View.VISIBLE : View.GONE);
         }
 
         if (morningTasksHeader != null && morningTasksContainer != null) {
@@ -272,74 +792,234 @@ public class CurrentTasksFragment extends Fragment {
         if (nightTasksHeader != null && nightTasksContainer != null) {
             nightTasksHeader.setVisibility(nightTasksContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
         }
+        
+        // Handle filtered out section - visible when filtering and has deprioritized tasks
+        if (filteredOutCard != null) {
+            if (isFiltering && finalFilteredCount > 0) {
+                filteredOutCard.setVisibility(View.VISIBLE);
+                if (filteredOutCount != null) {
+                    filteredOutCount.setText(String.valueOf(finalFilteredCount));
+                }
+                if (filteredOutTitle != null) {
+                    filteredOutTitle.setText("Other Tasks (not " + currentPriorityFilter + " priority)");
+                }
+                
+                // Update filtered section headers visibility
+                if (filteredMorningHeader != null && filteredMorningContainer != null) {
+                    filteredMorningHeader.setVisibility(filteredMorningContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
+                }
+                if (filteredAfternoonHeader != null && filteredAfternoonContainer != null) {
+                    filteredAfternoonHeader.setVisibility(filteredAfternoonContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
+                }
+                if (filteredNightHeader != null && filteredNightContainer != null) {
+                    filteredNightHeader.setVisibility(filteredNightContainer.getChildCount() > 0 ? View.VISIBLE : View.GONE);
+                }
+            } else {
+                filteredOutCard.setVisibility(View.GONE);
+            }
+        }
+    }
+    
+    /**
+     * Collect all tasks (both focus and regular) for today.
+     */
+    private void collectAllTasksForToday(ArrayList<Task> tasks, String todayDate, ArrayList<Task> result) {
+        if (tasks == null) return;
+        for (Task task : tasks) {
+            if (task != null && task.date != null && task.date.equals(todayDate)) {
+                result.add(task);
+            }
+        }
+    }
+    
+    /**
+     * Categorize tasks into current period, missed (past), and later (future).
+     */
+    private void categorizeTasksByTimePeriod(ArrayList<Task> allTasks, String currentPeriod,
+                                             ArrayList<Task> currentPeriodTasks,
+                                             ArrayList<Task> missedTasks,
+                                             ArrayList<Task> laterTasks) {
+        for (Task task : allTasks) {
+            String taskPeriod = getTaskTimePeriod(task);
+            
+            if (taskPeriod.equals(currentPeriod)) {
+                // Task is in current time period
+                currentPeriodTasks.add(task);
+            } else if (isTaskPeriodPast(taskPeriod, currentPeriod)) {
+                // Task is from a past time period - missed
+                missedTasks.add(task);
+            } else {
+                // Task is for a future time period - later
+                laterTasks.add(task);
+            }
+        }
+    }
+    
+    /**
+     * Check if a task's time period is in the past relative to current period.
+     * Time flow: morning -> afternoon -> night
+     */
+    private boolean isTaskPeriodPast(String taskPeriod, String currentPeriod) {
+        // Define period order: morning (0) -> afternoon (1) -> night (2)
+        int taskOrder = getPeriodOrder(taskPeriod);
+        int currentOrder = getPeriodOrder(currentPeriod);
+        
+        return taskOrder < currentOrder;
+    }
+    
+    /**
+     * Get numeric order for time period comparison.
+     */
+    private int getPeriodOrder(String period) {
+        switch (period) {
+            case "morning": return 0;
+            case "afternoon": return 1;
+            case "night": return 2;
+            default: return 1; // Default to afternoon
+        }
+    }
+    
+    /**
+     * Get display name for a time period.
+     */
+    private String getPeriodDisplayName(String period) {
+        switch (period) {
+            case "morning": return "🌅 Morning";
+            case "afternoon": return "🌤️ Afternoon";
+            case "night": return "🌙 Evening";
+            default: return "📋 Current";
+        }
+    }
+    
+    /**
+     * Get category text with emoji prefix.
+     */
+    private String getCategoryWithEmoji(String category) {
+        if (category == null) return "";
+        switch (category) {
+            case "Work": return "💼 Work";
+            case "Personal": return "🏠 Personal";
+            case "Health": return "💪 Health";
+            case "Learning": return "📚 Learning";
+            case "Finance": return "💰 Finance";
+            case "Social": return "👥 Social";
+            case "School": return "🎓 School";
+            case "Shopping": return "🛒 Shopping";
+            case "Travel": return "✈️ Travel";
+            case "Entertainment": return "🎬 Entertainment";
+            default: return "📋 " + category;
+        }
+    }
+    
+    /**
+     * Get priority text with emoji prefix.
+     */
+    private String getPriorityWithEmoji(String priority) {
+        if (priority == null) return "⚪ None";
+        switch (priority) {
+            case "High": return "🔴 High Priority";
+            case "Medium": return "🟡 Medium Priority";
+            case "Low": return "🟢 Low Priority";
+            default: return "⚪ No Priority";
+        }
+    }
+    
+    /**
+     * Generate AI insight text for a task.
+     */
+    private String generateTaskInsight(Task task, AIModelHelper aiHelper) {
+        if (task == null || task.name == null) return null;
+        
+        StringBuilder insight = new StringBuilder();
+        
+        // Get AI suggestions
+        AIModelHelper.TaskSuggestions suggestions = aiHelper.getTaskSuggestions(task.name);
+        
+        if (suggestions != null) {
+            // Add priority insight
+            if (suggestions.priority != null) {
+                String reason = suggestions.priority.getReason();
+                if (reason != null && !reason.isEmpty()) {
+                    insight.append(reason);
+                }
+            }
+            
+            // Add time insight for non-focus tasks
+            if (!task.isFocusTask() && suggestions.timeOfDay != null) {
+                String currentPeriod = getCurrentTimePeriod();
+                String suggestedTime = suggestions.timeOfDay.getValue();
+                if (suggestedTime != null && !suggestedTime.equals(currentPeriod)) {
+                    if (insight.length() > 0) insight.append(" ");
+                    insight.append("Best done in the ").append(suggestedTime).append(".");
+                }
+            }
+            
+            // Add duration insight for focus tasks
+            if (task.isFocusTask() && suggestions.focusDuration != null) {
+                if (insight.length() > 0) insight.append(" ");
+                insight.append(suggestions.focusDuration.getReason());
+            }
+        }
+        
+        // Add contextual insight based on task characteristics
+        if (insight.length() == 0) {
+            if (task.isFocusTask()) {
+                insight.append("Deep focus sessions help you achieve flow state for complex tasks.");
+            } else if ("High".equals(task.urgency)) {
+                insight.append("High priority tasks benefit from immediate attention.");
+            } else {
+                insight.append("Breaking tasks into smaller steps increases completion rate.");
+            }
+        }
+        
+        return insight.toString();
+    }
+    
+    /**
+     * Sort tasks by their start time.
+     */
+    private void sortTasksByStartTime(ArrayList<Task> tasks) {
+        java.util.Collections.sort(tasks, (t1, t2) -> {
+            int time1 = convertTo24Hour(t1.hour, t1.amPm) * 60 + t1.minute;
+            int time2 = convertTo24Hour(t2.hour, t2.amPm) * 60 + t2.minute;
+            return Integer.compare(time1, time2);
+        });
+    }
+    
+    /**
+     * Create a task view with a "Missed" badge indicator.
+     */
+    private View createTaskViewWithMissedBadge(Task task, boolean isFocusTaskView, ViewGroup parent) {
+        View taskView = createTaskView(task, isFocusTaskView, parent);
+        
+        // Add visual indicator for missed status
+        try {
+            // Add a red/warning tint to the card to indicate missed status
+            if (taskView instanceof com.google.android.material.card.MaterialCardView) {
+                com.google.android.material.card.MaterialCardView card = 
+                    (com.google.android.material.card.MaterialCardView) taskView;
+                card.setStrokeColor(getResources().getColor(R.color.error, null));
+                card.setStrokeWidth((int) (2 * getResources().getDisplayMetrics().density));
+            }
+            
+            // Also update the task name to show missed indicator
+            TextView taskNameView = taskView.findViewById(R.id.taskName);
+            if (taskNameView != null && task.name != null) {
+                taskNameView.setText("⚠️ " + task.name);
+            }
+        } catch (Exception e) {
+            // Silently handle - the view will still work without the badge
+        }
+        
+        return taskView;
     }
 
-    private ArrayList<Task> generatePlaceholderCurrentTasks(String todayDate) {
-        ArrayList<Task> placeholderTasks = new ArrayList<>();
-        
-        String[] morningTasks = {"Morning workout", "Review emails", "Team standup"};
-        String[] afternoonTasks = {"Lunch meeting", "Code review", "Project planning"};
-        String[] nightTasks = {"Wrap up tasks", "Prepare for tomorrow"};
-        String[] focusNames = {"Deep work: Feature development"};
-        String[] priorities = {"None", "Low", "Medium", "High"};
-        
-        java.util.Random random = new java.util.Random(System.currentTimeMillis());
-
-        // Add morning tasks
-        for (int i = 0; i < 2; i++) {
-            Task task = new Task();
-            task.id = -(i + 500);
-            task.name = morningTasks[i % morningTasks.length];
-            task.taskType = "reminder";
-            task.date = todayDate;
-            task.hour = 8 + i;
-            task.minute = i == 0 ? 0 : 30;
-            task.amPm = "AM";
-            task.timeCategory = "morning";
-            task.urgency = priorities[1 + random.nextInt(3)];
-            task.isAlarmOn = true;
-            task.isComplete = false;
-            placeholderTasks.add(task);
-        }
-
-        // Add afternoon tasks
-        for (int i = 0; i < 2; i++) {
-            Task task = new Task();
-            task.id = -(i + 510);
-            task.name = afternoonTasks[i % afternoonTasks.length];
-            task.taskType = "reminder";
-            task.date = todayDate;
-            task.hour = 1 + i;
-            task.minute = 0;
-            task.amPm = "PM";
-            task.timeCategory = "afternoon";
-            task.urgency = priorities[random.nextInt(4)];
-            task.isAlarmOn = true;
-            task.isComplete = false;
-            placeholderTasks.add(task);
-        }
-
-        // Add a focus session
-        Task focusTask = new Task();
-        focusTask.id = -520;
-        focusTask.name = focusNames[0];
-        focusTask.taskType = "focus";
-        focusTask.date = todayDate;
-        focusTask.hour = 10;
-        focusTask.minute = 0;
-        focusTask.amPm = "AM";
-        focusTask.endHour = 12;
-        focusTask.endMinute = 0;
-        focusTask.endAmPm = "PM";
-        focusTask.timeCategory = "morning";
-        focusTask.urgency = "High";
-        focusTask.isAlarmOn = true;
-        focusTask.isComplete = false;
-        placeholderTasks.add(focusTask);
-
-        return placeholderTasks;
-    }
-
+    /**
+     * Old processTaskList method without filtering support.
+     * @deprecated Use processTaskListWithFilter for filtering support.
+     */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     private void processTaskList(ArrayList<Task> tasks, String todayDate, LinearLayout container, LinearLayout focusContainer) {
         if (tasks == null || container == null) return;
 
@@ -378,6 +1058,7 @@ public class CurrentTasksFragment extends Fragment {
     private void setupTaskView(View taskView, Task task) {
         TextView taskNameTextView = taskView.findViewById(R.id.taskName);
         TextView taskTimeTextView = taskView.findViewById(R.id.taskTime);
+        TextView categoryChip = taskView.findViewById(R.id.categoryChip);
         SwitchCompat taskSwitch = taskView.findViewById(R.id.taskSwitch);
         View taskContent = taskView.findViewById(R.id.taskContent);
         
@@ -410,6 +1091,34 @@ public class CurrentTasksFragment extends Fragment {
             } else {
                 taskTimeTextView.setText(String.format(Locale.getDefault(), "%d:%02d %s",
                         task.hour, task.minute, task.amPm != null ? task.amPm : "AM"));
+            }
+        }
+        
+        // Display category chip if task has a category
+        if (categoryChip != null) {
+            if (task.category != null && !task.category.isEmpty()) {
+                categoryChip.setVisibility(View.VISIBLE);
+                categoryChip.setText(getCategoryWithEmoji(task.category));
+            } else {
+                // Try to detect category using AI if not set
+                android.content.Context ctx = getContext();
+                if (ctx != null && task.name != null && !task.name.isEmpty() && AIModelHelper.isEnabled(ctx)) {
+                    AIModelHelper aiHelper = AIModelHelper.getInstance(ctx);
+                    AIModelHelper.AIPrediction categoryPrediction = aiHelper.predictCategory(task.name);
+                    if (categoryPrediction != null && categoryPrediction.getValue() != null) {
+                        categoryChip.setVisibility(View.VISIBLE);
+                        categoryChip.setText(getCategoryWithEmoji(categoryPrediction.getValue()));
+                        // Also save the detected category
+                        task.category = categoryPrediction.getValue();
+                        if (taskRepository != null) {
+                            taskRepository.updateTask(task);
+                        }
+                    } else {
+                        categoryChip.setVisibility(View.GONE);
+                    }
+                } else {
+                    categoryChip.setVisibility(View.GONE);
+                }
             }
         }
         
@@ -665,6 +1374,58 @@ public class CurrentTasksFragment extends Fragment {
                 alarmIcon.setImageResource(R.drawable.ic_reminder);
             }
         }
+        
+        // Set category (NEW)
+        View categoryRow = popupView.findViewById(R.id.categoryRow);
+        TextView categoryText = popupView.findViewById(R.id.quickInfoCategory);
+        if (categoryRow != null && categoryText != null) {
+            String category = task.category;
+            // If no category set, try AI detection
+            android.content.Context ctx = getContext();
+            if ((category == null || category.isEmpty()) && task.name != null && ctx != null && AIModelHelper.isEnabled(ctx)) {
+                AIModelHelper aiHelper = AIModelHelper.getInstance(ctx);
+                AIModelHelper.AIPrediction categoryPrediction = aiHelper.predictCategory(task.name);
+                if (categoryPrediction != null) {
+                    category = categoryPrediction.getValue();
+                }
+            }
+            
+            if (category != null && !category.isEmpty()) {
+                categoryRow.setVisibility(View.VISIBLE);
+                categoryText.setText(getCategoryWithEmoji(category));
+            } else {
+                categoryRow.setVisibility(View.GONE);
+            }
+        }
+        
+        // Set priority (NEW)
+        View priorityRow = popupView.findViewById(R.id.priorityRow);
+        TextView priorityText = popupView.findViewById(R.id.quickInfoPriority);
+        if (priorityRow != null && priorityText != null) {
+            if (task.urgency != null && !task.urgency.isEmpty() && !"None".equals(task.urgency)) {
+                priorityRow.setVisibility(View.VISIBLE);
+                priorityText.setText(getPriorityWithEmoji(task.urgency));
+            } else {
+                priorityRow.setVisibility(View.GONE);
+            }
+        }
+        
+        // Set AI Insight (NEW)
+        View aiInsightCard = popupView.findViewById(R.id.aiInsightCard);
+        TextView aiInsightText = popupView.findViewById(R.id.aiInsightText);
+        android.content.Context insightCtx = getContext();
+        if (aiInsightCard != null && aiInsightText != null && insightCtx != null && AIModelHelper.isEnabled(insightCtx)) {
+            AIModelHelper aiHelper = AIModelHelper.getInstance(insightCtx);
+            String insight = generateTaskInsight(task, aiHelper);
+            if (insight != null && !insight.isEmpty()) {
+                aiInsightCard.setVisibility(View.VISIBLE);
+                aiInsightText.setText(insight);
+            } else {
+                aiInsightCard.setVisibility(View.GONE);
+            }
+        } else if (aiInsightCard != null) {
+            aiInsightCard.setVisibility(View.GONE);
+        }
 
         // Show popup at center of screen
         popupWindow.showAtLocation(anchorView, android.view.Gravity.CENTER, 0, 0);
@@ -860,6 +1621,101 @@ public class CurrentTasksFragment extends Fragment {
             }
         }
     }
+    
+    /**
+     * Load smart view preference from SharedPreferences
+     */
+    private void loadSmartViewPreference() {
+        if (getContext() == null) return;
+        android.content.SharedPreferences prefs = getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        isSmartViewEnabled = prefs.getBoolean(PREF_SMART_VIEW, true); // Default to ON
+    }
+    
+    /**
+     * Save smart view preference to SharedPreferences
+     */
+    private void saveSmartViewPreference(boolean enabled) {
+        if (getContext() == null) return;
+        android.content.SharedPreferences prefs = getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putBoolean(PREF_SMART_VIEW, enabled).apply();
+    }
+    
+    /**
+     * Create a time period header view (e.g., "☀️ Morning - Current", "🌙 Night - Later")
+     */
+    private View createTimePeriodHeader(String timePeriod, boolean isCurrentPeriod) {
+        if (getContext() == null) return new View(getContext());
+        
+        TextView header = new TextView(getContext());
+        
+        String emoji;
+        String label;
+        switch (timePeriod) {
+            case "morning":
+                emoji = "☀️";
+                label = "Morning";
+                break;
+            case "afternoon":
+                emoji = "🌤️";
+                label = "Afternoon";
+                break;
+            default:
+                emoji = "🌙";
+                label = "Night";
+                break;
+        }
+        
+        String text = emoji + " " + label;
+        if (isCurrentPeriod) {
+            text += " — Now";
+        } else {
+            text += " — Later";
+        }
+        
+        header.setText(text);
+        header.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_LabelLarge);
+        header.setTextColor(isCurrentPeriod ? 
+            androidx.core.content.ContextCompat.getColor(getContext(), R.color.primary) :
+            androidx.core.content.ContextCompat.getColor(getContext(), R.color.text_secondary));
+        
+        if (isCurrentPeriod) {
+            header.setTypeface(header.getTypeface(), android.graphics.Typeface.BOLD);
+        }
+        
+        // Padding
+        int paddingH = (int) (16 * getResources().getDisplayMetrics().density);
+        int paddingTop = (int) (12 * getResources().getDisplayMetrics().density);
+        int paddingBottom = (int) (4 * getResources().getDisplayMetrics().density);
+        header.setPadding(paddingH, paddingTop, paddingH, paddingBottom);
+        
+        return header;
+    }
+    
+    /**
+     * Update the smart insight card with AI-powered productivity tip
+     */
+    private void updateSmartInsight() {
+        if (getContext() == null) return;
+        
+        // Check if smart suggestions are enabled
+        if (!AIModelHelper.isInsightsEnabled(getContext())) {
+            if (smartInsightCard != null) {
+                smartInsightCard.setVisibility(View.GONE);
+            }
+            return;
+        }
+        
+        if (smartInsightCard != null) {
+            smartInsightCard.setVisibility(View.VISIBLE);
+        }
+        
+        if (smartInsightText != null) {
+            // Use AIModelHelper for richer ML-backed insights
+            AIModelHelper aiHelper = AIModelHelper.getInstance(getContext());
+            String insight = aiHelper.getProductivityInsight();
+            smartInsightText.setText(insight);
+        }
+    }
 
     private boolean shouldShowTask(Task task) {
         if ("All".equals(currentPriorityFilter)) {
@@ -873,5 +1729,158 @@ public class CurrentTasksFragment extends Fragment {
         }
 
         return task.urgency.equalsIgnoreCase(currentPriorityFilter);
+    }
+    
+    /**
+     * Collect all focus tasks for today from a task list.
+     */
+    private void collectFocusTasksForToday(ArrayList<Task> tasks, String todayDate, ArrayList<Task> focusTasks) {
+        if (tasks == null) return;
+        for (Task task : tasks) {
+            if (task != null && task.isFocusTask() && task.date != null 
+                    && task.date.equals(todayDate) && !task.isComplete) {
+                focusTasks.add(task);
+            }
+        }
+    }
+    
+    /**
+     * Collect all regular (non-focus) tasks for today from a task list.
+     */
+    private void collectRegularTasksForToday(ArrayList<Task> tasks, String todayDate, ArrayList<Task> regularTasks) {
+        if (tasks == null) return;
+        for (Task task : tasks) {
+            if (task != null && !task.isFocusTask() && task.date != null 
+                    && task.date.equals(todayDate)) {
+                regularTasks.add(task);
+            }
+        }
+    }
+    
+    /**
+     * Get the current time period based on system time.
+     * @return "morning" (5 AM - 11:59 AM), "afternoon" (12 PM - 5:59 PM), or "night" (6 PM - 4:59 AM)
+     */
+    private String getCurrentTimePeriod() {
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        int hour = calendar.get(java.util.Calendar.HOUR_OF_DAY);
+        
+        if (hour >= 5 && hour < 12) {
+            return "morning";
+        } else if (hour >= 12 && hour < 18) {
+            return "afternoon";
+        } else {
+            return "night";
+        }
+    }
+    
+    /**
+     * Get the time period for a task based on its start time.
+     */
+    private String getTaskTimePeriod(Task task) {
+        int hour24 = convertTo24Hour(task.hour, task.amPm);
+        
+        if (hour24 >= 5 && hour24 < 12) {
+            return "morning";
+        } else if (hour24 >= 12 && hour24 < 18) {
+            return "afternoon";
+        } else {
+            return "night";
+        }
+    }
+    
+    /**
+     * Sort focus tasks by time awareness - tasks in the current time period come first,
+     * then sorted by start time within each period.
+     */
+    private void sortFocusTasksByTimeAwareness(ArrayList<Task> focusTasks) {
+        if (focusTasks == null || focusTasks.size() <= 1) return;
+        
+        final String currentPeriod = getCurrentTimePeriod();
+        
+        // Sort: current time period first, then by start time
+        java.util.Collections.sort(focusTasks, (t1, t2) -> {
+            String period1 = getTaskTimePeriod(t1);
+            String period2 = getTaskTimePeriod(t2);
+            
+            boolean t1InCurrentPeriod = period1.equals(currentPeriod);
+            boolean t2InCurrentPeriod = period2.equals(currentPeriod);
+            
+            // Tasks in current period come first
+            if (t1InCurrentPeriod && !t2InCurrentPeriod) return -1;
+            if (!t1InCurrentPeriod && t2InCurrentPeriod) return 1;
+            
+            // If both in same period status, sort by time period order (morning -> afternoon -> night)
+            if (!t1InCurrentPeriod && !t2InCurrentPeriod) {
+                int periodOrder1 = getTimePeriodOrder(period1, currentPeriod);
+                int periodOrder2 = getTimePeriodOrder(period2, currentPeriod);
+                if (periodOrder1 != periodOrder2) return periodOrder1 - periodOrder2;
+            }
+            
+            // Within same period, sort by start time
+            int time1 = convertTo24Hour(t1.hour, t1.amPm) * 60 + t1.minute;
+            int time2 = convertTo24Hour(t2.hour, t2.amPm) * 60 + t2.minute;
+            return time1 - time2;
+        });
+    }
+    
+    /**
+     * Get the order of a time period relative to the current period.
+     * Periods closer to current time come first.
+     */
+    private int getTimePeriodOrder(String period, String currentPeriod) {
+        // Order based on what comes next after current period
+        if (currentPeriod.equals("morning")) {
+            if (period.equals("morning")) return 0;
+            if (period.equals("afternoon")) return 1;
+            return 2; // night
+        } else if (currentPeriod.equals("afternoon")) {
+            if (period.equals("afternoon")) return 0;
+            if (period.equals("night")) return 1;
+            return 2; // morning (next day conceptually)
+        } else { // night
+            if (period.equals("night")) return 0;
+            if (period.equals("morning")) return 1;
+            return 2; // afternoon
+        }
+    }
+    
+    /**
+     * Process tasks with filtering support - adds tasks to appropriate containers.
+     * Tasks that match the filter go to the main container, non-matching go to filtered container.
+     * Focus tasks are skipped here - they're handled separately with time-aware sorting.
+     * @param useTraditionalView If true, always populate containers (smart view OFF or filtering)
+     * @return The number of filtered-out (non-matching) tasks added
+     */
+    private int processTaskListWithFilter(ArrayList<Task> tasks, String todayDate, 
+            LinearLayout container, LinearLayout filteredContainer, boolean isFiltering, boolean useTraditionalView) {
+        if (tasks == null || container == null) return 0;
+        
+        // Only process if we're using traditional view or filtering
+        if (!useTraditionalView) return 0;
+        
+        int filteredOutCount = 0;
+
+        for (Task task : tasks) {
+            if (task == null || task.date == null) continue;
+            if (!task.date.equals(todayDate) || task.isComplete) continue;
+            
+            // Skip focus tasks - they're handled separately with time-aware sorting
+            if (task.isFocusTask()) continue;
+
+            // Regular tasks - check if matches filter
+            if (shouldShowTask(task)) {
+                View taskView = createTaskView(task, false, container);
+                container.addView(taskView);
+            } else if (isFiltering && filteredContainer != null) {
+                // Task doesn't match filter - add to filtered container (visible at bottom)
+                View taskView = createTaskView(task, false, filteredContainer);
+                taskView.setAlpha(0.7f); // Slightly dimmed
+                filteredContainer.addView(taskView);
+                filteredOutCount++;
+            }
+        }
+        
+        return filteredOutCount;
     }
 }

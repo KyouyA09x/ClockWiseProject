@@ -612,6 +612,94 @@ public class TutorialActivityNew extends BaseThemedActivity {
                     spotlightView.clearHighlight();
                 }
                 break;
+            
+            case SMART_VIEW_TOGGLE:
+                // Highlight the Smart View toggle switch
+                View smartViewToggle = findViewById(R.id.smartViewToggle);
+                if (smartViewToggle != null) {
+                    spotlightView.highlightView(smartViewToggle);
+                    animateViewPulse(smartViewToggle);
+                    // Enable interaction so user can try toggling
+                    smartViewToggle.setClickable(true);
+                } else {
+                    spotlightView.clearHighlight();
+                }
+                break;
+            
+            case RIGHT_NOW_SECTION:
+                // Highlight the Right Now section (Smart View mode)
+                View rightNowSection = findViewById(R.id.rightNowSection);
+                if (rightNowSection != null && rightNowSection.getVisibility() == View.VISIBLE) {
+                    scrollToView(rightNowSection);
+                    handler.postDelayed(() -> {
+                        spotlightView.highlightView(rightNowSection);
+                        animateViewPulse(rightNowSection);
+                    }, 300);
+                } else {
+                    // Fallback to task container if Smart View is off
+                    View taskContainer = findViewById(R.id.tasksContainerCard);
+                    if (taskContainer != null) {
+                        spotlightView.highlightView(taskContainer);
+                        animateViewPulse(taskContainer);
+                    }
+                }
+                break;
+            
+            case MISSED_SECTION:
+                // Highlight the Missed tasks section
+                View missedSection = findViewById(R.id.missedTasksSection);
+                if (missedSection != null && missedSection.getVisibility() == View.VISIBLE) {
+                    scrollToView(missedSection);
+                    handler.postDelayed(() -> {
+                        spotlightView.highlightView(missedSection);
+                        animateViewPulse(missedSection);
+                    }, 300);
+                } else {
+                    spotlightView.clearHighlight();
+                }
+                break;
+            
+            case LATER_TODAY_SECTION:
+                // Highlight the Later Today section
+                View laterSection = findViewById(R.id.laterTodaySection);
+                if (laterSection != null && laterSection.getVisibility() == View.VISIBLE) {
+                    scrollToView(laterSection);
+                    handler.postDelayed(() -> {
+                        spotlightView.highlightView(laterSection);
+                        animateViewPulse(laterSection);
+                    }, 300);
+                } else {
+                    spotlightView.clearHighlight();
+                }
+                break;
+            
+            case TASK_BADGES:
+                // Highlight a focus task to show badges
+                View focusBadge = null;
+                View rightNowContainer = findViewById(R.id.rightNowContainer);
+                if (rightNowContainer instanceof ViewGroup) {
+                    ViewGroup container = (ViewGroup) rightNowContainer;
+                    for (int i = 0; i < container.getChildCount(); i++) {
+                        View child = container.getChildAt(i);
+                        View badge = child.findViewById(R.id.focusBadge);
+                        if (badge != null && badge.getVisibility() == View.VISIBLE) {
+                            focusBadge = child;
+                            break;
+                        }
+                    }
+                }
+                if (focusBadge != null) {
+                    scrollToView(focusBadge);
+                    final View taskWithBadge = focusBadge;
+                    handler.postDelayed(() -> {
+                        spotlightView.highlightView(taskWithBadge);
+                        animateViewPulse(taskWithBadge);
+                    }, 300);
+                } else if (sampleTaskView != null) {
+                    spotlightView.highlightView(sampleTaskView);
+                    animateViewPulse(sampleTaskView);
+                }
+                break;
                 
             case TASK_SECTIONS:
                 // Highlight the morning tasks section header
@@ -1120,8 +1208,13 @@ public class TutorialActivityNew extends BaseThemedActivity {
         FAB_QUICK,
         FLOATING_BUTTON,
         PROGRESS_TRACKER,
+        SMART_VIEW_TOGGLE,      // NEW: Smart View toggle
+        RIGHT_NOW_SECTION,      // NEW: Right Now section
+        MISSED_SECTION,         // NEW: Missed tasks section
+        LATER_TODAY_SECTION,    // NEW: Later Today section
         TASK_SECTIONS,
         TASK_CARD,
+        TASK_BADGES,            // NEW: Focus badge and category chips
         LONG_PRESS_DEMO,
         DELETE_DEMO,
         BOTTOM_NAV,

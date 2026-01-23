@@ -44,4 +44,8 @@ public interface NoteDao {
     
     @Query("DELETE FROM notes WHERE isDeleted = 1")
     void permanentlyDeleteAllTrashed();
+    
+    // Get notes linked to a specific task
+    @Query("SELECT * FROM notes WHERE linkedTaskId = :taskId AND isDeleted = 0 ORDER BY createdTimestamp ASC")
+    List<Note> getNotesForTask(int taskId);
 }

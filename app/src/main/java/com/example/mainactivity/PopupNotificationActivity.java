@@ -189,6 +189,9 @@ public class PopupNotificationActivity extends Activity {
 
         // Set priority badge
         setPriorityBadge(priorityBadge, priority);
+        
+        // Load and display linked notes/checklist if any
+        loadLinkedNotes();
 
         // Setup snooze buttons
         setupSnoozeButton(findViewById(R.id.snooze5Button), 5);
@@ -220,6 +223,55 @@ public class PopupNotificationActivity extends Activity {
                 Toast.makeText(this, "✅ Task completed! Great job!", Toast.LENGTH_SHORT).show();
                 finishAndRemoveTask();
             });
+        }
+    }
+    
+    /**
+     * Load and display any notes linked to this task (AI-generated checklists)
+     */
+    private void loadLinkedNotes() {
+        android.util.Log.d("PopupNotification", "loadLinkedNotes called with taskId=" + taskId);
+        
+        if (taskId <= 0) {
+            android.util.Log.d("PopupNotification", "Invalid taskId, skipping linked notes load");
+            return;
+        }
+        
+        try {
+            NoteDao noteDao = TaskDatabase.getInstance(this).noteDao();
+            java.util.List<Note> linkedNotes = noteDao.getNotesForTask(taskId);
+            
+            android.util.Log.d("PopupNotification", "Found " + (linkedNotes != null ? linkedNotes.size() : 0) + " linked notes for taskId=" + taskId);
+            
+            if (linkedNotes != null && !linkedNotes.isEmpty()) {
+                View linkedNotesCard = findViewById(R.id.linkedNotesCard);
+                TextView linkedNotesContent = findViewById(R.id.linkedNotesContent);
+                
+                android.util.Log.d("PopupNotification", "linkedNotesCard=" + linkedNotesCard + ", linkedNotesContent=" + linkedNotesContent);
+                
+                if (linkedNotesCard != null && linkedNotesContent != null) {
+                    // Build the checklist content
+                    StringBuilder content = new StringBuilder();
+                    for (Note note : linkedNotes) {
+                        if (note.description != null && !note.description.isEmpty()) {
+                            content.append(note.description);
+                            if (linkedNotes.indexOf(note) < linkedNotes.size() - 1) {
+                                content.append("\n");
+                            }
+                        }
+                    }
+                    
+                    if (content.length() > 0) {
+                        linkedNotesContent.setText(content.toString());
+                        linkedNotesCard.setVisibility(View.VISIBLE);
+                        android.util.Log.d("PopupNotification", "Showing linked notes card with content length=" + content.length());
+                    }
+                } else {
+                    android.util.Log.w("PopupNotification", "Could not find linkedNotesCard or linkedNotesContent views");
+                }
+            }
+        } catch (Exception e) {
+            android.util.Log.e("PopupNotification", "Error loading linked notes", e);
         }
     }
 

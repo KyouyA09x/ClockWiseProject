@@ -10,6 +10,9 @@
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryContainer">@color/teal_light</item>
         <item name="colorOnSecondary">@color/black</item>
+        <!-- Tertiary colors for category chips -->
+        <item name="colorTertiaryContainer">@color/tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/on_tertiary_container</item>
         <!-- Surface colors -->
         <item name="colorSurface">@color/white</item>
         <item name="colorSurfaceVariant">@color/surface_variant_light</item>

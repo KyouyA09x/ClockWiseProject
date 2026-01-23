@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AI Sparkle animation for Smart View toggle -->
+<animated-selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_activated="true">
+        <animated-vector android:drawable="@drawable/ic_ai_sparkle_base">
+            <target
+                android:name="sparkle"
+                android:animation="@anim/sparkle_pulse" />
+        </animated-vector>
+    </item>
+    <item android:drawable="@drawable/ic_ai_sparkle_base" />
+</animated-selector>

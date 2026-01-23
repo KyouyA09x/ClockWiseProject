@@ -1,0 +1,176 @@
+{
+  "version": "2.0.0",
+  "model_type": "rule_based_with_ml_ready",
+  "features": {
+    "priority_prediction": {
+      "enabled": true,
+      "confidence_threshold": 0.7
+    },
+    "category_classification": {
+      "enabled": true,
+      "categories": ["Work", "Personal", "Health", "Finance", "Learning", "General"]
+    },
+    "time_suggestion": {
+      "enabled": true,
+      "time_slots": ["morning", "afternoon", "evening", "night"]
+    },
+    "duration_prediction": {
+      "enabled": true,
+      "min_duration": 15,
+      "max_duration": 180,
+      "step": 15
+    },
+    "productivity_insights": {
+      "enabled": true,
+      "insight_types": ["time_based", "pattern_based", "achievement_based"]
+    }
+  },
+  "priority_keywords": {
+    "high": [
+      "urgent", "asap", "critical", "deadline", "important", "meeting", "presentation", "interview", "exam", "test", 
+      "review", "submit", "due", "emergency", "boss", "client", "doctor", "appointment", "flight", "pickup", "final", 
+      "today", "now", "immediately", "crucial", "vital", "essential", "must", "mandatory", "required", "overdue",
+      "late", "expiring", "expires", "rush", "hurry", "priority", "high priority", "top priority", "first thing",
+      "cannot miss", "cant miss", "don't forget", "dont forget", "reminder", "alarm", "wake up", "wake", "surgery",
+      "court", "hearing", "trial", "visa", "passport", "immigration", "ceremony", "wedding", "funeral", "birth",
+      "hospital", "ambulance", "police", "fire", "911", "sos", "help", "rescue", "deadline today", "due today",
+      "EOD", "end of day", "COB", "close of business", "ASAP", "A.S.A.P", "stat", "time sensitive", "time-sensitive",
+      "urgent care", "ER", "ICU", "critical care", "life or death", "no delay", "cannot wait", "cant wait",
+      "board meeting", "investor", "pitch", "demo", "launch", "release", "go live", "deployment", "production",
+      "breaking", "crisis", "disaster", "outage", "downtime", "incident", "escalation", "blocker", "showstopper"
+    ],
+    "medium": [
+      "call", "email", "follow", "update", "prepare", "plan", "schedule", "arrange", "buy", "shop", "pay", "bill", 
+      "report", "send", "complete", "finish", "check", "remind", "book", "confirm", "order", "pickup", "deliver",
+      "return", "exchange", "refund", "renew", "extend", "apply", "register", "signup", "sign up", "login", "log in",
+      "fix", "repair", "replace", "install", "setup", "set up", "configure", "customize", "update", "upgrade",
+      "download", "upload", "backup", "sync", "transfer", "migrate", "import", "export", "print", "scan", "copy",
+      "write", "draft", "edit", "proofread", "revise", "review", "approve", "reject", "respond", "reply", "forward",
+      "share", "post", "publish", "announce", "notify", "inform", "discuss", "negotiate", "agree", "decide",
+      "evaluate", "assess", "analyze", "research", "investigate", "explore", "discover", "find", "search", "look for",
+      "organize", "sort", "file", "archive", "delete", "remove", "clear", "clean", "tidy", "declutter",
+      "maintenance", "service", "inspection", "audit", "compliance", "certification", "license", "permit",
+      "groceries", "supplies", "inventory", "stock", "reorder", "restock", "shopping list", "errand", "chore"
+    ],
+    "low": [
+      "maybe", "someday", "optional", "consider", "think", "read", "watch", "learn", "practice", "hobby", "relax", 
+      "gym", "workout", "exercise", "meditation", "later", "whenever", "eventually", "when possible", "if time",
+      "nice to have", "would be nice", "could", "might", "perhaps", "possibly", "potentially", "ideally",
+      "leisure", "fun", "entertainment", "game", "play", "movie", "show", "series", "music", "podcast", "youtube",
+      "social", "hangout", "chill", "unwind", "destress", "spa", "massage", "sauna", "jacuzzi", "pool", "beach",
+      "vacation", "holiday", "trip", "getaway", "explore", "adventure", "sightseeing", "tourism", "travel",
+      "creative", "art", "paint", "draw", "sketch", "craft", "diy", "build", "make", "create", "design",
+      "garden", "plant", "water", "lawn", "yard", "outdoor", "nature", "hike", "walk", "stroll", "wander",
+      "cook", "bake", "recipe", "kitchen", "meal prep", "try", "experiment", "taste", "sample",
+      "browse", "scroll", "surf", "window shop", "wishlist", "bookmark", "save for later", "backlog",
+      "someday maybe", "bucket list", "dream", "goal", "aspiration", "ambition", "vision", "long term"
+    ]
+  },
+  "category_keywords": {
+    "Work": [
+      "meeting", "call", "email", "report", "presentation", "client", "project", "deadline", "review", "team", 
+      "office", "work", "boss", "colleague", "conference", "proposal", "budget", "strategy", "stakeholder",
+      "sprint", "standup", "scrum", "agile", "kanban", "jira", "trello", "asana", "slack", "teams", "zoom",
+      "calendar", "schedule", "agenda", "minutes", "notes", "action items", "follow up", "sync", "sync up",
+      "1:1", "one on one", "performance", "feedback", "appraisal", "promotion", "raise", "salary", "bonus",
+      "hire", "recruit", "interview", "onboard", "training", "workshop", "seminar", "webinar", "conference",
+      "quarterly", "annual", "fiscal", "revenue", "profit", "loss", "forecast", "projection", "target", "KPI",
+      "metrics", "analytics", "dashboard", "report", "powerpoint", "slides", "deck", "pitch", "proposal",
+      "contract", "agreement", "NDA", "SOW", "invoice", "PO", "purchase order", "procurement", "vendor",
+      "supplier", "partner", "customer", "account", "lead", "prospect", "pipeline", "CRM", "sales", "marketing",
+      "HR", "IT", "ops", "operations", "logistics", "supply chain", "manufacturing", "production", "QA", "QC",
+      "code", "develop", "program", "debug", "deploy", "release", "PR", "pull request", "merge", "commit", "git"
+    ],
+    "Personal": [
+      "family", "friend", "birthday", "party", "dinner", "lunch", "movie", "travel", "vacation", "holiday", 
+      "home", "clean", "organize", "gift", "shopping", "visit", "mom", "dad", "parent", "sibling", "brother",
+      "sister", "son", "daughter", "child", "kid", "baby", "spouse", "husband", "wife", "partner", "boyfriend",
+      "girlfriend", "anniversary", "valentine", "christmas", "thanksgiving", "easter", "halloween", "new year",
+      "graduation", "wedding", "engagement", "baby shower", "housewarming", "retirement", "celebration",
+      "pet", "dog", "cat", "vet", "grooming", "walk the dog", "feed", "car", "vehicle", "maintenance", "oil change",
+      "tire", "gas", "fuel", "wash", "detail", "insurance", "registration", "inspection", "DMV", "license",
+      "house", "apartment", "rent", "mortgage", "move", "moving", "pack", "unpack", "decorate", "furniture",
+      "repair", "fix", "plumber", "electrician", "contractor", "handyman", "lawn", "garden", "mow", "trim",
+      "laundry", "dishes", "vacuum", "mop", "dust", "trash", "recycle", "compost", "errands", "chores"
+    ],
+    "Health": [
+      "gym", "workout", "exercise", "run", "jog", "yoga", "meditation", "doctor", "dentist", "medicine", "health", 
+      "sleep", "diet", "walk", "checkup", "therapy", "vitamin", "fitness", "cardio", "strength", "weights",
+      "lift", "bench", "squat", "deadlift", "press", "curl", "crunch", "plank", "pushup", "situp", "stretch",
+      "warm up", "cool down", "rest day", "recovery", "physio", "physical therapy", "chiropractor", "massage",
+      "acupuncture", "nutrition", "calories", "protein", "carbs", "fat", "macro", "meal plan", "meal prep",
+      "supplement", "shake", "smoothie", "juice", "water", "hydrate", "hydration", "electrolytes",
+      "prescription", "pharmacy", "refill", "medication", "pills", "dosage", "side effects", "allergy",
+      "blood test", "lab work", "xray", "MRI", "CT scan", "ultrasound", "mammogram", "colonoscopy", "screening",
+      "vaccine", "immunization", "flu shot", "booster", "covid", "test", "PCR", "antigen", "symptoms",
+      "mental health", "counseling", "psychiatrist", "psychologist", "anxiety", "depression", "stress",
+      "mindfulness", "breathe", "breathing", "relaxation", "self care", "wellness", "wellbeing", "spa"
+    ],
+    "Finance": [
+      "pay", "bill", "bank", "money", "budget", "invest", "tax", "insurance", "rent", "mortgage", "salary", 
+      "expense", "savings", "transfer", "invoice", "credit", "debit", "card", "payment", "transaction",
+      "account", "balance", "statement", "reconcile", "audit", "bookkeeping", "accounting", "CPA", "accountant",
+      "401k", "IRA", "retirement", "pension", "social security", "stocks", "bonds", "ETF", "mutual fund", "index",
+      "portfolio", "dividend", "capital gains", "interest", "APR", "APY", "compound", "returns", "yield",
+      "crypto", "bitcoin", "ethereum", "blockchain", "NFT", "trading", "forex", "options", "futures",
+      "loan", "debt", "payoff", "principal", "interest rate", "refinance", "consolidate", "bankruptcy",
+      "credit score", "credit report", "FICO", "credit check", "credit limit", "utilization", "dispute",
+      "tax return", "W2", "1099", "deduction", "exemption", "refund", "owe", "IRS", "audit", "extension",
+      "estate", "will", "trust", "beneficiary", "inheritance", "probate", "power of attorney", "legal"
+    ],
+    "Learning": [
+      "study", "learn", "read", "course", "class", "tutorial", "practice", "exam", "test", "homework", 
+      "assignment", "research", "book", "lecture", "certificate", "school", "university", "college", "degree",
+      "masters", "PhD", "doctorate", "thesis", "dissertation", "paper", "essay", "report", "presentation",
+      "quiz", "midterm", "final", "GPA", "grade", "credit", "semester", "quarter", "syllabus", "curriculum",
+      "professor", "teacher", "instructor", "tutor", "mentor", "coach", "advisor", "counselor", "guidance",
+      "online course", "MOOC", "Coursera", "Udemy", "edX", "Khan Academy", "LinkedIn Learning", "Skillshare",
+      "bootcamp", "workshop", "seminar", "webinar", "conference", "training", "certification", "license",
+      "programming", "coding", "Python", "JavaScript", "Java", "SQL", "data science", "machine learning", "AI",
+      "language", "Spanish", "French", "Chinese", "Japanese", "Duolingo", "Rosetta", "flashcard", "Anki",
+      "music", "piano", "guitar", "violin", "drum", "sing", "voice", "lesson", "practice", "recital", "concert"
+    ]
+  },
+  "time_keywords": {
+    "morning": [
+      "breakfast", "morning", "early", "wake", "sunrise", "coffee", "gym", "workout", "run", "jog", "AM",
+      "first thing", "before work", "start of day", "dawn", "daybreak", "crack of dawn", "rooster", "alarm",
+      "commute", "traffic", "rush hour", "school run", "drop off", "carpool", "bus", "train", "metro",
+      "shower", "dress", "get ready", "prepare", "pack lunch", "briefcase", "laptop bag", "keys", "wallet"
+    ],
+    "afternoon": [
+      "lunch", "afternoon", "midday", "noon", "meeting", "1pm", "2pm", "3pm", "4pm", "5pm", "PM",
+      "after lunch", "post lunch", "mid afternoon", "tea time", "coffee break", "siesta", "power nap",
+      "pickup", "school pickup", "after school", "extracurricular", "sports", "practice", "tutoring"
+    ],
+    "evening": [
+      "dinner", "evening", "sunset", "family", "relax", "6pm", "7pm", "8pm", "dusk", "twilight",
+      "after work", "home time", "commute home", "wind down", "unwind", "decompress", "TV", "show",
+      "quality time", "date night", "family dinner", "cook dinner", "takeout", "delivery", "restaurant"
+    ],
+    "night": [
+      "night", "late", "sleep", "bed", "review", "plan", "9pm", "10pm", "11pm", "midnight", "late night",
+      "before bed", "bedtime", "nighttime", "overnight", "all nighter", "pull an all nighter",
+      "tomorrow prep", "next day", "pack", "lay out clothes", "set alarm", "charge phone", "lock up"
+    ]
+  },
+  "action_verbs": [
+    "do", "make", "get", "take", "give", "go", "come", "see", "know", "think", "want", "use", "find", "tell",
+    "ask", "work", "seem", "feel", "try", "leave", "call", "need", "keep", "let", "begin", "show", "hear",
+    "play", "run", "move", "live", "believe", "bring", "happen", "write", "provide", "sit", "stand", "lose",
+    "pay", "meet", "include", "continue", "set", "learn", "change", "lead", "understand", "watch", "follow",
+    "stop", "create", "speak", "read", "allow", "add", "spend", "grow", "open", "walk", "win", "offer", "remember",
+    "love", "consider", "appear", "buy", "wait", "serve", "die", "send", "expect", "build", "stay", "fall", "cut",
+    "reach", "kill", "remain", "suggest", "raise", "pass", "sell", "require", "report", "decide", "pull"
+  ],
+  "urgency_modifiers": [
+    "very", "extremely", "highly", "super", "really", "absolutely", "totally", "completely", "utterly",
+    "incredibly", "exceptionally", "particularly", "especially", "quite", "rather", "fairly", "somewhat",
+    "a bit", "a little", "slightly", "not very", "not that", "kind of", "sort of", "pretty", "fairly"
+  ],
+  "negation_words": [
+    "not", "no", "never", "none", "nothing", "nowhere", "neither", "nobody", "dont", "don't", "doesnt",
+    "doesn't", "didnt", "didn't", "wont", "won't", "wouldnt", "wouldn't", "couldnt", "couldn't", "shouldnt",
+    "shouldn't", "cant", "can't", "cannot", "without", "unless", "except", "excluding", "minus", "less"
+  ]
+}

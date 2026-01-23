@@ -85,14 +85,50 @@ public class SettingsDetailFragment extends Fragment {
         // Initialize preferences
         prefs = requireActivity().getSharedPreferences("settings", MODE_PRIVATE);
 
-        // Switch Logic: Determine which container to show
+        // Get all section views
         View appearanceSection = view.findViewById(R.id.layout_appearance);
         View notificationSection = view.findViewById(R.id.layout_notifications);
         View developerSection = view.findViewById(R.id.layout_developer);
+        View taskPreferencesSection = view.findViewById(R.id.layout_task_preferences);
+        View dataStorageSection = view.findViewById(R.id.layout_data_storage);
+        View aboutHelpSection = view.findViewById(R.id.layout_about_help);
 
-        if (appearanceSection != null) appearanceSection.setVisibility("Appearance".equals(settingType) ? View.VISIBLE : View.GONE);
-        if (notificationSection != null) notificationSection.setVisibility("Notifications".equals(settingType) ? View.VISIBLE : View.GONE);
-        if (developerSection != null) developerSection.setVisibility("Developer Options".equals(settingType) || "Developer Tools".equals(settingType) ? View.VISIBLE : View.GONE);
+        // Hide all sections first
+        if (appearanceSection != null) appearanceSection.setVisibility(View.GONE);
+        if (notificationSection != null) notificationSection.setVisibility(View.GONE);
+        if (developerSection != null) developerSection.setVisibility(View.GONE);
+        if (taskPreferencesSection != null) taskPreferencesSection.setVisibility(View.GONE);
+        if (dataStorageSection != null) dataStorageSection.setVisibility(View.GONE);
+        if (aboutHelpSection != null) aboutHelpSection.setVisibility(View.GONE);
+
+        // Show only the selected category (iPadOS-style master-detail)
+        SettingsCategory category = SettingsCategory.fromString(settingType);
+        android.util.Log.d("SettingsDetail", "Category selected: " + settingType + " -> " + category);
+        
+        switch (category) {
+            case NOTIFICATIONS:
+                if (notificationSection != null) notificationSection.setVisibility(View.VISIBLE);
+                break;
+            case APPEARANCE:
+                if (appearanceSection != null) appearanceSection.setVisibility(View.VISIBLE);
+                break;
+            case TASK_PREFERENCES:
+                if (taskPreferencesSection != null) taskPreferencesSection.setVisibility(View.VISIBLE);
+                break;
+            case DATA_STORAGE:
+                if (dataStorageSection != null) dataStorageSection.setVisibility(View.VISIBLE);
+                break;
+            case ABOUT_HELP:
+                if (aboutHelpSection != null) aboutHelpSection.setVisibility(View.VISIBLE);
+                break;
+            case DEVELOPER:
+                if (developerSection != null) developerSection.setVisibility(View.VISIBLE);
+                break;
+            default:
+                // Default to notifications
+                if (notificationSection != null) notificationSection.setVisibility(View.VISIBLE);
+                break;
+        }
 
         // BREAK THE LOOP: Begin silent initialization
         isSystemUpdating = true;
@@ -100,6 +136,9 @@ public class SettingsDetailFragment extends Fragment {
         initAppearanceSection(view);
         initDeveloperSection(view);
         initNotificationSection(view);
+        initTaskPreferencesSection(view);
+        initDataStorageSection(view);
+        initAboutHelpSection(view);
 
         // Setup complete: Re-enable interaction triggers
         isSystemUpdating = false;
@@ -110,9 +149,21 @@ public class SettingsDetailFragment extends Fragment {
         View darkBtn = v.findViewById(R.id.btnThemeDark);
         View autoBtn = v.findViewById(R.id.btnThemeAuto);
 
+        // Get current theme mode to highlight the selected button
+        int currentMode = ThemeHelper.getThemeMode(requireActivity());
+        
+        // Set selected state for current mode
+        if (lightBtn != null) lightBtn.setSelected(currentMode == ThemeHelper.MODE_LIGHT);
+        if (darkBtn != null) darkBtn.setSelected(currentMode == ThemeHelper.MODE_DARK);
+        if (autoBtn != null) autoBtn.setSelected(currentMode == ThemeHelper.MODE_AUTO);
+
         if (lightBtn != null) {
             lightBtn.setOnClickListener(view -> {
                 if (!isThemeChangePending) {
+                    // Update selected state
+                    lightBtn.setSelected(true);
+                    if (darkBtn != null) darkBtn.setSelected(false);
+                    if (autoBtn != null) autoBtn.setSelected(false);
                     triggerThemeApply(AppCompatDelegate.MODE_NIGHT_NO, ThemeHelper.MODE_LIGHT);
                 }
             });
@@ -120,6 +171,10 @@ public class SettingsDetailFragment extends Fragment {
         if (darkBtn != null) {
             darkBtn.setOnClickListener(view -> {
                 if (!isThemeChangePending) {
+                    // Update selected state
+                    if (lightBtn != null) lightBtn.setSelected(false);
+                    darkBtn.setSelected(true);
+                    if (autoBtn != null) autoBtn.setSelected(false);
                     triggerThemeApply(AppCompatDelegate.MODE_NIGHT_YES, ThemeHelper.MODE_DARK);
                 }
             });
@@ -127,6 +182,10 @@ public class SettingsDetailFragment extends Fragment {
         if (autoBtn != null) {
             autoBtn.setOnClickListener(view -> {
                 if (!isThemeChangePending) {
+                    // Update selected state
+                    if (lightBtn != null) lightBtn.setSelected(false);
+                    if (darkBtn != null) darkBtn.setSelected(false);
+                    autoBtn.setSelected(true);
                     triggerThemeApply(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM, ThemeHelper.MODE_AUTO);
                 }
             });
@@ -476,5 +535,318 @@ public class SettingsDetailFragment extends Fragment {
         }
         
         popupWindow.showAtLocation(anchorView, android.view.Gravity.CENTER, 0, 0);
+    }
+    
+    /**
+     * Initialize Task Preferences section with all AI feature controls
+     */
+    private void initTaskPreferencesSection(View v) {
+        // Master AI Toggle
+        com.google.android.material.switchmaterial.SwitchMaterial smartSwitch = 
+            v.findViewById(R.id.smartSuggestionsSwitch);
+        
+        // Individual AI Feature Toggles
+        com.google.android.material.switchmaterial.SwitchMaterial prioritySwitch = 
+            v.findViewById(R.id.aiPrioritySwitch);
+        com.google.android.material.switchmaterial.SwitchMaterial categorySwitch = 
+            v.findViewById(R.id.aiCategorySwitch);
+        com.google.android.material.switchmaterial.SwitchMaterial timeSwitch = 
+            v.findViewById(R.id.aiTimeSwitch);
+        com.google.android.material.switchmaterial.SwitchMaterial durationSwitch = 
+            v.findViewById(R.id.aiDurationSwitch);
+        com.google.android.material.switchmaterial.SwitchMaterial insightsSwitch = 
+            v.findViewById(R.id.aiInsightsSwitch);
+        
+        // Feature card views for enabling/disabling
+        View priorityCard = v.findViewById(R.id.aiPriorityCard);
+        View categoryCard = v.findViewById(R.id.aiCategoryCard);
+        View timeCard = v.findViewById(R.id.aiTimeCard);
+        View durationCard = v.findViewById(R.id.aiDurationCard);
+        View insightsCard = v.findViewById(R.id.aiInsightsCard);
+        
+        // Load saved preferences
+        boolean masterEnabled = prefs.getBoolean("smart_suggestions_enabled", true);
+        boolean priorityEnabled = prefs.getBoolean("ai_priority_enabled", true);
+        boolean categoryEnabled = prefs.getBoolean("ai_category_enabled", true);
+        boolean timeEnabled = prefs.getBoolean("ai_time_enabled", true);
+        boolean durationEnabled = prefs.getBoolean("ai_duration_enabled", true);
+        boolean insightsEnabled = prefs.getBoolean("ai_insights_enabled", true);
+        
+        // Set initial states
+        if (smartSwitch != null) smartSwitch.setChecked(masterEnabled);
+        if (prioritySwitch != null) prioritySwitch.setChecked(priorityEnabled);
+        if (categorySwitch != null) categorySwitch.setChecked(categoryEnabled);
+        if (timeSwitch != null) timeSwitch.setChecked(timeEnabled);
+        if (durationSwitch != null) durationSwitch.setChecked(durationEnabled);
+        if (insightsSwitch != null) insightsSwitch.setChecked(insightsEnabled);
+        
+        // Update sub-feature cards visibility based on master toggle
+        updateAIFeatureCardsState(masterEnabled, priorityCard, categoryCard, timeCard, durationCard, insightsCard);
+        
+        // Master AI Toggle listener
+        if (smartSwitch != null) {
+            smartSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (!isSystemUpdating) {
+                    prefs.edit().putBoolean("smart_suggestions_enabled", isChecked).apply();
+                    updateAIFeatureCardsState(isChecked, priorityCard, categoryCard, timeCard, durationCard, insightsCard);
+                    android.widget.Toast.makeText(getContext(), 
+                        isChecked ? "🧠 AI Assistant enabled" : "AI Assistant disabled", 
+                        android.widget.Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        
+        // Individual feature toggle listeners
+        if (prioritySwitch != null) {
+            prioritySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (!isSystemUpdating) {
+                    prefs.edit().putBoolean("ai_priority_enabled", isChecked).apply();
+                }
+            });
+        }
+        
+        if (categorySwitch != null) {
+            categorySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (!isSystemUpdating) {
+                    prefs.edit().putBoolean("ai_category_enabled", isChecked).apply();
+                }
+            });
+        }
+        
+        if (timeSwitch != null) {
+            timeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (!isSystemUpdating) {
+                    prefs.edit().putBoolean("ai_time_enabled", isChecked).apply();
+                }
+            });
+        }
+        
+        if (durationSwitch != null) {
+            durationSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (!isSystemUpdating) {
+                    prefs.edit().putBoolean("ai_duration_enabled", isChecked).apply();
+                }
+            });
+        }
+        
+        if (insightsSwitch != null) {
+            insightsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (!isSystemUpdating) {
+                    prefs.edit().putBoolean("ai_insights_enabled", isChecked).apply();
+                }
+            });
+        }
+        
+        // Duration Slider
+        com.google.android.material.slider.Slider durationSlider = v.findViewById(R.id.durationSlider);
+        android.widget.TextView durationText = v.findViewById(R.id.durationValueText);
+        if (durationSlider != null && durationText != null) {
+            int savedDuration = prefs.getInt("default_focus_duration", 60);
+            durationSlider.setValue(savedDuration);
+            durationText.setText(savedDuration + " minutes");
+            
+            durationSlider.addOnChangeListener((slider, value, fromUser) -> {
+                if (fromUser && !isSystemUpdating) {
+                    int duration = (int) value;
+                    durationText.setText(duration + " minutes");
+                    prefs.edit().putInt("default_focus_duration", duration).apply();
+                }
+            });
+        }
+        
+        // Priority Radio Group
+        android.widget.RadioGroup priorityGroup = v.findViewById(R.id.priorityRadioGroup);
+        if (priorityGroup != null) {
+            String savedPriority = prefs.getString("default_priority", "None");
+            int selectedId = R.id.priorityNone;
+            switch (savedPriority) {
+                case "Low": selectedId = R.id.priorityLow; break;
+                case "Medium": selectedId = R.id.priorityMedium; break;
+                case "High": selectedId = R.id.priorityHigh; break;
+            }
+            priorityGroup.check(selectedId);
+            
+            priorityGroup.setOnCheckedChangeListener((group, checkedId) -> {
+                if (!isSystemUpdating) {
+                    String priority = "None";
+                    if (checkedId == R.id.priorityLow) priority = "Low";
+                    else if (checkedId == R.id.priorityMedium) priority = "Medium";
+                    else if (checkedId == R.id.priorityHigh) priority = "High";
+                    prefs.edit().putString("default_priority", priority).apply();
+                }
+            });
+        }
+    }
+    
+    /**
+     * Update AI feature cards state based on master toggle
+     */
+    private void updateAIFeatureCardsState(boolean enabled, View... cards) {
+        float alpha = enabled ? 1.0f : 0.5f;
+        for (View card : cards) {
+            if (card != null) {
+                card.setAlpha(alpha);
+                card.setEnabled(enabled);
+                // Also disable the switches inside
+                com.google.android.material.switchmaterial.SwitchMaterial switchView = 
+                    card.findViewById(card.getId() == R.id.aiPriorityCard ? R.id.aiPrioritySwitch :
+                                      card.getId() == R.id.aiCategoryCard ? R.id.aiCategorySwitch :
+                                      card.getId() == R.id.aiTimeCard ? R.id.aiTimeSwitch :
+                                      card.getId() == R.id.aiDurationCard ? R.id.aiDurationSwitch :
+                                      R.id.aiInsightsSwitch);
+                if (switchView != null) {
+                    switchView.setEnabled(enabled);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Initialize Data & Storage section
+     */
+    private void initDataStorageSection(View v) {
+        // Storage Info
+        android.widget.TextView storageInfo = v.findViewById(R.id.storageInfoText);
+        if (storageInfo != null) {
+            TaskRepository repo = TaskRepository.getInstance();
+            repo.initialize(requireContext());
+            int taskCount = 0;
+            int focusCount = 0;
+            
+            if (repo.morningTasks != null) taskCount += repo.morningTasks.size();
+            if (repo.afternoonTasks != null) taskCount += repo.afternoonTasks.size();
+            if (repo.nightTasks != null) taskCount += repo.nightTasks.size();
+            
+            // Count focus sessions
+            for (Task t : repo.morningTasks != null ? repo.morningTasks : new java.util.ArrayList<Task>()) {
+                if (t.isFocusTask()) focusCount++;
+            }
+            for (Task t : repo.afternoonTasks != null ? repo.afternoonTasks : new java.util.ArrayList<Task>()) {
+                if (t.isFocusTask()) focusCount++;
+            }
+            for (Task t : repo.nightTasks != null ? repo.nightTasks : new java.util.ArrayList<Task>()) {
+                if (t.isFocusTask()) focusCount++;
+            }
+            
+            storageInfo.setText("Tasks: " + (taskCount - focusCount) + " | Focus Sessions: " + focusCount);
+        }
+        
+        // Export Data Button
+        com.google.android.material.button.MaterialButton exportBtn = v.findViewById(R.id.btnExportData);
+        if (exportBtn != null) {
+            exportBtn.setOnClickListener(view -> {
+                android.widget.Toast.makeText(getContext(), "Export feature coming soon!", 
+                    android.widget.Toast.LENGTH_SHORT).show();
+            });
+        }
+        
+        // Clear Completed Button
+        com.google.android.material.button.MaterialButton clearCompletedBtn = v.findViewById(R.id.btnClearCompleted);
+        if (clearCompletedBtn != null) {
+            clearCompletedBtn.setOnClickListener(view -> {
+                new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Clear Completed Tasks")
+                    .setMessage("This will remove all completed tasks. Continue?")
+                    .setPositiveButton("Clear", (dialog, which) -> {
+                        TaskRepository repo = TaskRepository.getInstance();
+                        repo.clearCompletedTasks(requireContext());
+                        android.widget.Toast.makeText(getContext(), "Completed tasks cleared", 
+                            android.widget.Toast.LENGTH_SHORT).show();
+                        initDataStorageSection(v); // Refresh count
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            });
+        }
+        
+        // Clear All Data Button
+        com.google.android.material.button.MaterialButton clearAllBtn = v.findViewById(R.id.btnClearAllDataStorage);
+        if (clearAllBtn != null) {
+            clearAllBtn.setOnClickListener(view -> {
+                new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Clear All Data")
+                    .setMessage("⚠️ This will permanently delete ALL tasks and focus sessions. This cannot be undone!")
+                    .setPositiveButton("Delete All", (dialog, which) -> {
+                        TaskRepository repo = TaskRepository.getInstance();
+                        repo.clearAllTasks(requireContext());
+                        android.widget.Toast.makeText(getContext(), "All data cleared", 
+                            android.widget.Toast.LENGTH_SHORT).show();
+                        initDataStorageSection(v); // Refresh count
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            });
+        }
+        
+        // Clear AI Data Button
+        com.google.android.material.button.MaterialButton clearAIBtn = v.findViewById(R.id.btnClearAIData);
+        if (clearAIBtn != null) {
+            clearAIBtn.setOnClickListener(view -> {
+                new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Clear AI Learning Data")
+                    .setMessage("This will reset all AI-learned patterns and preferences. The AI will start learning your habits from scratch.")
+                    .setPositiveButton("Clear AI Data", (dialog, which) -> {
+                        AIModelHelper.getInstance(requireContext()).clearAllData();
+                        android.widget.Toast.makeText(getContext(), "AI learning data cleared", 
+                            android.widget.Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            });
+        }
+    }
+    
+    /**
+     * Initialize About & Help section
+     */
+    private void initAboutHelpSection(View v) {
+        // Version Text
+        android.widget.TextView versionText = v.findViewById(R.id.versionText);
+        if (versionText != null) {
+            try {
+                String versionName = requireContext().getPackageManager()
+                    .getPackageInfo(requireContext().getPackageName(), 0).versionName;
+                versionText.setText("Version " + versionName);
+            } catch (Exception e) {
+                versionText.setText("Version 1.0.0");
+            }
+        }
+        
+        // FAQ Button
+        com.google.android.material.button.MaterialButton faqBtn = v.findViewById(R.id.btnFaq);
+        if (faqBtn != null) {
+            faqBtn.setOnClickListener(view -> {
+                showFaqDialog();
+            });
+        }
+        
+        // Feedback Button
+        com.google.android.material.button.MaterialButton feedbackBtn = v.findViewById(R.id.btnFeedback);
+        if (feedbackBtn != null) {
+            feedbackBtn.setOnClickListener(view -> {
+                android.widget.Toast.makeText(getContext(), "Feedback feature coming soon!", 
+                    android.widget.Toast.LENGTH_SHORT).show();
+            });
+        }
+    }
+    
+    /**
+     * Show FAQ dialog
+     */
+    private void showFaqDialog() {
+        String faq = "📌 How to create a task?\n" +
+            "Tap the + button and choose 'Add Task'.\n\n" +
+            "📌 How to create a Focus Session?\n" +
+            "Tap the + button and choose 'Add Focus Session'. Set start/end times.\n\n" +
+            "📌 What are Smart Suggestions?\n" +
+            "AI-powered feature that suggests optimal times and priorities based on your task names.\n\n" +
+            "📌 How does time-aware sorting work?\n" +
+            "Focus sessions are sorted by current time of day - morning tasks appear first in the morning, etc.";
+        
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("FAQ & Tips")
+            .setMessage(faq)
+            .setPositiveButton("Got it", null)
+            .show();
     }
 }

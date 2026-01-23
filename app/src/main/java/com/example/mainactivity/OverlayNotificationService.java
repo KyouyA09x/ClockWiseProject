@@ -185,6 +185,9 @@ public class OverlayNotificationService extends Service {
 
         // Set priority badge
         setPriorityBadge(priorityBadge, priority);
+        
+        // Load and display linked notes (AI-generated checklists)
+        loadLinkedNotesForOverlay(taskId);
 
         // Setup snooze buttons
         setupSnoozeButton(overlayView.findViewById(R.id.snooze5Button), taskId, 5);
@@ -301,6 +304,52 @@ public class OverlayNotificationService extends Service {
         });
 
         addOverlayToWindow(params);
+    }
+    
+    /**
+     * Load and display linked notes (AI-generated checklists) for a task.
+     * This shows the AI suggestions when the alarm goes off.
+     */
+    private void loadLinkedNotesForOverlay(int taskId) {
+        if (overlayView == null || taskId <= 0) {
+            android.util.Log.d("OverlayNotification", "Cannot load linked notes: overlayView=" + overlayView + ", taskId=" + taskId);
+            return;
+        }
+        
+        try {
+            NoteDao noteDao = TaskDatabase.getInstance(this).noteDao();
+            java.util.List<Note> linkedNotes = noteDao.getNotesForTask(taskId);
+            
+            android.util.Log.d("OverlayNotification", "Loading linked notes for taskId=" + taskId + ", found=" + (linkedNotes != null ? linkedNotes.size() : 0));
+            
+            if (linkedNotes != null && !linkedNotes.isEmpty()) {
+                View linkedNotesCard = overlayView.findViewById(R.id.linkedNotesCard);
+                TextView linkedNotesContent = overlayView.findViewById(R.id.linkedNotesContent);
+                
+                if (linkedNotesCard != null && linkedNotesContent != null) {
+                    // Build the checklist content
+                    StringBuilder content = new StringBuilder();
+                    for (Note note : linkedNotes) {
+                        if (note.description != null && !note.description.isEmpty()) {
+                            content.append(note.description);
+                            if (linkedNotes.indexOf(note) < linkedNotes.size() - 1) {
+                                content.append("\n");
+                            }
+                        }
+                    }
+                    
+                    if (content.length() > 0) {
+                        linkedNotesContent.setText(content.toString());
+                        linkedNotesCard.setVisibility(View.VISIBLE);
+                        android.util.Log.d("OverlayNotification", "Showing linked notes: " + content.toString().substring(0, Math.min(50, content.length())));
+                    }
+                } else {
+                    android.util.Log.w("OverlayNotification", "linkedNotesCard or linkedNotesContent not found in layout");
+                }
+            }
+        } catch (Exception e) {
+            android.util.Log.e("OverlayNotification", "Error loading linked notes: " + e.getMessage(), e);
+        }
     }
 
     private void setupSnoozeButton(MaterialButton button, int taskId, int minutes) {

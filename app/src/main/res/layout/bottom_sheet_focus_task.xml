@@ -82,7 +82,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="e.g., Write report, Study math"
-                android:layout_marginBottom="@dimen/spacing_lg"
+                android:layout_marginBottom="@dimen/spacing_sm"
                 app:boxBackgroundColor="?attr/colorSurfaceVariant"
                 app:hintTextColor="?attr/colorOnSurfaceVariant">
 
@@ -95,6 +95,15 @@
                     android:textColor="?attr/colorOnSurface" />
 
             </com.google.android.material.textfield.TextInputLayout>
+            
+            <!-- AI Suggestions Card -->
+            <include 
+                layout="@layout/layout_ai_suggestion"
+                android:id="@+id/aiSuggestionCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_md"
+                android:visibility="gone" />
 
             <!-- Date Section -->
             <TextView

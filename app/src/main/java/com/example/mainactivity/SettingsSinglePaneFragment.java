@@ -57,6 +57,7 @@ public class SettingsSinglePaneFragment extends Fragment {
         initAppearanceSection(view);
         initDeveloperSection(view);
         initNotificationSection(view);
+        initAIFeaturesSection(view);
 
         isSystemUpdating = false;
     }
@@ -266,6 +267,135 @@ public class SettingsSinglePaneFragment extends Fragment {
         
         // Setup floating button toggle
         setupFloatingButtonToggle(v);
+    }
+    
+    /**
+     * Initialize AI Features section with all toggles
+     */
+    private void initAIFeaturesSection(View v) {
+        // Master AI Toggle
+        SwitchMaterial smartSwitch = v.findViewById(R.id.smartSuggestionsSwitch);
+        
+        // Individual AI Feature Toggles
+        SwitchMaterial prioritySwitch = v.findViewById(R.id.aiPrioritySwitch);
+        SwitchMaterial categorySwitch = v.findViewById(R.id.aiCategorySwitch);
+        SwitchMaterial timeSwitch = v.findViewById(R.id.aiTimeSwitch);
+        SwitchMaterial durationSwitch = v.findViewById(R.id.aiDurationSwitch);
+        SwitchMaterial insightsSwitch = v.findViewById(R.id.aiInsightsSwitch);
+        
+        // Feature card views for enabling/disabling
+        View priorityCard = v.findViewById(R.id.aiPriorityCard);
+        View categoryCard = v.findViewById(R.id.aiCategoryCard);
+        View timeCard = v.findViewById(R.id.aiTimeCard);
+        View durationCard = v.findViewById(R.id.aiDurationCard);
+        View insightsCard = v.findViewById(R.id.aiInsightsCard);
+        
+        // Load saved preferences
+        boolean masterEnabled = prefs.getBoolean("smart_suggestions_enabled", true);
+        boolean priorityEnabled = prefs.getBoolean("ai_priority_enabled", true);
+        boolean categoryEnabled = prefs.getBoolean("ai_category_enabled", true);
+        boolean timeEnabled = prefs.getBoolean("ai_time_enabled", true);
+        boolean durationEnabled = prefs.getBoolean("ai_duration_enabled", true);
+        boolean insightsEnabled = prefs.getBoolean("ai_insights_enabled", true);
+        
+        // Set initial states
+        if (smartSwitch != null) smartSwitch.setChecked(masterEnabled);
+        if (prioritySwitch != null) prioritySwitch.setChecked(priorityEnabled);
+        if (categorySwitch != null) categorySwitch.setChecked(categoryEnabled);
+        if (timeSwitch != null) timeSwitch.setChecked(timeEnabled);
+        if (durationSwitch != null) durationSwitch.setChecked(durationEnabled);
+        if (insightsSwitch != null) insightsSwitch.setChecked(insightsEnabled);
+        
+        // Update sub-feature cards state based on master toggle
+        updateAICardsState(masterEnabled, priorityCard, categoryCard, timeCard, durationCard, insightsCard,
+                          prioritySwitch, categorySwitch, timeSwitch, durationSwitch, insightsSwitch);
+        
+        // Master AI Toggle listener
+        if (smartSwitch != null) {
+            smartSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (!isSystemUpdating) {
+                    prefs.edit().putBoolean("smart_suggestions_enabled", isChecked).apply();
+                    updateAICardsState(isChecked, priorityCard, categoryCard, timeCard, durationCard, insightsCard,
+                                      prioritySwitch, categorySwitch, timeSwitch, durationSwitch, insightsSwitch);
+                    Toast.makeText(getContext(), 
+                        isChecked ? "🧠 AI Assistant enabled" : "AI Assistant disabled", 
+                        Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        
+        // Individual feature toggle listeners
+        if (prioritySwitch != null) {
+            prioritySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (!isSystemUpdating) {
+                    prefs.edit().putBoolean("ai_priority_enabled", isChecked).apply();
+                }
+            });
+        }
+        
+        if (categorySwitch != null) {
+            categorySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (!isSystemUpdating) {
+                    prefs.edit().putBoolean("ai_category_enabled", isChecked).apply();
+                }
+            });
+        }
+        
+        if (timeSwitch != null) {
+            timeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (!isSystemUpdating) {
+                    prefs.edit().putBoolean("ai_time_enabled", isChecked).apply();
+                }
+            });
+        }
+        
+        if (durationSwitch != null) {
+            durationSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (!isSystemUpdating) {
+                    prefs.edit().putBoolean("ai_duration_enabled", isChecked).apply();
+                }
+            });
+        }
+        
+        if (insightsSwitch != null) {
+            insightsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (!isSystemUpdating) {
+                    prefs.edit().putBoolean("ai_insights_enabled", isChecked).apply();
+                }
+            });
+        }
+    }
+    
+    /**
+     * Update AI feature cards state based on master toggle
+     */
+    private void updateAICardsState(boolean enabled, View priorityCard, View categoryCard, 
+                                    View timeCard, View durationCard, View insightsCard,
+                                    SwitchMaterial prioritySwitch, SwitchMaterial categorySwitch,
+                                    SwitchMaterial timeSwitch, SwitchMaterial durationSwitch,
+                                    SwitchMaterial insightsSwitch) {
+        float alpha = enabled ? 1.0f : 0.5f;
+        
+        if (priorityCard != null) {
+            priorityCard.setAlpha(alpha);
+            if (prioritySwitch != null) prioritySwitch.setEnabled(enabled);
+        }
+        if (categoryCard != null) {
+            categoryCard.setAlpha(alpha);
+            if (categorySwitch != null) categorySwitch.setEnabled(enabled);
+        }
+        if (timeCard != null) {
+            timeCard.setAlpha(alpha);
+            if (timeSwitch != null) timeSwitch.setEnabled(enabled);
+        }
+        if (durationCard != null) {
+            durationCard.setAlpha(alpha);
+            if (durationSwitch != null) durationSwitch.setEnabled(enabled);
+        }
+        if (insightsCard != null) {
+            insightsCard.setAlpha(alpha);
+            if (insightsSwitch != null) insightsSwitch.setEnabled(enabled);
+        }
     }
     
     private void setupFloatingButtonToggle(View v) {

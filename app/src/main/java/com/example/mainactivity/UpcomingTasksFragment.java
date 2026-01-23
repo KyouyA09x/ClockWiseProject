@@ -313,8 +313,8 @@ public class UpcomingTasksFragment extends Fragment {
             // Add date header
             View dateHeader = createDateHeader(inflater, dateStr, tasks.size(), isFocusSession);
             container.addView(dateHeader);
-
-            // Add task items
+            
+            // Always use vertical layout (single column) for all tasks
             for (Task task : tasks) {
                 View taskView = createTaskItemView(inflater, task, isFocusSession, container);
                 container.addView(taskView);

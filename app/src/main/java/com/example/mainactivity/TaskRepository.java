@@ -156,4 +156,34 @@ public class TaskRepository {
         if (taskDao == null) return null; // Safety check
         return taskDao.getTaskById(id);
     }
+    
+    /**
+     * Clear all completed tasks from the database and memory
+     */
+    public void clearCompletedTasks(Context context) {
+        if (taskDao == null) return;
+        
+        // Remove completed tasks from memory
+        morningTasks.removeIf(t -> t.isComplete);
+        afternoonTasks.removeIf(t -> t.isComplete);
+        nightTasks.removeIf(t -> t.isComplete);
+        
+        // Delete completed tasks from database
+        taskDao.deleteCompletedTasks();
+    }
+    
+    /**
+     * Clear all tasks from the database and memory
+     */
+    public void clearAllTasks(Context context) {
+        if (taskDao == null) return;
+        
+        // Clear memory
+        morningTasks.clear();
+        afternoonTasks.clear();
+        nightTasks.clear();
+        
+        // Clear database
+        taskDao.deleteAllTasks();
+    }
 }

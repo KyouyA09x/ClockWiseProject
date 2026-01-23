@@ -42,6 +42,9 @@ public class Task implements Parcelable {
     // Alarm sound fields
     public String alarmSound; // Name of the alarm sound
     public String alarmSoundUri; // URI of the alarm sound
+    
+    // AI-powered category field
+    public String category; // AI-detected category: Work, Personal, Health, School, Finance, Learning, etc.
 
     // Required empty constructor for Room
     public Task() {
@@ -119,6 +122,7 @@ public class Task implements Parcelable {
         deletedAt = in.readLong();
         alarmSound = in.readString();
         alarmSoundUri = in.readString();
+        category = in.readString();
     }
 
     public static final Creator<Task> CREATOR = new Creator<Task>() {
@@ -163,6 +167,7 @@ public class Task implements Parcelable {
         dest.writeLong(deletedAt);
         dest.writeString(alarmSound);
         dest.writeString(alarmSoundUri);
+        dest.writeString(category);
     }
 
     // Helper method to get formatted start time

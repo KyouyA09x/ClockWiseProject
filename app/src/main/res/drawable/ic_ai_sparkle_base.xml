@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:name="sparkle"
+        android:pathData="M12,2 L13.5,8.5 L20,10 L13.5,11.5 L12,18 L10.5,11.5 L4,10 L10.5,8.5 Z"
+        android:fillColor="#9C27B0"
+        android:strokeColor="#7B1FA2"
+        android:strokeWidth="0.5"/>
+    <path
+        android:pathData="M19,3 L19.75,5.25 L22,6 L19.75,6.75 L19,9 L18.25,6.75 L16,6 L18.25,5.25 Z"
+        android:fillColor="#CE93D8"/>
+    <path
+        android:pathData="M5,15 L5.5,16.5 L7,17 L5.5,17.5 L5,19 L4.5,17.5 L3,17 L4.5,16.5 Z"
+        android:fillColor="#CE93D8"/>
+</vector>

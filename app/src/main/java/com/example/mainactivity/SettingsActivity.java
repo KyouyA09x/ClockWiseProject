@@ -249,8 +249,12 @@ public class SettingsActivity extends BaseThemedActivity {
      * Called by SettingsListFragment when a category is selected.
      */
     public void openDetailPane(Fragment fragment) {
+        android.util.Log.d("SettingsActivity", "openDetailPane called, useSinglePane=" + useSinglePane + 
+            ", fragment=" + (fragment != null ? fragment.getClass().getSimpleName() : "null"));
+        
         if (useSinglePane) {
             // In single pane mode, navigate to a new fragment
+            android.util.Log.d("SettingsActivity", "Using single pane mode - replacing single_settings_container");
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.single_settings_container, fragment)
@@ -258,6 +262,7 @@ public class SettingsActivity extends BaseThemedActivity {
                     .commit();
         } else {
             // In split pane mode, replace the detail container
+            android.util.Log.d("SettingsActivity", "Using split pane mode - replacing detail_container");
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.detail_container, fragment)
