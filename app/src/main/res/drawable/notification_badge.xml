@@ -2,8 +2,8 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Badge background -->
     <item
-        android:width="12dp"
-        android:height="12dp"
+        android:width="@dimen/icon_size_xs"
+        android:height="@dimen/icon_size_xs"
         android:gravity="top|end">
         <shape android:shape="oval">
             <solid android:color="@color/error" />

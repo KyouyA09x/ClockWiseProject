@@ -184,7 +184,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="Deep work block"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/chip_text_size"
                         android:textColor="@color/purple_primary" />
 
                 </LinearLayout>

@@ -69,16 +69,16 @@
                 android:maxLines="1"
                 android:ellipsize="end"/>
 
-            <!-- Category Chip -->
+            <!-- Category Chip - Positioned after time as requested -->
             <TextView
                 android:id="@+id/categoryChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="2dp"
+                android:layout_marginTop="@dimen/spacing_xs"
+                android:paddingHorizontal="@dimen/chip_padding_horizontal"
+                android:paddingVertical="@dimen/chip_padding_vertical"
                 android:background="@drawable/category_chip_background"
-                android:textSize="11sp"
+                android:textSize="@dimen/chip_text_size"
                 android:textColor="?attr/colorOnTertiaryContainer"
                 android:visibility="gone" />
 

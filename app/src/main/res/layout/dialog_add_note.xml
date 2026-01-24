@@ -160,20 +160,7 @@
         android:textColor="?attr/colorPrimary"
         android:layout_marginBottom="12dp" />
 
-    <!-- Enhanced buttons with better styling -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/textFormatButton"
-        style="@style/Widget.Material3.Button.OutlinedButton.Icon"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="✨ Text Formatting"
-        android:textAlignment="viewStart"
-        app:icon="@drawable/ic_edit"
-        app:iconGravity="start"
-        app:iconTint="?attr/colorPrimary"
-        app:strokeColor="?attr/colorOutline"
-        android:layout_marginBottom="8dp" />
-
+    <!-- Configure Note Type button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/taskTypeButton"
         style="@style/Widget.Material3.Button.OutlinedButton.Icon"
@@ -182,77 +169,6 @@
         android:text="📋 Note Type: Just a Note"
         android:textAlignment="viewStart"
         app:icon="@drawable/ic_edit"
-        app:iconGravity="start"
-        app:iconTint="?attr/colorPrimary"
-        app:strokeColor="?attr/colorOutline"
-        android:layout_marginBottom="8dp" />
-
-    <!-- Task Scheduling Section (shown when Task type is selected) -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/taskScheduleSection"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:cardBackgroundColor="?attr/colorSurfaceVariant"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="0dp"
-        android:layout_marginBottom="12dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⏰ Schedule Task"
-                android:textAppearance="?attr/textAppearanceTitleSmall"
-                android:textColor="?attr/colorPrimary"
-                android:layout_marginBottom="12dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/taskDateButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="📅 Today"
-                    android:textSize="12sp"
-                    app:strokeColor="?attr/colorOutline"
-                    android:layout_marginEnd="8dp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/taskTimeButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="🕐 9:00 AM"
-                    android:textSize="12sp"
-                    app:strokeColor="?attr/colorOutline" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/priorityButton"
-        style="@style/Widget.Material3.Button.OutlinedButton.Icon"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="🎯 Priority: None"
-        android:textAlignment="viewStart"
-        app:icon="@drawable/ic_priority_low"
         app:iconGravity="start"
         app:iconTint="?attr/colorPrimary"
         app:strokeColor="?attr/colorOutline"
@@ -274,6 +190,18 @@
             android:text="Cancel"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:minWidth="88dp"
+            android:layout_marginEnd="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/editNoteButton"
+            style="@style/Widget.Material3.Button.OutlinedButton.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit Note"
+            android:minWidth="100dp"
+            app:icon="@drawable/ic_edit"
+            app:iconGravity="textStart"
+            app:strokeColor="?attr/colorOutline"
             android:layout_marginEnd="8dp" />
 
         <com.google.android.material.button.MaterialButton

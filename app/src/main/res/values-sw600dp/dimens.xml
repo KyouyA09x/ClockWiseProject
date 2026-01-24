@@ -22,10 +22,31 @@
     <dimen name="button_corner_radius">32dp</dimen>
 
     <!-- Larger icon sizes -->
+    <dimen name="icon_size_xs">20dp</dimen>
     <dimen name="icon_size_sm">24dp</dimen>
     <dimen name="icon_size_md">28dp</dimen>
     <dimen name="icon_size_lg">40dp</dimen>
     <dimen name="icon_size_xl">56dp</dimen>
+
+    <!-- Badge dimensions - scaled for tablets -->
+    <dimen name="badge_text_size">11sp</dimen>
+    <dimen name="badge_padding_horizontal">8dp</dimen>
+    <dimen name="badge_padding_vertical">3dp</dimen>
+    <dimen name="badge_corner_radius">14dp</dimen>
+    <dimen name="badge_min_width">24dp</dimen>
+    <dimen name="badge_min_height">24dp</dimen>
+
+    <!-- Chip dimensions - scaled for tablets -->
+    <dimen name="chip_text_size">13sp</dimen>
+    <dimen name="chip_padding_horizontal">16dp</dimen>
+    <dimen name="chip_padding_vertical">8dp</dimen>
+    <dimen name="chip_corner_radius">20dp</dimen>
+    <dimen name="chip_min_height">40dp</dimen>
+    <dimen name="chip_icon_size">20dp</dimen>
+
+    <!-- Small text sizes for compact UI - slightly larger on tablets -->
+    <dimen name="text_micro">11sp</dimen>
+    <dimen name="text_tiny">12sp</dimen>
 
     <!-- Top app bar -->
     <dimen name="top_app_bar_height">72dp</dimen>

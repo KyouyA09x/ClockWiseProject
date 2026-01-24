@@ -65,12 +65,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="⏰ Task"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/chip_text_size"
                     android:textColor="@color/blue_primary"
                     android:background="@drawable/rounded_corner_background"
                     android:backgroundTint="@color/blue_light"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="4dp" />
+                    android:paddingHorizontal="@dimen/chip_padding_horizontal"
+                    android:paddingVertical="@dimen/chip_padding_vertical" />
 
             </LinearLayout>
 

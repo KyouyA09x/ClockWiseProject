@@ -58,12 +58,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Task"
-                android:textSize="11sp"
+                android:textSize="@dimen/text_tiny"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:background="@drawable/tag_background"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="2dp"
-                android:layout_marginTop="4dp" />
+                android:paddingHorizontal="@dimen/badge_padding_horizontal"
+                android:paddingVertical="@dimen/badge_padding_vertical"
+                android:layout_marginTop="@dimen/spacing_xs" />
 
         </LinearLayout>
 

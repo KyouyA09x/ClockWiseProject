@@ -53,14 +53,14 @@
                 android:id="@+id/noteTaskTag"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
+                android:layout_marginEnd="@dimen/spacing_sm"
                 android:text="Task"
-                android:textSize="10sp"
+                android:textSize="@dimen/badge_text_size"
                 android:textColor="?attr/colorPrimary"
                 android:background="@drawable/rounded_corner_background"
                 android:backgroundTint="?attr/colorPrimaryContainer"
-                android:paddingHorizontal="6dp"
-                android:paddingVertical="2dp"
+                android:paddingHorizontal="@dimen/badge_padding_horizontal"
+                android:paddingVertical="@dimen/badge_padding_vertical"
                 android:visibility="gone" />
 
             <ImageView

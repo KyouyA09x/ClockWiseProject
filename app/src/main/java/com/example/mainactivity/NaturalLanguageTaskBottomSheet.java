@@ -301,7 +301,8 @@ public class NaturalLanguageTaskBottomSheet extends BottomSheetDialogFragment {
         LinearLayout layout = new LinearLayout(context);
         layout.setOrientation(LinearLayout.HORIZONTAL);
         layout.setGravity(android.view.Gravity.CENTER_VERTICAL);
-        layout.setPadding(0, 8, 0, 8);
+        int paddingVertical = context.getResources().getDimensionPixelSize(R.dimen.spacing_sm);
+        layout.setPadding(0, paddingVertical, 0, paddingVertical);
 
         CheckBox checkBox = new CheckBox(context);
         checkBox.setChecked(true);
@@ -317,8 +318,10 @@ public class NaturalLanguageTaskBottomSheet extends BottomSheetDialogFragment {
 
         TextView textView = new TextView(context);
         textView.setText(subtask);
-        textView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14);
-        textView.setPadding(8, 0, 0, 0);
+        float textSize = context.getResources().getDimension(R.dimen.text_body_medium) / context.getResources().getDisplayMetrics().scaledDensity;
+        textView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, textSize);
+        int paddingStart = context.getResources().getDimensionPixelSize(R.dimen.spacing_sm);
+        textView.setPadding(paddingStart, 0, 0, 0);
 
         layout.addView(checkBox);
         layout.addView(textView);

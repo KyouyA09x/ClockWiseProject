@@ -84,40 +84,32 @@
                     android:maxLines="1"
                     android:ellipsize="end"/>
 
-                <!-- Badges Row: Focus Badge + Category - Larger for wide screens -->
-                <LinearLayout
+                <!-- Category Chip - Positioned after time as requested -->
+                <TextView
+                    android:id="@+id/categoryChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="8dp">
+                    android:layout_marginTop="@dimen/spacing_xs"
+                    android:paddingHorizontal="@dimen/badge_padding_horizontal"
+                    android:paddingVertical="@dimen/badge_padding_vertical"
+                    android:background="@drawable/category_chip_background"
+                    android:textSize="@dimen/badge_text_size"
+                    android:textColor="@color/on_tertiary_container"
+                    android:visibility="gone" />
 
-                    <!-- FOCUS Badge - Larger text for wide screens -->
-                    <TextView
-                        android:id="@+id/focusBadge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🎯 FOCUS"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="4dp"
-                        android:background="@drawable/focus_badge_background"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/white" />
-
-                    <!-- Category Chip - Larger for wide screens -->
-                    <TextView
-                        android:id="@+id/categoryChip"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="4dp"
-                        android:background="@drawable/category_chip_background"
-                        android:textSize="12sp"
-                        android:textColor="@color/on_tertiary_container"
-                        android:visibility="gone" />
-
-                </LinearLayout>
+                <!-- FOCUS Badge - Larger text for wide screens -->
+                <TextView
+                    android:id="@+id/focusBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_sm"
+                    android:text="🎯 FOCUS"
+                    android:paddingHorizontal="@dimen/badge_padding_horizontal"
+                    android:paddingVertical="@dimen/badge_padding_vertical"
+                    android:background="@drawable/focus_badge_background"
+                    android:textSize="@dimen/badge_text_size"
+                    android:textStyle="bold"
+                    android:textColor="@color/white" />
 
             </LinearLayout>
 

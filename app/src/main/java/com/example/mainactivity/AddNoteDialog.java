@@ -20,18 +20,12 @@ public class AddNoteDialog extends Dialog {
 
     private TextInputEditText noteTitleInput;
     private TextInputEditText noteDescriptionInput;
-    private MaterialButton textFormatButton;
+    private MaterialButton editNoteButton;
     private MaterialButton taskTypeButton;
-    private MaterialButton priorityButton;
     private MaterialButton saveButton;
     private MaterialButton cancelButton;
     private MaterialButton addChecklistItemButton;
     private TextView dateDisplay;
-    
-    // Task scheduling views
-    private android.view.View taskScheduleSection;
-    private MaterialButton taskDateButton;
-    private MaterialButton taskTimeButton;
 
     private Note currentNote;
     private NoteDao noteDao;
@@ -48,7 +42,7 @@ public class AddNoteDialog extends Dialog {
     private String priority = "None";
     private String taskType = "None"; // "None", "Reminder", "Focus Task"
     
-    // Task scheduling properties
+    // Task scheduling properties (used when converting note to task)
     private String taskDate;
     private int taskHour = 9;
     private int taskMinute = 0;
@@ -100,10 +94,8 @@ public class AddNoteDialog extends Dialog {
             // Edit mode
             noteTitleInput.setText(currentNote.title);
             noteDescriptionInput.setText(currentNote.description);
-            updatePriorityButton(); // Show current priority
             updateTaskTypeButton(); // Show task type
         } else {
-            updatePriorityButton(); // Show default priority
             updateTaskTypeButton(); // Show default task type
         }
 
@@ -115,24 +107,10 @@ public class AddNoteDialog extends Dialog {
         noteTitleInput = findViewById(R.id.noteTitleInput);
         noteDescriptionInput = findViewById(R.id.noteDescriptionInput);
         dateDisplay = findViewById(R.id.noteDateDisplay);
-        textFormatButton = findViewById(R.id.textFormatButton);
+        editNoteButton = findViewById(R.id.editNoteButton);
         taskTypeButton = findViewById(R.id.taskTypeButton);
-        priorityButton = findViewById(R.id.priorityButton);
         saveButton = findViewById(R.id.saveButton);
         cancelButton = findViewById(R.id.cancelButton);
-        
-        // Task scheduling views
-        taskScheduleSection = findViewById(R.id.taskScheduleSection);
-        taskDateButton = findViewById(R.id.taskDateButton);
-        taskTimeButton = findViewById(R.id.taskTimeButton);
-        
-        // Initialize task date to today
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-        taskDate = sdf.format(new java.util.Date());
-        
-        // Set current date
-        java.text.SimpleDateFormat displaySdf = new java.text.SimpleDateFormat("EEEE, MMMM d, yyyy", java.util.Locale.getDefault());
-        dateDisplay.setText(displaySdf.format(new java.util.Date()));
         
         // Initialize checklist button
         addChecklistItemButton = findViewById(R.id.addChecklistItemButton);
@@ -140,27 +118,35 @@ public class AddNoteDialog extends Dialog {
     }
 
     private void setupListeners() {
-        textFormatButton.setOnClickListener(v -> showTextFormatDialog());
+        editNoteButton.setOnClickListener(v -> showEditNoteOptionsMenu());
 
         taskTypeButton.setOnClickListener(v -> showTaskTypeDialog());
 
-        priorityButton.setOnClickListener(v -> showPriorityDialog());
+        saveButton.setOnClickListener(v -> saveNote());
+        cancelButton.setOnClickListener(v -> dismiss());
         
         // Checklist item button
         if (addChecklistItemButton != null) {
             addChecklistItemButton.setOnClickListener(v -> insertChecklistItem());
         }
+    }
+    
+    private void showEditNoteOptionsMenu() {
+        String[] options = {"✨ Text Formatting", "🎯 Set Priority"};
         
-        // Task scheduling listeners
-        if (taskDateButton != null) {
-            taskDateButton.setOnClickListener(v -> showDatePicker());
-        }
-        if (taskTimeButton != null) {
-            taskTimeButton.setOnClickListener(v -> showTimePicker());
-        }
-
-        saveButton.setOnClickListener(v -> saveNote());
-        cancelButton.setOnClickListener(v -> dismiss());
+        new MaterialAlertDialogBuilder(getContext())
+                .setTitle("Edit Note Options")
+                .setItems(options, (dialog, which) -> {
+                    switch (which) {
+                        case 0: // Text Formatting
+                            showTextFormatDialog();
+                            break;
+                        case 1: // Priority
+                            showPriorityDialog();
+                            break;
+                    }
+                })
+                .show();
     }
     
     private void showDatePicker() {
@@ -217,7 +203,7 @@ public class AddNoteDialog extends Dialog {
     }
     
     private void updateTaskDateButton() {
-        if (taskDateButton == null) return;
+        if (taskTypeButton == null) return;
         try {
             java.text.SimpleDateFormat inputFormat = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
             java.text.SimpleDateFormat outputFormat = new java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault());
@@ -228,18 +214,18 @@ public class AddNoteDialog extends Dialog {
             String today = todayFormat.format(new java.util.Date());
             
             if (taskDate.equals(today)) {
-                taskDateButton.setText("📅 Today");
+                taskTypeButton.setText("📅 Today");
             } else {
-                taskDateButton.setText("📅 " + outputFormat.format(date));
+                taskTypeButton.setText("📅 " + outputFormat.format(date));
             }
         } catch (Exception e) {
-            taskDateButton.setText("📅 " + taskDate);
+            taskTypeButton.setText("📅 " + taskDate);
         }
     }
     
     private void updateTaskTimeButton() {
-        if (taskTimeButton == null) return;
-        taskTimeButton.setText(String.format(java.util.Locale.getDefault(), "🕐 %d:%02d %s", taskHour, taskMinute, taskAmPm));
+        if (taskTypeButton == null) return;
+        taskTypeButton.setText(String.format(java.util.Locale.getDefault(), "🕐 %d:%02d %s", taskHour, taskMinute, taskAmPm));
     }
 
     private void showPriorityDialog() {
@@ -286,19 +272,19 @@ public class AddNoteDialog extends Dialog {
     }
 
     private void updatePriorityButton() {
-        priorityButton.setText("Priority: " + priority);
+        taskTypeButton.setText("Priority: " + priority);
         switch (priority) {
             case "High":
-                priorityButton.setIconResource(R.drawable.ic_priority_high);
+                taskTypeButton.setIconResource(R.drawable.ic_priority_high);
                 break;
             case "Medium":
-                priorityButton.setIconResource(R.drawable.ic_priority_medium);
+                taskTypeButton.setIconResource(R.drawable.ic_priority_medium);
                 break;
             case "Low":
-                priorityButton.setIconResource(R.drawable.ic_priority_low);
+                taskTypeButton.setIconResource(R.drawable.ic_priority_low);
                 break;
             default:
-                priorityButton.setIconResource(R.drawable.ic_priority_low);
+                taskTypeButton.setIconResource(R.drawable.ic_priority_low);
                 break;
         }
     }
@@ -344,25 +330,12 @@ public class AddNoteDialog extends Dialog {
         if (taskType.equals("None")) {
             taskTypeButton.setText("Note Type: Just a Note");
             taskTypeButton.setIconResource(R.drawable.ic_edit);
-            if (taskScheduleSection != null) {
-                taskScheduleSection.setVisibility(android.view.View.GONE);
-            }
         } else if (taskType.equals("Reminder")) {
             taskTypeButton.setText("Note Type: ⏰ Task");
             taskTypeButton.setIconResource(R.drawable.ic_reminder);
-            if (taskScheduleSection != null) {
-                taskScheduleSection.setVisibility(android.view.View.VISIBLE);
-                updateTaskDateButton();
-                updateTaskTimeButton();
-            }
         } else {
             taskTypeButton.setText("Note Type: 🎯 Focus Task");
             taskTypeButton.setIconResource(R.drawable.ic_focus);
-            if (taskScheduleSection != null) {
-                taskScheduleSection.setVisibility(android.view.View.VISIBLE);
-                updateTaskDateButton();
-                updateTaskTimeButton();
-            }
         }
     }
 

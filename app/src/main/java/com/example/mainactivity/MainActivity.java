@@ -363,6 +363,11 @@ public class MainActivity extends BaseThemedActivity {
         super.onResume();
         taskRepository.refreshTasks();
         refreshAllFragments();
+        
+        // Ensure nav_home is checked when returning to MainActivity
+        if (navigationView != null) {
+            navigationView.setCheckedItem(R.id.nav_home);
+        }
     }
     
     /**

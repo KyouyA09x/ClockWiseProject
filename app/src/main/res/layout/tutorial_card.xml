@@ -71,7 +71,7 @@
                     android:layout_gravity="center_horizontal"
                     android:text="@string/step_1_8"
                     android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textSize="11sp"
+                    android:textSize="@dimen/text_tiny"
                     android:textStyle="bold"
                     android:letterSpacing="0.1"
                     android:fontFamily="sans-serif-medium" />
