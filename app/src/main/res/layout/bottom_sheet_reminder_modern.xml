@@ -669,26 +669,14 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/deleteButton"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
             android:text="🗑️ Delete"
             android:textColor="@color/error"
             android:visibility="gone"
             app:cornerRadius="16dp"
             app:strokeColor="@color/error" />
 
-        <!-- Save Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/saveButton"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_weight="1"
-            android:text="✓ Create Task"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
-            app:cornerRadius="16dp"
-            app:backgroundTint="@color/green_primary" />
 
     </LinearLayout>
 

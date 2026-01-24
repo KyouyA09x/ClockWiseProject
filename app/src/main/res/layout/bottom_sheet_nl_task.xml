@@ -426,6 +426,7 @@
             android:layout_height="56dp"
             android:layout_weight="1"
             android:text="✨ Create Task"
+            android:textColor="@color/white"
             android:enabled="false"
             app:cornerRadius="16dp"
             app:backgroundTint="@color/purple_primary" />

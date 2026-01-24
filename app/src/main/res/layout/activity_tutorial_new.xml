@@ -75,13 +75,13 @@
                 android:layout_height="match_parent"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-                <!-- Phone fallback: Inline content (hidden on tablets when fragment loads) -->
+                <!-- Phone fallback: Inline content (visible to show sample tasks) -->
                 <androidx.core.widget.NestedScrollView
                     android:id="@+id/tutorialScrollView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:fillViewport="true"
-                    android:visibility="gone">
+                    android:visibility="visible">
 
                     <LinearLayout
                         android:id="@+id/currentTasksContainer"
@@ -145,14 +145,16 @@
 
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Smart View Toggle Header - NEW -->
+                    <!-- Smart View Toggle Header - Hidden in tutorial -->
                     <LinearLayout
+                        android:id="@+id/smartViewToggleHeader"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
                         android:layout_marginTop="@dimen/spacing_md"
-                        android:layout_marginBottom="@dimen/spacing_sm">
+                        android:layout_marginBottom="@dimen/spacing_sm"
+                        android:visibility="gone">
 
                         <TextView
                             android:layout_width="0dp"
@@ -182,19 +184,20 @@
                                 android:id="@+id/smartViewToggle"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:checked="true" />
+                                android:checked="false" />
 
                         </LinearLayout>
 
                     </LinearLayout>
 
-                    <!-- Right Now Section - NEW Smart View -->
+                    <!-- Right Now Section - Hidden in tutorial to show classic view -->
                     <LinearLayout
                         android:id="@+id/rightNowSection"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginBottom="@dimen/spacing_md">
+                        android:layout_marginBottom="@dimen/spacing_md"
+                        android:visibility="gone">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -237,13 +240,13 @@
 
                     </LinearLayout>
 
-                    <!-- Tasks Container Card - Classic View (hidden when Smart View is on) -->
+                    <!-- Tasks Container Card - Contains all time sections -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/tasksContainerCard"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_md"
-                        android:visibility="gone"
+                        android:visibility="visible"
                         app:cardBackgroundColor="?attr/colorSurfaceVariant"
                         app:cardCornerRadius="@dimen/card_corner_radius"
                         app:cardElevation="0dp">
@@ -394,49 +397,21 @@
 
             </FrameLayout>
 
-            <!-- Quick Task FAB -->
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fabQuickTask"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_marginBottom="224dp"
-                android:layout_marginEnd="16dp"
-                android:contentDescription="@string/quick_task"
-                android:src="@drawable/ic_flash"
-                app:backgroundTint="?attr/colorPrimary"
-                app:fabSize="normal"
-                app:tint="?attr/colorOnPrimary"
-                app:elevation="6dp"
-                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
-
-            <!-- Main FAB -->
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fabCenterAction"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_marginBottom="160dp"
-                android:layout_marginEnd="16dp"
-                android:contentDescription="@string/add_task_desc"
-                android:src="@drawable/ic_add_fab"
-                app:backgroundTint="?attr/colorPrimary"
-                app:fabSize="normal"
-                app:tint="?attr/colorOnPrimary"
-                app:elevation="8dp"
-                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
-
-            <!-- Bottom Navigation -->
+            <!-- Bottom Navigation - CURRENT APP UI -->
             <com.google.android.material.bottomnavigation.BottomNavigationView
                 android:id="@+id/bottomNavigation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
-                android:background="?attr/colorSurface"
+                android:background="@drawable/bottom_nav_background"
+                android:paddingTop="8dp"
                 android:paddingBottom="0dp"
                 android:fitsSystemWindows="true"
                 app:elevation="16dp"
                 app:labelVisibilityMode="labeled"
+                app:itemIconSize="24dp"
+                app:itemIconTint="?attr/colorOnSurface"
+                app:itemTextColor="?attr/colorOnSurface"
                 app:menu="@menu/bottom_nav_menu" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>

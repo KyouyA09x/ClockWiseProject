@@ -57,7 +57,6 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
     private TextView repeatDaysText;
     private MaterialSwitch vibrationSwitch;
     private MaterialSwitch alarmSwitch;
-    private MaterialButton saveButton;
     private MaterialButton headerSaveButton;
     private MaterialButton closeButton;
     private MaterialButton deleteButton;
@@ -220,7 +219,6 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
         repeatDaysText = view.findViewById(R.id.repeatDaysText);
         vibrationSwitch = view.findViewById(R.id.vibrationSwitch);
         alarmSwitch = view.findViewById(R.id.alarmSwitch);
-        saveButton = view.findViewById(R.id.saveButton);
         deleteButton = view.findViewById(R.id.deleteButton);
         dateText = view.findViewById(R.id.dateText);
         alarmSoundText = view.findViewById(R.id.alarmSoundText);
@@ -325,11 +323,6 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
         // Set sensible defaults for quick mode
         if (alarmSwitch != null) {
             alarmSwitch.setChecked(true); // Enable alarm by default
-        }
-        
-        // Update save button text
-        if (saveButton != null) {
-            saveButton.setText("⚡ Create Quick Task");
         }
     }
     
@@ -564,9 +557,7 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
     private void setupClickListeners() {
         closeButton.setOnClickListener(v -> dismiss());
 
-        saveButton.setOnClickListener(v -> saveTask());
-        
-        // Header save button - same action as bottom save button
+        // Header save button - checkmark icon in top right
         if (headerSaveButton != null) {
             headerSaveButton.setOnClickListener(v -> saveTask());
         }
@@ -620,13 +611,6 @@ public class AddReminderBottomSheet extends BottomSheetDialogFragment {
         if (subtitleText != null) {
             subtitleText.setText("Modify your task details");
         }
-        
-        // Show save button with update text
-        if (saveButton != null) {
-            saveButton.setText("✓ Save Changes");
-            saveButton.setVisibility(View.VISIBLE);
-        }
-        
         // Show delete button in edit mode
         if (deleteButton != null) {
             deleteButton.setVisibility(View.VISIBLE);

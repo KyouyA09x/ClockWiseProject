@@ -47,14 +47,20 @@ public class AlarmSoundHelper {
                 ringtone = RingtoneManager.getRingtone(context, alarmUri);
                 
                 if (ringtone != null) {
-                    // Set audio attributes for alarm
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        ringtone.setLooping(true);
+                    // Set audio attributes for alarm - THIS ENSURES ALARM VOLUME STREAM IS USED
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         AudioAttributes audioAttributes = new AudioAttributes.Builder()
                                 .setUsage(AudioAttributes.USAGE_ALARM)
                                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                                 .build();
                         ringtone.setAudioAttributes(audioAttributes);
+                        Log.d(TAG, "✅ Ringtone audio attributes set to USAGE_ALARM (uses alarm volume)");
+                    }
+
+                    // Enable looping on supported devices
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        ringtone.setLooping(true);
+                        Log.d(TAG, "✅ Ringtone looping enabled");
                     }
                     
                     ringtone.play();
@@ -81,6 +87,7 @@ public class AlarmSoundHelper {
     
     /**
      * Play alarm using MediaPlayer (fallback method)
+     * Uses ALARM audio stream to ensure alarm volume is used, not media volume
      */
     private static void playWithMediaPlayer(Context context, Uri alarmUri) {
         try {
@@ -88,24 +95,32 @@ public class AlarmSoundHelper {
             
             mediaPlayer = new MediaPlayer();
             
-            // IMPORTANT: Set audio stream type for alarm (ensures proper volume channel)
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
-            
-            // Set audio attributes for alarm (high priority)
-            AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
-                    .build();
-            mediaPlayer.setAudioAttributes(audioAttributes);
-            
+            // CRITICAL: Set audio stream type to ALARM
+            // This ensures the alarm uses the device's "Alarm Volume" not "Media Volume"
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+                Log.d(TAG, "✅ MediaPlayer set to STREAM_ALARM (uses alarm volume)");
+            }
+
+            // Set audio attributes for alarm (API 21+)
+            // USAGE_ALARM ensures alarm volume stream is used
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_ALARM)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
+                        .build();
+                mediaPlayer.setAudioAttributes(audioAttributes);
+                Log.d(TAG, "✅ MediaPlayer audio attributes set to USAGE_ALARM (uses alarm volume)");
+            }
+
             // Set data source
             mediaPlayer.setDataSource(context, alarmUri);
             
             // Set looping
             mediaPlayer.setLooping(true);
             
-            // Set volume to maximum
+            // Set volume to maximum (within the alarm volume stream)
             mediaPlayer.setVolume(1.0f, 1.0f);
             
             Log.d(TAG, "📊 MediaPlayer configuration complete, preparing...");
@@ -118,7 +133,7 @@ public class AlarmSoundHelper {
                     
                     // Verify it's actually playing
                     if (mp.isPlaying()) {
-                        Log.d(TAG, "✅✅✅ ALARM SOUND IS NOW PLAYING via MediaPlayer (looping)");
+                        Log.d(TAG, "✅✅✅ ALARM SOUND IS NOW PLAYING via MediaPlayer (looping, using ALARM volume)");
                     } else {
                         Log.e(TAG, "❌ MediaPlayer failed to start - trying to start again");
                         mp.start(); // Try one more time

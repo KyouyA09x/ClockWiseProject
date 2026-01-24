@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
 import androidx.fragment.app.Fragment;
 import androidx.slidingpanelayout.widget.SlidingPaneLayout;
@@ -68,7 +69,7 @@ public class SettingsActivity extends BaseThemedActivity {
         super.onStart();
         // Start listening for window layout changes (fold/unfold events)
         if (windowInfoTracker != null) {
-            Executor mainExecutor = androidx.core.content.ContextCompat.getMainExecutor(this);
+            Executor mainExecutor = ContextCompat.getMainExecutor(this);
             windowInfoTracker.addWindowLayoutInfoListener(this, mainExecutor, layoutStateChangeCallback);
         }
     }

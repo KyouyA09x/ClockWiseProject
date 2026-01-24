@@ -4,13 +4,13 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
@@ -27,7 +27,6 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
@@ -59,21 +58,24 @@ public class TutorialActivityNew extends BaseThemedActivity {
     // References to actual app UI elements
     private DrawerLayout drawerLayout;
     private MaterialToolbar toolbar;
-    private FloatingActionButton fabCenter;
-    private FloatingActionButton fabQuick;
     private BottomNavigationView bottomNav;
     private NavigationView navigationView;
     private MaterialCardView progressTracker;
     private LinearLayout morningTasksContainer;
     private LinearLayout afternoonTasksContainer;
     private LinearLayout nightTasksContainer;
+    private TextView morningTasksHeader;
+    private TextView afternoonTasksHeader;
+    private TextView nightTasksHeader;
     private View sampleTaskView;
     private NestedScrollView scrollView;
     private TabLayout tabLayout;
     private LinearLayout upcomingTasksSection;
     private LinearLayout upcomingTasksContainer;
     private MaterialCardView tasksContainerCard;
-    
+    private FrameLayout fragmentContainer;
+    private View currentFragmentView;
+
     private final Handler handler = new Handler(Looper.getMainLooper());
     private AnimatorSet currentAnimation;
     private android.widget.PopupWindow quickInfoPopup;
@@ -85,74 +87,56 @@ public class TutorialActivityNew extends BaseThemedActivity {
     private final TutorialStep[] steps = {
             new TutorialStep(
                     "Welcome to ClockWise! 🎯",
-                    "Your personal productivity companion. Let's take a quick tour showing you all the features!",
+                    "Your personal productivity companion. Let's take a quick tour of all the main features!",
                     StepType.INTRO,
                     CardPosition.BOTTOM_CENTER
             ),
             new TutorialStep(
-                    "Navigation Menu 🍔",
-                    "Tap the menu icon to access Home, History, Calendar, Settings, and this Tutorial.",
+                    "Hamburger Menu 🍔",
+                    "Tap here to access History, Calendar, Trash Bin, Settings, and this Tutorial.",
                     StepType.HAMBURGER_MENU,
                     CardPosition.MIDDLE_BOTTOM
             ),
             new TutorialStep(
-                    "Quick Add Task ➕",
-                    "The main button lets you quickly create tasks or start focus sessions with one tap!",
-                    StepType.FAB_CENTER,
+                    "Calendar Button 📅",
+                    "Quick access to your calendar view. See all your tasks organized by date.",
+                    StepType.CALENDAR_BUTTON,
                     CardPosition.TOP_CENTER
             ),
             new TutorialStep(
-                    "Quick Actions ⚡",
-                    "Access quick productivity features and shortcuts here.",
-                    StepType.FAB_QUICK,
+                    "Actions Button ➕",
+                    "The center button! Tap here to create Quick Tasks, Tasks, Focus Sessions, Convert Notes, and more!",
+                    StepType.BOTTOM_NAV_ADD,
                     CardPosition.TOP_CENTER
             ),
             new TutorialStep(
-                    "Daily Progress 📊",
-                    "Track your productivity! See completed tasks and daily completion percentage here.",
-                    StepType.PROGRESS_TRACKER,
-                    CardPosition.BOTTOM_CENTER
+                    "Tasks Tab 📋",
+                    "View all your current tasks organized by time of day. This is your main productivity hub.",
+                    StepType.BOTTOM_NAV_TASKS,
+                    CardPosition.TOP_CENTER
             ),
             new TutorialStep(
-                    "Task Organization 📋",
+                    "Notepad Tab 📝",
+                    "Quick notes and reminders. Switch to Notepad mode for capturing ideas on the go.",
+                    StepType.BOTTOM_NAV_NOTEPAD,
+                    CardPosition.TOP_CENTER
+            ),
+            new TutorialStep(
+                    "Task Organization 🕐",
                     "Tasks are organized by time: Morning (6 AM-12 PM), Afternoon (12 PM-6 PM), and Night (6 PM-6 AM).",
                     StepType.TASK_SECTIONS,
                     CardPosition.BOTTOM_CENTER
             ),
             new TutorialStep(
                     "Task Cards 📝",
-                    "Each task shows its icon, name, time, and a completion switch. Tap the switch to mark it done!",
+                    "Each task shows its name, time, and a completion switch. Tap the switch to mark tasks as done!",
                     StepType.TASK_CARD,
                     CardPosition.BOTTOM_CENTER
             ),
             new TutorialStep(
-                    "Long Press for Options ✨",
-                    "Try it now! LONG PRESS the highlighted task card to enter edit mode.",
+                    "Long Press for Details ✨",
+                    "Long press any task to see detailed information including date, priority, and alarm settings.",
                     StepType.LONG_PRESS_DEMO,
-                    CardPosition.BOTTOM_CENTER
-            ),
-            new TutorialStep(
-                    "Edit & Delete ✏️",
-                    "In edit mode, you can modify task time or delete it. The red delete button removes the task!",
-                    StepType.DELETE_DEMO,
-                    CardPosition.BOTTOM_CENTER
-            ),
-            new TutorialStep(
-                    "Bottom Navigation 🧭",
-                    "Quickly switch between Home, Upcoming Tasks, and Notepad using the bottom bar.",
-                    StepType.BOTTOM_NAV,
-                    CardPosition.TOP_CENTER
-            ),
-            new TutorialStep(
-                    "Upcoming Tab 📅",
-                    "Tap the 'Upcoming' tab to see your future scheduled tasks!",
-                    StepType.UPCOMING_TAB,
-                    CardPosition.BOTTOM_CENTER
-            ),
-            new TutorialStep(
-                    "Upcoming Tasks 📋",
-                    "View all your scheduled tasks for future dates. Stay ahead and plan your week!",
-                    StepType.UPCOMING_TASKS,
                     CardPosition.BOTTOM_CENTER
             ),
             new TutorialStep(
@@ -233,11 +217,10 @@ public class TutorialActivityNew extends BaseThemedActivity {
         // Get references to actual app UI
         drawerLayout = findViewById(R.id.drawerLayout);
         toolbar = findViewById(R.id.topBar);
-        fabCenter = findViewById(R.id.fabCenterAction);
-        fabQuick = findViewById(R.id.fabQuickTask);
         bottomNav = findViewById(R.id.bottomNavigation);
         navigationView = findViewById(R.id.navigationView);
         scrollView = findViewById(R.id.tutorialScrollView);
+        fragmentContainer = findViewById(R.id.fragmentContainer);
 
         // Configure progress indicator
         progressIndicator.setMax(steps.length);
@@ -252,27 +235,30 @@ public class TutorialActivityNew extends BaseThemedActivity {
                 // Try to find fragment views (they may be in different panes)
                 // For tutorial, we just need the UI to look right, not be functional
             }, 100);
-        } else {
-            // PHONE: Setup inline content
-            tabLayout = findViewById(R.id.tasksTabLayout);
-            progressTracker = findViewById(R.id.progressTracker);
-            morningTasksContainer = findViewById(R.id.morningTasksContainer);
-            afternoonTasksContainer = findViewById(R.id.afternoonTasksContainer);
-            nightTasksContainer = findViewById(R.id.nightTasksContainer);
-            upcomingTasksSection = findViewById(R.id.upcomingTasksSection);
-            upcomingTasksContainer = findViewById(R.id.upcomingTasksContainer);
-            tasksContainerCard = findViewById(R.id.tasksContainerCard);
-
-            // Setup tabs
-            if (tabLayout != null) {
-                tabLayout.addTab(tabLayout.newTab().setText("Current Tasks"));
-                tabLayout.addTab(tabLayout.newTab().setText("Upcoming"));
-            }
-
-            // Populate with sample tasks
-            populateSampleTasks();
-            populateUpcomingTasks();
         }
+
+        // Always setup inline content for tutorial demonstration
+        tabLayout = findViewById(R.id.tasksTabLayout);
+        progressTracker = findViewById(R.id.progressTracker);
+        morningTasksContainer = findViewById(R.id.morningTasksContainer);
+        afternoonTasksContainer = findViewById(R.id.afternoonTasksContainer);
+        nightTasksContainer = findViewById(R.id.nightTasksContainer);
+        morningTasksHeader = findViewById(R.id.morningTasksHeader);
+        afternoonTasksHeader = findViewById(R.id.afternoonTasksHeader);
+        nightTasksHeader = findViewById(R.id.nightTasksHeader);
+        upcomingTasksSection = findViewById(R.id.upcomingTasksSection);
+        upcomingTasksContainer = findViewById(R.id.upcomingTasksContainer);
+        tasksContainerCard = findViewById(R.id.tasksContainerCard);
+
+        // Setup tabs
+        if (tabLayout != null) {
+            tabLayout.addTab(tabLayout.newTab().setText("Current Tasks"));
+            tabLayout.addTab(tabLayout.newTab().setText("Upcoming"));
+        }
+
+        // Always populate with sample tasks for tutorial
+        populateSampleTasks();
+        populateUpcomingTasks();
     }
 
     private void setupButtons() {
@@ -292,14 +278,10 @@ public class TutorialActivityNew extends BaseThemedActivity {
         if (drawerLayout != null) {
             drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         }
-        if (fabCenter != null) fabCenter.setEnabled(false);
-        if (fabQuick != null) fabQuick.setEnabled(false);
         if (bottomNav != null) bottomNav.setEnabled(false);
         
         // Make sure all UI is visible for demonstration
         if (toolbar != null) toolbar.setVisibility(View.VISIBLE);
-        if (fabCenter != null) fabCenter.setVisibility(View.VISIBLE);
-        if (fabQuick != null) fabQuick.setVisibility(View.VISIBLE);
         if (bottomNav != null) bottomNav.setVisibility(View.VISIBLE);
     }
     
@@ -423,6 +405,244 @@ public class TutorialActivityNew extends BaseThemedActivity {
         }
         
         if (scrollView != null) scrollView.smoothScrollTo(0, 0);
+    }
+
+    private void switchToNotepadView() {
+        // Hide the current tasks scroll view
+        if (scrollView != null) {
+            scrollView.setVisibility(View.GONE);
+        }
+
+        // Show notepad-style view in fragment container
+        if (fragmentContainer != null) {
+            // Create a simple notepad demo view
+            View notepadDemoView = createNotepadDemoView();
+            fragmentContainer.removeAllViews();
+            fragmentContainer.addView(notepadDemoView);
+            currentFragmentView = notepadDemoView;
+        }
+    }
+
+    private void switchBackToTasksView() {
+        // Show the tasks scroll view again
+        if (scrollView != null) {
+            scrollView.setVisibility(View.VISIBLE);
+        }
+
+        // Clear fragment container
+        if (fragmentContainer != null && currentFragmentView != null) {
+            fragmentContainer.removeView(currentFragmentView);
+            currentFragmentView = null;
+        }
+    }
+
+    private View createNotepadDemoView() {
+        // Create a simple notepad interface for tutorial demonstration
+        LinearLayout notepadLayout = new LinearLayout(this);
+        notepadLayout.setLayoutParams(new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.MATCH_PARENT
+        ));
+        notepadLayout.setOrientation(LinearLayout.VERTICAL);
+        notepadLayout.setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16));
+        notepadLayout.setBackgroundColor(getColor(android.R.color.transparent));
+
+        // Add sample notes
+        for (int i = 0; i < 3; i++) {
+            MaterialCardView noteCard = new MaterialCardView(this);
+            LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            cardParams.bottomMargin = dpToPx(12);
+            noteCard.setLayoutParams(cardParams);
+            noteCard.setCardBackgroundColor(getResources().getColor(android.R.color.white, null));
+            noteCard.setRadius(dpToPx(12));
+            noteCard.setCardElevation(dpToPx(2));
+
+            LinearLayout noteContent = new LinearLayout(this);
+            noteContent.setOrientation(LinearLayout.VERTICAL);
+            noteContent.setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16));
+
+            TextView noteTitle = new TextView(this);
+            noteTitle.setTextSize(16);
+            noteTitle.setTypeface(null, Typeface.BOLD);
+            noteTitle.setTextColor(getResources().getColor(android.R.color.black, null));
+
+            TextView noteBody = new TextView(this);
+            noteBody.setTextSize(14);
+            noteBody.setTextColor(getResources().getColor(android.R.color.darker_gray, null));
+            noteBody.setPadding(0, dpToPx(8), 0, 0);
+
+            switch (i) {
+                case 0:
+                    noteTitle.setText("📋 Meeting Notes");
+                    noteBody.setText("Discuss project timeline and deliverables with the team");
+                    break;
+                case 1:
+                    noteTitle.setText("💡 Ideas");
+                    noteBody.setText("New feature: Add voice notes for quick capture");
+                    break;
+                case 2:
+                    noteTitle.setText("✅ Shopping List");
+                    noteBody.setText("Milk, eggs, bread, coffee");
+                    break;
+            }
+
+            noteContent.addView(noteTitle);
+            noteContent.addView(noteBody);
+            noteCard.addView(noteContent);
+            notepadLayout.addView(noteCard);
+        }
+
+        return notepadLayout;
+    }
+
+    private void demonstrateTaskOrganization() {
+        // This method demonstrates the task organization by highlighting each time section
+        // sequentially to show how tasks are grouped by time of day
+
+        // First, scroll to show morning section
+        if (morningTasksHeader != null) {
+            scrollToView(morningTasksHeader);
+        }
+
+        // Highlight all three sections together to show the organization
+        handler.postDelayed(() -> {
+            // Find the parent container that holds all sections
+            if (tasksContainerCard != null) {
+                // Highlight the entire sections container with all sample tasks
+                spotlightView.highlightView(tasksContainerCard);
+                animateViewPulse(tasksContainerCard);
+
+                // Sequentially highlight each section with its sample tasks
+                highlightSectionSequentially();
+            } else if (morningTasksContainer != null && morningTasksContainer.getParent() != null) {
+                View sectionsParent = (View) morningTasksContainer.getParent();
+                spotlightView.highlightView(sectionsParent);
+                animateViewPulse(sectionsParent);
+                highlightSectionSequentially();
+            }
+        }, 400);
+    }
+
+    private void highlightSectionSequentially() {
+        // Highlight Morning section with its sample tasks
+        if (morningTasksHeader != null && morningTasksContainer != null && morningTasksContainer.getChildCount() > 0) {
+            handler.postDelayed(() -> {
+                scrollToView(morningTasksHeader);
+                handler.postDelayed(() -> {
+                    // Pulse morning header
+                    animateHeaderPulse(morningTasksHeader);
+
+                    // Highlight each morning task
+                    highlightTasksInContainer(morningTasksContainer, 0, 500);
+                }, 200);
+            }, 800);
+        }
+
+        // Then highlight Afternoon section with its sample tasks
+        if (afternoonTasksHeader != null && afternoonTasksContainer != null && afternoonTasksContainer.getChildCount() > 0) {
+            handler.postDelayed(() -> {
+                scrollToView(afternoonTasksHeader);
+                handler.postDelayed(() -> {
+                    animateHeaderPulse(afternoonTasksHeader);
+
+                    // Highlight each afternoon task
+                    highlightTasksInContainer(afternoonTasksContainer, 0, 500);
+                }, 200);
+            }, 2000);
+        }
+
+        // Finally highlight Night section with its sample tasks
+        if (nightTasksHeader != null && nightTasksContainer != null && nightTasksContainer.getChildCount() > 0) {
+            handler.postDelayed(() -> {
+                scrollToView(nightTasksHeader);
+                handler.postDelayed(() -> {
+                    animateHeaderPulse(nightTasksHeader);
+
+                    // Highlight each night task
+                    highlightTasksInContainer(nightTasksContainer, 0, 500);
+                }, 200);
+            }, 3200);
+        }
+    }
+
+    private void highlightTasksInContainer(LinearLayout container, int startIndex, long delayBetween) {
+        // Sequentially highlight each task card in the container
+        if (container == null || container.getChildCount() == 0) return;
+
+        for (int i = startIndex; i < container.getChildCount(); i++) {
+            final int index = i;
+            final View taskView = container.getChildAt(i);
+
+            handler.postDelayed(() -> {
+                if (taskView != null) {
+                    // Quick pulse animation for each task
+                    animateTaskCardPulse(taskView);
+                }
+            }, delayBetween * (i - startIndex));
+        }
+    }
+
+    private void animateTaskCardPulse(View taskView) {
+        // Create a quick pulse animation for individual task cards
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(taskView, "scaleX", 1f, 1.05f, 1f);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(taskView, "scaleY", 1f, 1.05f, 1f);
+
+        scaleX.setDuration(400);
+        scaleY.setDuration(400);
+        scaleX.setInterpolator(new AccelerateDecelerateInterpolator());
+        scaleY.setInterpolator(new AccelerateDecelerateInterpolator());
+
+        AnimatorSet pulseSet = new AnimatorSet();
+        pulseSet.playTogether(scaleX, scaleY);
+        pulseSet.start();
+    }
+
+    private void animateHeaderPulse(View header) {
+        // Create a quick pulse animation for section headers
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(header, "scaleX", 1f, 1.1f, 1f);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(header, "scaleY", 1f, 1.1f, 1f);
+
+        scaleX.setDuration(600);
+        scaleY.setDuration(600);
+        scaleX.setInterpolator(new AccelerateDecelerateInterpolator());
+        scaleY.setInterpolator(new AccelerateDecelerateInterpolator());
+
+        AnimatorSet pulseSet = new AnimatorSet();
+        pulseSet.playTogether(scaleX, scaleY);
+        pulseSet.start();
+    }
+
+    private void demonstrateTaskCards() {
+        // Sequentially highlight different task cards to show their features
+
+        // Highlight second morning task (Team Meeting - completed task)
+        if (morningTasksContainer != null && morningTasksContainer.getChildCount() > 1) {
+            handler.postDelayed(() -> {
+                View secondTask = morningTasksContainer.getChildAt(1);
+                if (secondTask != null) {
+                    scrollToView(secondTask);
+                    handler.postDelayed(() -> {
+                        animateTaskCardPulse(secondTask);
+                    }, 200);
+                }
+            }, 1200);
+        }
+
+        // Highlight first afternoon task (Lunch Break - another completed task)
+        if (afternoonTasksContainer != null && afternoonTasksContainer.getChildCount() > 0) {
+            handler.postDelayed(() -> {
+                View afternoonTask = afternoonTasksContainer.getChildAt(0);
+                if (afternoonTask != null) {
+                    scrollToView(afternoonTask);
+                    handler.postDelayed(() -> {
+                        animateTaskCardPulse(afternoonTask);
+                    }, 200);
+                }
+            }, 2400);
+        }
     }
 
     private void playEntranceAnimation() {
@@ -590,219 +810,180 @@ public class TutorialActivityNew extends BaseThemedActivity {
                 }
                 break;
                 
-            case FAB_CENTER:
-                if (fabCenter != null) {
-                    spotlightView.highlightView(fabCenter);
-                    animateFABBounce(fabCenter);
+            case CALENDAR_BUTTON:
+                // Highlight calendar button in top right
+                if (toolbar != null) {
+                    int[] location = new int[2];
+                    toolbar.getLocationOnScreen(location);
+                    int toolbarWidth = toolbar.getWidth();
+                    // Highlight the right side of toolbar where calendar icon is
+                    spotlightView.highlightRect(
+                        location[0] + toolbarWidth - dpToPx(56),
+                        location[1],
+                        location[0] + toolbarWidth,
+                        location[1] + toolbar.getHeight()
+                    );
+                    animateViewPulse(toolbar);
                 }
                 break;
                 
-            case FAB_QUICK:
-                if (fabQuick != null) {
-                    spotlightView.highlightView(fabQuick);
-                    animateFABBounce(fabQuick);
+            case BOTTOM_NAV_ADD:
+                // Highlight the center Actions button in bottom nav
+                if (bottomNav != null) {
+                    int[] location = new int[2];
+                    bottomNav.getLocationOnScreen(location);
+                    int navWidth = bottomNav.getWidth();
+                    int buttonWidth = navWidth / 3; // Three buttons
+                    // Highlight center button
+                    spotlightView.highlightRect(
+                        location[0] + buttonWidth,
+                        location[1],
+                        location[0] + buttonWidth * 2,
+                        location[1] + bottomNav.getHeight()
+                    );
+                    animateViewPulse(bottomNav);
                 }
                 break;
                 
-            case PROGRESS_TRACKER:
-                if (progressTracker != null && progressTracker.getVisibility() == View.VISIBLE) {
-                    spotlightView.highlightView(progressTracker);
-                    animateViewPulse(progressTracker);
-                } else {
-                    spotlightView.clearHighlight();
+            case BOTTOM_NAV_TASKS:
+                // Highlight the Tasks button (left) in bottom nav
+                if (bottomNav != null) {
+                    int[] location = new int[2];
+                    bottomNav.getLocationOnScreen(location);
+                    int navWidth = bottomNav.getWidth();
+                    int buttonWidth = navWidth / 3;
+                    // Highlight left button
+                    spotlightView.highlightRect(
+                        location[0],
+                        location[1],
+                        location[0] + buttonWidth,
+                        location[1] + bottomNav.getHeight()
+                    );
+                    animateViewPulse(bottomNav);
                 }
                 break;
-            
-            case SMART_VIEW_TOGGLE:
-                // Highlight the Smart View toggle switch
-                View smartViewToggle = findViewById(R.id.smartViewToggle);
-                if (smartViewToggle != null) {
-                    spotlightView.highlightView(smartViewToggle);
-                    animateViewPulse(smartViewToggle);
-                    // Enable interaction so user can try toggling
-                    smartViewToggle.setClickable(true);
-                } else {
-                    spotlightView.clearHighlight();
-                }
-                break;
-            
-            case RIGHT_NOW_SECTION:
-                // Highlight the Right Now section (Smart View mode)
-                View rightNowSection = findViewById(R.id.rightNowSection);
-                if (rightNowSection != null && rightNowSection.getVisibility() == View.VISIBLE) {
-                    scrollToView(rightNowSection);
-                    handler.postDelayed(() -> {
-                        spotlightView.highlightView(rightNowSection);
-                        animateViewPulse(rightNowSection);
-                    }, 300);
-                } else {
-                    // Fallback to task container if Smart View is off
-                    View taskContainer = findViewById(R.id.tasksContainerCard);
-                    if (taskContainer != null) {
-                        spotlightView.highlightView(taskContainer);
-                        animateViewPulse(taskContainer);
+
+            case BOTTOM_NAV_NOTEPAD:
+                // Switch to notepad view to show the interface
+                switchToNotepadView();
+
+                // Highlight the Notepad button (right) in bottom nav
+                handler.postDelayed(() -> {
+                    if (bottomNav != null) {
+                        int[] location = new int[2];
+                        bottomNav.getLocationOnScreen(location);
+                        int navWidth = bottomNav.getWidth();
+                        int buttonWidth = navWidth / 3;
+                        // Highlight right button
+                        spotlightView.highlightRect(
+                            location[0] + buttonWidth * 2,
+                            location[1],
+                            location[0] + navWidth,
+                            location[1] + bottomNav.getHeight()
+                        );
+                        animateViewPulse(bottomNav);
                     }
-                }
+                }, 400);
                 break;
             
-            case MISSED_SECTION:
-                // Highlight the Missed tasks section
-                View missedSection = findViewById(R.id.missedTasksSection);
-                if (missedSection != null && missedSection.getVisibility() == View.VISIBLE) {
-                    scrollToView(missedSection);
-                    handler.postDelayed(() -> {
-                        spotlightView.highlightView(missedSection);
-                        animateViewPulse(missedSection);
-                    }, 300);
-                } else {
-                    spotlightView.clearHighlight();
-                }
-                break;
-            
-            case LATER_TODAY_SECTION:
-                // Highlight the Later Today section
-                View laterSection = findViewById(R.id.laterTodaySection);
-                if (laterSection != null && laterSection.getVisibility() == View.VISIBLE) {
-                    scrollToView(laterSection);
-                    handler.postDelayed(() -> {
-                        spotlightView.highlightView(laterSection);
-                        animateViewPulse(laterSection);
-                    }, 300);
-                } else {
-                    spotlightView.clearHighlight();
-                }
-                break;
-            
-            case TASK_BADGES:
-                // Highlight a focus task to show badges
-                View focusBadge = null;
-                View rightNowContainer = findViewById(R.id.rightNowContainer);
-                if (rightNowContainer instanceof ViewGroup) {
-                    ViewGroup container = (ViewGroup) rightNowContainer;
-                    for (int i = 0; i < container.getChildCount(); i++) {
-                        View child = container.getChildAt(i);
-                        View badge = child.findViewById(R.id.focusBadge);
-                        if (badge != null && badge.getVisibility() == View.VISIBLE) {
-                            focusBadge = child;
-                            break;
-                        }
-                    }
-                }
-                if (focusBadge != null) {
-                    scrollToView(focusBadge);
-                    final View taskWithBadge = focusBadge;
-                    handler.postDelayed(() -> {
-                        spotlightView.highlightView(taskWithBadge);
-                        animateViewPulse(taskWithBadge);
-                    }, 300);
-                } else if (sampleTaskView != null) {
-                    spotlightView.highlightView(sampleTaskView);
-                    animateViewPulse(sampleTaskView);
-                }
-                break;
-                
             case TASK_SECTIONS:
-                // Highlight the morning tasks section header
-                View morningHeader = findViewById(R.id.morningTasksHeader);
-                if (morningHeader != null) {
-                    spotlightView.highlightView(morningHeader);
-                    animateViewPulse(morningHeader);
-                }
+                // Switch back to tasks view if we were on notepad
+                switchBackToTasksView();
+
+                // Make sure scroll view is visible and scroll to top
+                handler.postDelayed(() -> {
+                    if (scrollView != null) {
+                        scrollView.setVisibility(View.VISIBLE);
+                        scrollView.smoothScrollTo(0, 0);
+                    }
+
+                    // Demonstrate task organization by highlighting sections with sample tasks
+                    demonstrateTaskOrganization();
+                }, 300);
                 break;
-                
+            
             case TASK_CARD:
-                // Highlight a sample task card - SCROLL TO IT!
+                // Make sure we're on tasks view
+                if (scrollView != null) {
+                    scrollView.setVisibility(View.VISIBLE);
+                }
+
+                // Scroll to top to show morning tasks
+                if (scrollView != null) {
+                    scrollView.smoothScrollTo(0, 0);
+                }
+
+                // Find and highlight sample task cards
+                handler.postDelayed(() -> {
+                    // Highlight the first morning task (Morning Workout)
+                    if (morningTasksContainer != null && morningTasksContainer.getChildCount() > 0) {
+                        sampleTaskView = morningTasksContainer.getChildAt(0);
+
+                        if (sampleTaskView != null) {
+                            scrollToView(sampleTaskView);
+                            handler.postDelayed(() -> {
+                                // Highlight the task card with spotlight
+                                spotlightView.highlightView(sampleTaskView);
+                                animateViewPulse(sampleTaskView);
+
+                                // Demonstrate multiple task cards by highlighting them sequentially
+                                demonstrateTaskCards();
+                            }, 300);
+                        }
+                    } else if (afternoonTasksContainer != null && afternoonTasksContainer.getChildCount() > 0) {
+                        sampleTaskView = afternoonTasksContainer.getChildAt(0);
+                        scrollToView(sampleTaskView);
+                        handler.postDelayed(() -> {
+                            spotlightView.highlightView(sampleTaskView);
+                            animateViewPulse(sampleTaskView);
+                        }, 300);
+                    } else if (nightTasksContainer != null && nightTasksContainer.getChildCount() > 0) {
+                        sampleTaskView = nightTasksContainer.getChildAt(0);
+                        scrollToView(sampleTaskView);
+                        handler.postDelayed(() -> {
+                            spotlightView.highlightView(sampleTaskView);
+                            animateViewPulse(sampleTaskView);
+                        }, 300);
+                    } else {
+                        spotlightView.clearHighlight();
+                    }
+                }, 200);
+                break;
+            
+            case LONG_PRESS_DEMO:
+                // Show long press demo on task card
+                if (sampleTaskView == null) {
+                    // Try to find a task view
+                    if (morningTasksContainer != null && morningTasksContainer.getChildCount() > 0) {
+                        sampleTaskView = morningTasksContainer.getChildAt(0);
+                    } else if (afternoonTasksContainer != null && afternoonTasksContainer.getChildCount() > 0) {
+                        sampleTaskView = afternoonTasksContainer.getChildAt(0);
+                    }
+                }
+
                 if (sampleTaskView != null) {
                     scrollToView(sampleTaskView);
                     handler.postDelayed(() -> {
                         spotlightView.highlightView(sampleTaskView);
                         animateViewPulse(sampleTaskView);
-                    }, 300); // Wait for scroll to complete
-                }
-                break;
-                
-            case LONG_PRESS_DEMO:
-                // Demonstrate long press on task - SHOW QUICK INFO POPUP (3D Touch)
-                if (sampleTaskView != null) {
-                    scrollToView(sampleTaskView);
-                    handler.postDelayed(() -> {
-                        spotlightView.highlightView(sampleTaskView);
-                        // Enable long press for this step only
-                        sampleTaskView.setOnLongClickListener(v -> {
-                            // User actually long pressed! Show 3D touch popup
-                            show3DTouchPopup(v);
-                            return true;
-                        });
-                        // Auto-demo if user doesn't press after 5 seconds
-                        handler.postDelayed(() -> {
-                            if (currentStep == 7) { // Long press step (0-indexed)
-                                show3DTouchPopup(sampleTaskView);
-                            }
-                        }, 5000);
+
+                        // Show visual hint for long press
+                        animateLongPressHint(sampleTaskView);
                     }, 300);
+                } else {
+                    spotlightView.clearHighlight();
                 }
                 break;
-                
-            case DELETE_DEMO:
-                // Show delete functionality - highlight delete button on task card
-                if (sampleTaskView != null) {
-                    scrollToView(sampleTaskView);
-                    handler.postDelayed(() -> {
-                        // Highlight the delete button (visible in normal mode)
-                        MaterialButton deleteButton = sampleTaskView.findViewById(R.id.deleteButton);
-                        if (deleteButton != null) {
-                            deleteButton.setVisibility(View.VISIBLE);
-                            spotlightView.highlightView(deleteButton);
-                            animateDeleteButtonPulse(deleteButton);
-                            
-                            // Enable delete button to actually delete the fake task
-                            deleteButton.setEnabled(true);
-                            deleteButton.setOnClickListener(v -> {
-                                animateTaskDeletion(sampleTaskView);
-                            });
-                        } else {
-                            // Fallback to whole card
-                            spotlightView.highlightView(sampleTaskView);
-                        }
-                    }, 300);
-                }
-                break;
-                
-            case BOTTOM_NAV:
-                if (bottomNav != null) {
-                    spotlightView.highlightView(bottomNav);
-                    animateViewPulse(bottomNav);
-                }
-                break;
-                
-            case UPCOMING_TAB:
-                // Highlight the "Upcoming" tab in the TabLayout
-                if (tabLayout != null && tabLayout.getTabCount() > 1) {
-                    View tabView = ((android.view.ViewGroup) tabLayout.getChildAt(0)).getChildAt(1);
-                    if (tabView != null) {
-                        spotlightView.highlightView(tabView);
-                        animateViewPulse(tabView);
-                    }
-                }
-                break;
-                
-            case UPCOMING_TASKS:
-                // Switch to upcoming tasks view and highlight the content
-                switchToUpcomingTasks();
-                handler.postDelayed(() -> {
-                    // Highlight the upcoming tasks section
-                    if (upcomingTasksSection != null) {
-                        spotlightView.highlightView(upcomingTasksSection);
-                        animateViewPulse(upcomingTasksSection);
-                    }
-                }, 400);
-                break;
-                
+            
             case FINISH:
-                // Switch back to current tasks for finish
-                switchToCurrentTasks();
+                // Switch back to tasks view
+                switchBackToTasksView();
                 spotlightView.clearHighlight();
-                animateCelebration();
+                animateTutorialCardPulse();
+                break;
+
+            default:
+                spotlightView.clearHighlight();
                 break;
         }
     }
@@ -988,6 +1169,24 @@ public class TutorialActivityNew extends BaseThemedActivity {
         }, 4000);
     }
     
+    private void animateLongPressHint(View view) {
+        // Create a ripple/pulse effect to indicate long press is needed
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.05f, 1f, 1.05f, 1f);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.05f, 1f, 1.05f, 1f);
+
+        scaleX.setDuration(2000);
+        scaleY.setDuration(2000);
+        scaleX.setRepeatCount(ValueAnimator.INFINITE);
+        scaleY.setRepeatCount(ValueAnimator.INFINITE);
+
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(scaleX, scaleY);
+        animatorSet.start();
+
+        // Store animation to cancel later
+        currentAnimation = animatorSet;
+    }
+
     private void animateDeleteButtonPulse(View deleteButton) {
         ObjectAnimator scaleX = ObjectAnimator.ofFloat(deleteButton, "scaleX", 1f, 1.15f, 1f);
         ObjectAnimator scaleY = ObjectAnimator.ofFloat(deleteButton, "scaleY", 1f, 1.15f, 1f);
@@ -1156,6 +1355,27 @@ public class TutorialActivityNew extends BaseThemedActivity {
             case HAMBURGER_MENU:
                 imageResource = R.drawable.ic_menu_hamburger;
                 break;
+            case CALENDAR_BUTTON:
+                imageResource = R.drawable.ic_calendar;
+                break;
+            case BOTTOM_NAV_ADD:
+                imageResource = R.drawable.ic_add_fab;
+                break;
+            case BOTTOM_NAV_TASKS:
+            case TASK_SECTIONS:
+            case TASK_CARD:
+                imageResource = R.drawable.ic_reminder;
+                break;
+            case BOTTOM_NAV_NOTEPAD:
+                imageResource = R.drawable.ic_notepad;
+                break;
+            case LONG_PRESS_DEMO:
+                imageResource = R.drawable.ic_focus_task;
+                break;
+            case FINISH:
+                imageResource = R.drawable.app_icon;
+                break;
+            // Legacy types
             case FAB_CENTER:
             case FAB_QUICK:
                 imageResource = R.drawable.ic_add_fab;
@@ -1166,21 +1386,13 @@ public class TutorialActivityNew extends BaseThemedActivity {
             case PROGRESS_TRACKER:
                 imageResource = R.drawable.ic_check;
                 break;
-            case TASK_SECTIONS:
-                imageResource = R.drawable.ic_morning;
-                break;
-            case TASK_CARD:
-            case LONG_PRESS_DEMO:
             case DELETE_DEMO:
-                imageResource = R.drawable.ic_focus_task;
+                imageResource = R.drawable.ic_delete;
                 break;
             case BOTTOM_NAV:
             case UPCOMING_TAB:
             case UPCOMING_TASKS:
                 imageResource = R.drawable.ic_reminder;
-                break;
-            case FINISH:
-                imageResource = R.drawable.app_icon;
                 break;
             default:
                 imageResource = R.drawable.app_icon;
@@ -1204,23 +1416,28 @@ public class TutorialActivityNew extends BaseThemedActivity {
     private enum StepType {
         INTRO,
         HAMBURGER_MENU,
+        CALENDAR_BUTTON,
+        BOTTOM_NAV_ADD,
+        BOTTOM_NAV_TASKS,
+        BOTTOM_NAV_NOTEPAD,
+        TASK_SECTIONS,
+        TASK_CARD,
+        LONG_PRESS_DEMO,
+        FINISH,
+        // Legacy types for visual updates
         FAB_CENTER,
         FAB_QUICK,
         FLOATING_BUTTON,
         PROGRESS_TRACKER,
-        SMART_VIEW_TOGGLE,      // NEW: Smart View toggle
-        RIGHT_NOW_SECTION,      // NEW: Right Now section
-        MISSED_SECTION,         // NEW: Missed tasks section
-        LATER_TODAY_SECTION,    // NEW: Later Today section
-        TASK_SECTIONS,
-        TASK_CARD,
-        TASK_BADGES,            // NEW: Focus badge and category chips
-        LONG_PRESS_DEMO,
+        SMART_VIEW_TOGGLE,
+        RIGHT_NOW_SECTION,
+        MISSED_SECTION,
+        LATER_TODAY_SECTION,
+        TASK_BADGES,
         DELETE_DEMO,
         BOTTOM_NAV,
         UPCOMING_TAB,
-        UPCOMING_TASKS,
-        FINISH
+        UPCOMING_TASKS
     }
     
     private enum CardPosition {

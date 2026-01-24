@@ -492,10 +492,14 @@ public class HistoryActivity extends BaseThemedActivity {
             priorityIndicator.setBackgroundColor(color);
         }
 
-        // Show quick info popup on long press
+        // Both long press and single tap show quick info popup (view only, no edit)
         taskView.setOnLongClickListener(v -> {
             showTaskQuickInfo(v, task);
             return true;
+        });
+
+        taskView.setOnClickListener(v -> {
+            showTaskQuickInfo(v, task);
         });
 
         return taskView;
@@ -595,23 +599,10 @@ public class HistoryActivity extends BaseThemedActivity {
         // Add haptic feedback
         anchorView.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
 
-        // Tap popup to edit - allow editing completed tasks
+        // Tap popup to dismiss - no edit functionality for completed tasks
         popupView.setOnClickListener(v -> {
             popupWindow.dismiss();
-            openTaskForEditing(task);
         });
-    }
-
-    private void openTaskForEditing(Task task) {
-        if (task.isFocusTask()) {
-            Intent intent = new Intent(this, EditFocusTaskActivity.class);
-            intent.putExtra("task_id", task.id);
-            startActivity(intent);
-        } else {
-            Intent intent = new Intent(this, EditTaskActivity.class);
-            intent.putExtra("task_id", task.id);
-            startActivity(intent);
-        }
     }
 
     private int convertTo24Hour(int hour, String amPm) {
