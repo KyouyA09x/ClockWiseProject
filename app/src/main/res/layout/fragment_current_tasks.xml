@@ -71,6 +71,20 @@
                 android:backgroundTint="@android:color/transparent"
                 android:contentDescription="Filter by priority" />
 
+            <!-- Search Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/searchButton"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                app:icon="@drawable/ic_search"
+                app:iconSize="24dp"
+                app:iconTint="?attr/colorOnSurfaceVariant"
+                app:iconGravity="textStart"
+                app:strokeWidth="0dp"
+                android:backgroundTint="@android:color/transparent"
+                android:contentDescription="Search tasks" />
+
         </LinearLayout>
 
         <!-- Progress Card -->

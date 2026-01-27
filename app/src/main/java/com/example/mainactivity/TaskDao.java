@@ -31,6 +31,9 @@ public interface TaskDao {
     @Query("SELECT * FROM tasks WHERE date = :date AND (isDeleted = 0 OR isDeleted IS NULL)")
     List<Task> getTasksByDate(String date);
 
+    @Query("SELECT * FROM tasks WHERE name LIKE '%' || :searchQuery || '%' AND (isDeleted = 0 OR isDeleted IS NULL) ORDER BY date DESC, hour ASC, minute ASC")
+    List<Task> searchTasks(String searchQuery);
+
     @Query("DELETE FROM tasks WHERE id = :id")
     void deleteById(int id);
     

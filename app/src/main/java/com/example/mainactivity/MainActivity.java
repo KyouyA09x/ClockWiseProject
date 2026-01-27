@@ -2,6 +2,7 @@ package com.example.mainactivity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -25,6 +26,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,6 +36,7 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Executor;
 
 public class MainActivity extends BaseThemedActivity {
@@ -432,53 +435,53 @@ public class MainActivity extends BaseThemedActivity {
                 com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED);
             bottomSheetDialog.getBehavior().setSkipCollapsed(true);
 
-            // Setup Quick Task option
+            // Setup Quick Task option with faster animation
             View quickTaskOption = dialogView.findViewById(R.id.quickTaskOption);
             if (quickTaskOption != null) {
                 quickTaskOption.setOnClickListener(v -> {
-                    // Add scale animation on click
-                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                    // Faster scale animation (50ms instead of 100ms)
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(50)
                         .withEndAction(() -> {
-                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(50).start();
                             bottomSheetDialog.dismiss();
                             showQuickTaskBottomSheet();
                         }).start();
                 });
             }
 
-            // Setup Reminder/Task option
+            // Setup Reminder/Task option with faster animation
             View reminderOption = dialogView.findViewById(R.id.reminderOption);
             if (reminderOption != null) {
                 reminderOption.setOnClickListener(v -> {
-                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(50)
                         .withEndAction(() -> {
-                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(50).start();
                             bottomSheetDialog.dismiss();
                             showReminderBottomSheet(null);
                         }).start();
                 });
             }
 
-            // Setup Focus Task option
+            // Setup Focus Task option with faster animation
             View focusTaskOption = dialogView.findViewById(R.id.focusTaskOption);
             if (focusTaskOption != null) {
                 focusTaskOption.setOnClickListener(v -> {
-                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(50)
                         .withEndAction(() -> {
-                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(50).start();
                             bottomSheetDialog.dismiss();
                             showFocusTaskBottomSheet(null);
                         }).start();
                 });
             }
 
-            // Setup Note option
+            // Setup Note option with faster animation
             View noteOption = dialogView.findViewById(R.id.noteOption);
             if (noteOption != null) {
                 noteOption.setOnClickListener(v -> {
-                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(50)
                         .withEndAction(() -> {
-                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(50).start();
                             bottomSheetDialog.dismiss();
                             // Navigate to notepad and start new note
                             navigateToNotepad();
@@ -486,33 +489,33 @@ public class MainActivity extends BaseThemedActivity {
                 });
             }
             
-            // Setup AI Smart Task option (NEW)
+            // Setup AI Smart Task option with faster animation
             View aiSmartTaskOption = dialogView.findViewById(R.id.aiSmartTaskOption);
             if (aiSmartTaskOption != null) {
                 aiSmartTaskOption.setOnClickListener(v -> {
-                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(50)
                         .withEndAction(() -> {
-                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(50).start();
                             bottomSheetDialog.dismiss();
                             showNaturalLanguageTaskBottomSheet();
                         }).start();
                 });
             }
             
-            // Setup Convert Note to Task option (NEW)
+            // Setup Convert Note to Task option with faster animation
             View convertNoteOption = dialogView.findViewById(R.id.convertNoteOption);
             if (convertNoteOption != null) {
                 convertNoteOption.setOnClickListener(v -> {
-                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(50)
                         .withEndAction(() -> {
-                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(50).start();
                             bottomSheetDialog.dismiss();
                             showConvertNoteDialog();
                         }).start();
                 });
             }
 
-            // Show bottom sheet with animation
+            // Show bottom sheet immediately - no delay
             bottomSheetDialog.show();
 
         } catch (Exception e) {
@@ -1852,5 +1855,184 @@ public class MainActivity extends BaseThemedActivity {
             String htmlText = getString(stringResId);
             textView.setText(android.text.Html.fromHtml(htmlText, android.text.Html.FROM_HTML_MODE_COMPACT));
         }
+    }
+
+    /**
+     * Show search dialog for searching tasks
+     */
+    public void showSearchDialog() {
+        // Create dialog
+        android.app.Dialog dialog = new android.app.Dialog(this);
+        dialog.setContentView(R.layout.dialog_search);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+            dialog.getWindow().setLayout(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
+
+        // Get views
+        ImageButton closeButton = dialog.findViewById(R.id.closeButton);
+        com.google.android.material.textfield.TextInputEditText searchInput = dialog.findViewById(R.id.searchInput);
+        LinearLayout searchResultsContainer = dialog.findViewById(R.id.searchResultsContainer);
+        LinearLayout emptyStateContainer = dialog.findViewById(R.id.emptyStateContainer);
+        TextView resultsCountText = dialog.findViewById(R.id.resultsCountText);
+
+        // Close button click
+        closeButton.setOnClickListener(v -> dialog.dismiss());
+
+        // Debounce handler for search
+        android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        final Runnable[] searchRunnable = {null};
+
+        // Search input text change listener with debouncing
+        searchInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Cancel previous search if still pending
+                if (searchRunnable[0] != null) {
+                    searchHandler.removeCallbacks(searchRunnable[0]);
+                }
+
+                // Schedule new search with 150ms delay (debouncing)
+                searchRunnable[0] = () -> performSearch(s.toString(), searchResultsContainer, emptyStateContainer, resultsCountText, dialog);
+                searchHandler.postDelayed(searchRunnable[0], 150);
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        // Show dialog first for instant response
+        dialog.show();
+
+        // Then focus and show keyboard asynchronously
+        searchInput.post(() -> {
+            searchInput.requestFocus();
+            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.showSoftInput(searchInput, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
+    }
+
+    /**
+     * Perform search and display results
+     */
+    private void performSearch(String query, LinearLayout resultsContainer, LinearLayout emptyStateContainer, TextView resultsCountText, android.app.Dialog dialog) {
+        if (query == null || query.trim().isEmpty()) {
+            // No query - hide everything immediately
+            resultsContainer.removeAllViews();
+            emptyStateContainer.setVisibility(View.GONE);
+            resultsCountText.setVisibility(View.GONE);
+            return;
+        }
+
+        // Show loading state (optional - could add a progress indicator here)
+        String trimmedQuery = query.trim();
+
+        // Run search on background thread to avoid UI blocking
+        new Thread(() -> {
+            try {
+                // Search tasks on background thread
+                List<Task> searchResults = taskRepository.searchTasks(trimmedQuery);
+
+                // Update UI on main thread
+                runOnUiThread(() -> {
+                    resultsContainer.removeAllViews();
+
+                    if (searchResults == null || searchResults.isEmpty()) {
+                        // No results - show empty state
+                        emptyStateContainer.setVisibility(View.VISIBLE);
+                        resultsCountText.setVisibility(View.GONE);
+                    } else {
+                        // Show results
+                        emptyStateContainer.setVisibility(View.GONE);
+                        resultsCountText.setVisibility(View.VISIBLE);
+                        resultsCountText.setText(getString(R.string.search_results_count, searchResults.size()));
+
+                        // Display each result
+                        for (Task task : searchResults) {
+                            View resultView = createSearchResultView(task, dialog);
+                            resultsContainer.addView(resultView);
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                android.util.Log.e("MainActivity", "Search error: " + e.getMessage(), e);
+                runOnUiThread(() -> {
+                    resultsContainer.removeAllViews();
+                    emptyStateContainer.setVisibility(View.VISIBLE);
+                });
+            }
+        }).start();
+    }
+
+    /**
+     * Create a search result item view
+     */
+    private View createSearchResultView(Task task, android.app.Dialog dialog) {
+        View view = LayoutInflater.from(this).inflate(R.layout.search_result_item, null);
+
+        // Get views
+        ImageView taskTypeIcon = view.findViewById(R.id.taskTypeIcon);
+        TextView taskName = view.findViewById(R.id.taskName);
+        TextView taskTime = view.findViewById(R.id.taskTime);
+        TextView taskDate = view.findViewById(R.id.taskDate);
+        TextView categoryChip = view.findViewById(R.id.categoryChip);
+        ImageView statusIcon = view.findViewById(R.id.statusIcon);
+
+        // Set task type icon
+        if ("focus".equals(task.taskType)) {
+            taskTypeIcon.setImageResource(R.drawable.ic_focus);
+        } else {
+            taskTypeIcon.setImageResource(R.drawable.ic_reminder);
+        }
+
+        // Set task name
+        taskName.setText(task.name);
+
+        // Set task time
+        String timeText = String.format("%02d:%02d %s", task.hour, task.minute, task.amPm);
+        if ("focus".equals(task.taskType)) {
+            timeText += String.format(" - %02d:%02d %s", task.endHour, task.endMinute, task.endAmPm);
+        }
+        taskTime.setText(timeText);
+
+        // Set task date if available
+        if (task.date != null && !task.date.isEmpty()) {
+            taskDate.setVisibility(View.VISIBLE);
+            taskDate.setText(task.date);
+        } else {
+            taskDate.setVisibility(View.GONE);
+        }
+
+        // Set category if available
+        if (task.category != null && !task.category.isEmpty()) {
+            categoryChip.setVisibility(View.VISIBLE);
+            categoryChip.setText(task.category);
+        } else {
+            categoryChip.setVisibility(View.GONE);
+        }
+
+        // Show status icon if completed
+        if (task.isComplete) {
+            statusIcon.setVisibility(View.VISIBLE);
+        } else {
+            statusIcon.setVisibility(View.GONE);
+        }
+
+        // Click listener - open task details or dismiss
+        view.setOnClickListener(v -> {
+            dialog.dismiss();
+            // You can add navigation to task details here if needed
+            Toast.makeText(this, "Task: " + task.name, Toast.LENGTH_SHORT).show();
+        });
+
+        return view;
     }
 }

@@ -58,7 +58,8 @@ public class CurrentTasksFragment extends Fragment {
     private LinearProgressIndicator progressBar;
     private TextView completionText;
     private com.google.android.material.button.MaterialButton priorityFilterButton;
-    
+    private com.google.android.material.button.MaterialButton searchButton;
+
     // Smart insight views
     private View smartInsightCard;
     private TextView smartInsightText;
@@ -199,6 +200,16 @@ public class CurrentTasksFragment extends Fragment {
         if (priorityFilterButton != null) {
             updateFilterButtonText();
             priorityFilterButton.setOnClickListener(v -> showPriorityFilterDialog());
+        }
+
+        // Setup search button
+        searchButton = view.findViewById(R.id.searchButton);
+        if (searchButton != null) {
+            searchButton.setOnClickListener(v -> {
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).showSearchDialog();
+                }
+            });
         }
 
         // Setup dynamic padding for content to avoid being hidden by FABs

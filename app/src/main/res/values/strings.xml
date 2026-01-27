@@ -65,5 +65,15 @@
 
     <!-- About Us section (Classic Design) -->
     <string name="about_us_developers">Ferol, John Sebastian Khyle, M.\nGarcia, Lois Henricho, L.\nImperial, Jherico, S.\nLapez, Corvin Kyle, A.\nMillares, Jerome, P.\nSia, Mavi Gabriel, A.</string>
+
+    <!-- Search strings -->
+    <string name="search">Search</string>
+    <string name="search_tasks">Search Tasks</string>
+    <string name="search_hint">Search for tasks…</string>
+    <string name="no_results_found">No tasks found</string>
+    <string name="no_results_description">Try adjusting your search terms</string>
+    <string name="search_results_count">%d result(s) found</string>
 </resources>
+
+
 

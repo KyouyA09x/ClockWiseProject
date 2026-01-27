@@ -158,6 +158,17 @@ public class TaskRepository {
     }
     
     /**
+     * Search tasks by name
+     * @param query Search query string
+     * @return List of tasks matching the query
+     */
+    public List<Task> searchTasks(String query) {
+        if (taskDao == null) return new ArrayList<>();
+        if (query == null || query.trim().isEmpty()) return new ArrayList<>();
+        return taskDao.searchTasks(query.trim());
+    }
+
+    /**
      * Clear all completed tasks from the database and memory
      */
     public void clearCompletedTasks(Context context) {
